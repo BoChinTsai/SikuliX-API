@@ -1,4 +1,4 @@
-Sikuli API 1.0.1 --- Branch developement
+Sikuli API 1.0.1 <br />Branch developement
 ===========
 
 **Download of current versions (1.0.0)** visit the official [**download page on Launchpad**](https://launchpad.net/sikuli/+download).<br />
