@@ -8,19 +8,16 @@ public enum CommandArgsEnum {
     HELP("help", "h", null, "print this help message"),
 
     /** Starts an interactive session */
-    INTERACTIVE("interactive", "i", null, "start interactive Sikuli session with the available ScriptRunner"),
+    INTERACTIVE("interactive", "i", "[runner (jython)]", "start interactive session and/or select ScriptRunner"),
 
     /** Runs the script */
     RUN("run", "r", "foobar.sikuli", "run script"),
 
     /** Runs the script as testcase */
-    TEST("test", "t", "foobar.sikuli", "runs a unittest with the available ScriptRunner"),
-
-    /** Runs the script with the specified ScriptRunner */
-    SCRIPTRUNNER("scriptrunner", "x", "scriptrunner", "ScriptRunner that will execute the script"),
+    TEST("test", "t", "foobar.sikuli", "runs script as unittest"),
 
     /** Prints all errormessages to stdout */
-    STDERR("stderr", "s", null, "print runtime errors to stderr instead of popping up a message box"),
+    STDERR("stderr", "s", null, "print runtime errors to stderr , not in a popup"),
 
     /** Preloads script in IDE */
     LOAD("load", "l", "one or more foobar.sikuli", "preload scripts in IDE"),

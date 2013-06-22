@@ -70,10 +70,11 @@ public class CommandArgs {
     }
     if (isScript(_callerType)) {
       _options.addOption(
-              CommandArgsEnum.INTERACTIVE.shortname(),
-              CommandArgsEnum.INTERACTIVE.longname(),
-              false,
-              CommandArgsEnum.INTERACTIVE.description());
+              OptionBuilder.withLongOpt(CommandArgsEnum.INTERACTIVE.longname())
+              .hasOptionalArg()
+              .withArgName(CommandArgsEnum.INTERACTIVE.argname())
+              .withDescription(CommandArgsEnum.INTERACTIVE.description())
+              .create(CommandArgsEnum.INTERACTIVE.shortname().charAt(0)));
       _options.addOption(
               OptionBuilder.withLongOpt(CommandArgsEnum.TEST.longname())
               .hasArg()
@@ -86,12 +87,6 @@ public class CommandArgs {
               .withArgName(CommandArgsEnum.RUN.argname())
               .withDescription(CommandArgsEnum.RUN.description())
               .create(CommandArgsEnum.RUN.shortname().charAt(0)));
-      _options.addOption(
-              OptionBuilder.withLongOpt(CommandArgsEnum.SCRIPTRUNNER.longname())
-              .hasArg()
-              .withArgName(CommandArgsEnum.SCRIPTRUNNER.argname())
-              .withDescription(CommandArgsEnum.SCRIPTRUNNER.description())
-              .create(CommandArgsEnum.SCRIPTRUNNER.shortname().charAt(0)));
       _options.addOption(
               OptionBuilder.withLongOpt(CommandArgsEnum.ARGS.longname())
               .withArgName(CommandArgsEnum.ARGS.argname())

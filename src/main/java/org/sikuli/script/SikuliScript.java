@@ -53,13 +53,6 @@ public class SikuliScript {
       System.exit(1);
     }
 
-    if (cmdLine.hasOption(CommandArgsEnum.SCRIPTRUNNER.shortname())) {
-      runner = getScriptRunner(cmdLine.getOptionValue(CommandArgsEnum.SCRIPTRUNNER.longname()),
-                                   null, args);
-    } else {
-      runner = null;
-    }
-
     // print help
     if (cmdLine.hasOption(CommandArgsEnum.HELP.shortname())) {
       cmdArgs.printHelp();
@@ -76,21 +69,31 @@ public class SikuliScript {
       imagePath = null;
     }
 
-    // start interactive session
+    // select script runner and/or start interactive session
+    // option is overloaded - might specify runner for -r/-t
     if (cmdLine.hasOption(CommandArgsEnum.INTERACTIVE.shortname())) {
       int exitCode = 0;
       if (runner == null) {
-        //TODO want to overload the -i option
-        //(-i is Jython -i xxx is xxx interactive, together with -r/-t it defines the runner
-        runner = getScriptRunner("jython", null, args);
+        String givenRunnerName = cmdLine.getOptionValue(CommandArgsEnum.INTERACTIVE.longname());
+        if (givenRunnerName == null) {
+          runner = getScriptRunner("jython", null, args);
+        } else {
+          runner = getScriptRunner(givenRunnerName, null, args);
+          if (runner == null) {
+            System.exit(1);
+          }
+        }
       }
-      exitCode = runner.runInteractive(args);
-      runner.close();
-      ScreenHighlighter.closeAll();
-      System.exit(exitCode);
+      if (!cmdLine.hasOption(CommandArgsEnum.RUN.shortname()) &&
+              !cmdLine.hasOption(CommandArgsEnum.TEST.shortname())) {
+        exitCode = runner.runInteractive(args);
+        runner.close();
+        ScreenHighlighter.closeAll();
+        System.exit(exitCode);
+      }
     }
 
-    // start script execution
+    // start script execution using scriptrunner (-i) or decide from contained scriptfile
     String givenScriptName = null;
     runAsTest = false;
     if (cmdLine.hasOption(CommandArgsEnum.RUN.shortname())) {
@@ -108,11 +111,11 @@ public class SikuliScript {
         imagePath = FileManager.resolveImagePath(script);
       }
       ImageLocator.setBundlePath(imagePath.getAbsolutePath());
-      int exitCode = runAsTest ?
-                       runner.runTest(script, imagePath,
-                       cmdLine.getOptionValues(CommandArgsEnum.ARGS.longname()), null) :
-                       runner.runScript(script, imagePath,
-                       cmdLine.getOptionValues(CommandArgsEnum.ARGS.longname()), null);
+      int exitCode = runAsTest
+              ? runner.runTest(script, imagePath,
+              cmdLine.getOptionValues(CommandArgsEnum.ARGS.longname()), null)
+              : runner.runScript(script, imagePath,
+              cmdLine.getOptionValues(CommandArgsEnum.ARGS.longname()), null);
       runner.close();
       System.exit(exitCode);
     } else {
@@ -211,15 +214,15 @@ public class SikuliScript {
     Iterator<IScriptRunner> scriptRunnerIterator = loader.iterator();
     while (scriptRunnerIterator.hasNext()) {
       IScriptRunner currentRunner = scriptRunnerIterator.next();
-      if ((name != null && currentRunner.getName().toLowerCase().equals(name.toLowerCase())) ||
-              (ending != null && currentRunner.hasFileEnding(ending) != null)) {
+      if ((name != null && currentRunner.getName().toLowerCase().equals(name.toLowerCase()))
+              || (ending != null && currentRunner.hasFileEnding(ending) != null)) {
         runner = currentRunner;
         runner.init(args);
         break;
       }
     }
     if (runner == null) {
-      Debug.error("Could not load any script runner!");
+      Debug.error("SikuliScript: main: Could not load script runner with name: %s", name);
       System.exit(1);
     }
     return runner;

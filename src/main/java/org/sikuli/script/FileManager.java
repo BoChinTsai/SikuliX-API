@@ -383,6 +383,10 @@ public class FileManager {
       script = scriptName.getName().substring(0, pos);
       scriptType = scriptName.getName().substring(pos + 1);
     }
+    if ("skl".equals(scriptType) || "zip".equals(scriptType)) {
+      //TODO unzip to temp and run from there
+      return null; // until ready
+    }
     if ("sikuli".equals(scriptType)) {
       if (runner == null) {
         // check for script.xxx inside folder
@@ -407,10 +411,8 @@ public class FileManager {
           }
         }
       }
-    } else if ("skl".equals(scriptType) || "zip".equals(scriptType)) {
-      //TODO unzip to temp and run from there
-      return null; // until ready
-    } else if ("jar".equals(scriptType)) {
+    }
+    if ("jar".equals(scriptType)) {
       //TODO try to load and run as extension
       return null; // until ready
     }
