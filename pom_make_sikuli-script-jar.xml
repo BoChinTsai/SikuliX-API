@@ -165,9 +165,9 @@
         </configuration>
       </plugin>
 
-      <!-- Plugin to create an executable jar -->
+      <!-- Plugin to create an additional jar containing all stuff (sikuli-script.jar)-->
       <plugin>
-        <artifactId>maven-jar-plugin</artifactId>
+        <artifactId>maven-assembly-plugin</artifactId>
         <version>2.4</version>
         <configuration>
           <archive>
@@ -175,42 +175,21 @@
               <mainClass>org.sikuli.script.SikuliScript</mainClass>
             </manifest>
           </archive>
+          <descriptorRefs>
+            <descriptorRef>jar-with-dependencies</descriptorRef>
+          </descriptorRefs>
+          <finalName>sikuli-script</finalName>
         </configuration>
-      </plugin>
-
-      <!-- Plugin to create an additional jar containing the source
-      <plugin>
-        <artifactId>maven-source-plugin</artifactId>
-        <version>2.2.1</version>
         <executions>
           <execution>
-            <id>attach-sources</id>
-            <phase>verify</phase>
+            <id>make-assembly</id>
+            <phase>package</phase>
             <goals>
-              <goal>jar-no-fork</goal>
+              <goal>single</goal>
             </goals>
           </execution>
         </executions>
       </plugin>
-      -->
-
-      <!-- Plugin to run the jar using mvn exec:java -Dexec.args=" ... parms ... "-->
-      <plugin>
-        <groupId>org.codehaus.mojo</groupId>
-        <artifactId>exec-maven-plugin</artifactId>
-        <version>1.2.1</version>
-        <executions>
-          <execution>
-            <goals>
-              <goal>java</goal>
-            </goals>
-          </execution>
-        </executions>
-        <configuration>
-          <mainClass>org.sikuli.script.SikuliScript</mainClass>
-        </configuration>
-      </plugin>
-
     </plugins>
   </build>
 </project>
