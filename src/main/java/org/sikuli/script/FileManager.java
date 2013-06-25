@@ -37,7 +37,7 @@ import javax.imageio.ImageIO;
 public class FileManager {
   private static String jarResources = Settings.jarResources;
   static final int DOWNLOAD_BUFFER_SIZE = 153600;
-  static INativeLoader nativeLoader = null;
+  static IResourceLoader nativeLoader = null;
 
 
   /**
@@ -446,12 +446,12 @@ public class FileManager {
     }
   }
   
-  public static INativeLoader getNativeLoader(String name, String[] args) {
-    INativeLoader nativeLoader = null;
-    ServiceLoader<INativeLoader> loader = ServiceLoader.load(INativeLoader.class);
-    Iterator<INativeLoader> scriptRunnerIterator = loader.iterator();
+  public static IResourceLoader getNativeLoader(String name, String[] args) {
+    IResourceLoader nativeLoader = null;
+    ServiceLoader<IResourceLoader> loader = ServiceLoader.load(IResourceLoader.class);
+    Iterator<IResourceLoader> scriptRunnerIterator = loader.iterator();
     while (scriptRunnerIterator.hasNext()) {
-      INativeLoader currentRunner = scriptRunnerIterator.next();
+      IResourceLoader currentRunner = scriptRunnerIterator.next();
       if ((name != null && currentRunner.getName().toLowerCase().equals(name.toLowerCase()))) {
         nativeLoader = currentRunner;
         nativeLoader.init(args);

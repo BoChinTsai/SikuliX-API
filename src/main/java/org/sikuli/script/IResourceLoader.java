@@ -9,7 +9,7 @@ package org.sikuli.script;
 import java.io.File;
 import java.io.IOException;
 
-public interface INativeLoader {
+public interface IResourceLoader {
 
   /**
    * Can be used to initialize the NativeLoader. This method is called at the beginning of program
