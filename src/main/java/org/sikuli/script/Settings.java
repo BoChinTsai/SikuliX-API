@@ -16,22 +16,10 @@ import org.sikuli.system.OSUtil;
 
 public class Settings {
 
-  public static String UserName = "UnKnown";
+  private static String me = "Settings";
+  private static String mem = "...";
+  private static int lvl = 2;
   public static int breakPoint = 0;
-  public static String libPath = null;
-  private static final String sikhomeEnv = System.getenv("SIKULIX_HOME");
-  private static final String sikhomeProp = System.getProperty("sikuli.Home");
-  public static final String libSub = FileManager.slashify("SikuliX/libs", false);
-  private static String checkFileName = null;
-  /**
-   * Mac: standard place for native libs
-   */
-  public static String libPathMac = "/Applications/SikuliX-IDE.app/Contents/libs";
-  /**
-   * Win: standard place for native libs
-   */
-  public static final String libPathWin = FileManager.slashify(System.getenv("ProgramFiles"), true) + libSub;
-  public static final String libPathWin32 = FileManager.slashify(System.getenv("ProgramFiles(x86)"), true) + libSub;
   /**
    * location of folder Tessdata
    */
@@ -74,118 +62,27 @@ public class Settings {
   public static final String SikuliVersionBetaIDE = "Sikuli IDE " + bversion;
   public static String SikuliVersion;
   public static String SikuliVersionIDE;
+  /**
+   * Resource types to be used with IResourceLoader implementations
+   */
+  public static final String SIKULI_LIB = "*sikuli_lib";
   public static String BaseTempPath;
+  public static String UserName = "UnKnown";
 
-//TODO move libs check to FileManager
+//TODO move libs check to ResourceLoader
   static {
-    doDebug = false;
-    File libsfolder;
-    String libspath;
+    mem = "clinit";
+
     Properties props = System.getProperties(); //for debugging
 
     if (System.getProperty("user.name") != null && !"".equals(System.getProperty("user.name"))) {
       UserName = System.getProperty("user.name");
     }
+
     BaseTempPath = System.getProperty("java.io.tmpdir") + File.separator + UserName;
-
-    // check Java property sikuli.home
-    if (sikhomeProp != null) {
-      libspath = (new File(FileManager.slashify(sikhomeProp, true) + "libs")).getAbsolutePath();
-      Debug.log(2, "FileManager: LibsPath: Java.System.Property.sikuli.Home: " + libspath);
-      if ((new File(libspath)).exists()) {
-        libPath = libspath;
-      }
-    }
-
-    // check environmenet SIKULI_HOME
-    if (libPath == null && sikhomeEnv != null) {
-      libspath = FileManager.slashify(sikhomeEnv, true) + "libs";
-      Debug.log(2, "FileManager: LibsPath: Java.System.Environment.SIKULIX_HOME: " + libspath);
-      if ((new File(libspath)).exists()) {
-//TODO this is a hack to check for the new SikuliX - find other solution
-        getOS();
-        if (checkFileName != null) {
-          if ((new File(FileManager.slashify(libspath, true) + checkFileName + ".txt")).exists()
-                  || (new File(FileManager.slashify(libspath, true) + checkFileName + "32Bit.txt")).exists()
-                  || (new File(FileManager.slashify(libspath, true) + checkFileName + "64Bit.txt")).exists()) {
-            libPath = libspath;
-          }
-        }
-      }
-    }
-
-    // check parent folder of jar file
-    if (libPath == null) {
-      CodeSource src = Settings.class.getProtectionDomain().getCodeSource();
-      String lfp = null;
-      if (src.getLocation() != null) {
-        String srcParent = (new File(src.getLocation().getPath())).getParent();
-        db("jar Location: " + srcParent);
-        try {
-          lfp = FileManager.slashify(srcParent, true) + "libs";
-        } catch (Exception e) {
-        }
-        libsfolder = (new File(lfp));
-        Debug.log(2, "FileManager: LibsPath: sikuli-script.jar: "
-                + lfp);
-        if (libsfolder.exists()) {
-          db("folder libs found in jar parent folder");
-          libPath = lfp;
-        } else {
-          db("no folder libs in jar parent folder");
-        }
-      }
-    }
-
-    // check the working directory and its parent
-    if (libPath == null) {
-      File wd = new File(System.getProperty("user.dir"));
-      File wdp = new File(System.getProperty("user.dir")).getParentFile();
-      wd = new File(FileManager.slashify(wd.getAbsolutePath(), true) + libSub);
-      wdp = new File(FileManager.slashify(wdp.getAbsolutePath(), true) + libSub);
-      Debug.log(2, "FileManager: LibsPath: Java.System.Property.user.dir: " + wd);
-      if (wd.exists()) {
-        libPath = wd.getAbsolutePath();
-      } else if (wdp.exists()) {
-        libPath = wdp.getAbsolutePath();
-      }
-      if (libPath == null) {
-        wd = new File(FileManager.slashify(System.getProperty("user.home"), true) + libSub);
-        if (wd.exists()) {
-          libPath = wd.getAbsolutePath();
-        }
-      }
-    }
-
-    // check Mac specific folders
-    if (isMac() && libPath == null) {
-      if (!(new File(libPathMac)).exists()) {
-        libPath = FileManager.slashify("/Applications/" + libSub, true);
-      } else {
-        libPath = libPathMac;
-      }
-      Debug.log(2, "FileManager: LibsPath: Mac fall back: " + libPath);
-    }
-
-    // check Windows specific folders
-    if (isWindows() && libPath == null) {
-      if ((new File(libPathWin)).exists()) {
-        libPath = libPathWin;
-      } else if ((new File(libPathWin32)).exists()) {
-        libPath = libPathWin32;
-      }
-      Debug.log(2, "FileManager: LibsPath: Windows fall back: " + libPath);
-    }
 
     // TODO check existence of an extension repository
     SikuliRepo = null;
-
-//TODO set the folder that should contain tessdata
-    if (isWindows() || isMac()) {
-      OcrDataPath = libPath;
-    } else {
-      OcrDataPath = "/usr/local/share";
-    }
 
     // set the version strings
     if (SikuliVersionSub == 0 && SikuliVersionBetaN > 0) {
@@ -194,14 +91,6 @@ public class Settings {
     } else {
       SikuliVersion = SikuliVersionDefault;
       SikuliVersionIDE = SikuliVersionDefaultIDE;
-    }
-    doDebug = false; // to be used as breakpoint
-  }
-  private static boolean doDebug;
-
-  private static void db(String msg) {
-    if (doDebug) {
-      System.out.println("[Settings] " + msg);
     }
   }
   public static final int ISWINDOWS = 0;
@@ -226,14 +115,6 @@ public class Settings {
   public static double DelayBeforeDrop = 0.3;
   public static double DelayAfterDrag = 0.3;
   public static String BundlePath = null;
-  /**
-   * in-jar folder to load other ressources from
-   */
-  public static String jarResources = "META-INF/res/";
-  /**
-   * in-jar folder to load native libs from
-   */
-  public static String libSource = "META-INF/libs/";
   public static boolean OcrTextSearch = false;
   public static boolean OcrTextRead = false;
   /**
@@ -316,19 +197,10 @@ public class Settings {
     String os = System.getProperty("os.name").toLowerCase();
     if (os.startsWith("mac")) {
       osRet = ISMAC;
-      if (checkFileName == null) {
-        checkFileName = "MadeForMac";
-      }
     } else if (os.startsWith("windows")) {
       osRet = ISWINDOWS;
-      if (checkFileName == null) {
-        checkFileName = "MadeForWindows";
-      }
     } else if (os.startsWith("linux")) {
       osRet = ISLINUX;
-      if (checkFileName == null) {
-        checkFileName = "MadeForLinux";
-      }
     }
     return osRet;
   }
@@ -391,5 +263,10 @@ public class Settings {
 
   public static String getTimestamp() {
     return (new Date()).getTime() + "";
+  }
+
+  private static void log(int level, String message, Object... args) {
+    Debug.logx(level, level < 0 ? "error" : "debug",
+            me + ": " + mem + ": " + message, args);
   }
 }

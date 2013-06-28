@@ -12,7 +12,6 @@ import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileFilter;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
@@ -24,10 +23,7 @@ import java.io.OutputStream;
 import java.io.UnsupportedEncodingException;
 import java.net.URL;
 import java.net.URLDecoder;
-import java.security.CodeSource;
-import java.util.ArrayList;
 import java.util.Iterator;
-import java.util.List;
 import java.util.Random;
 import java.util.ServiceLoader;
 import java.util.zip.ZipEntry;
@@ -35,7 +31,6 @@ import java.util.zip.ZipInputStream;
 import javax.imageio.ImageIO;
 
 public class FileManager {
-  private static String jarResources = Settings.jarResources;
   static final int DOWNLOAD_BUFFER_SIZE = 153600;
   static IResourceLoader nativeLoader = null;
 
@@ -54,27 +49,8 @@ public class FileManager {
     if (nativeLoader == null) {
       nativeLoader = getNativeLoader("basic", null);
     }
-    nativeLoader.check(nativeLoader.getLibType());
-    nativeLoader.export(libname+nativeLoader.getLibType(), null);
-  }
-
-  /**
-   * copy an InputStream to an OutputStream.
-   *
-   * @param in InputStream to copy from
-   * @param out OutputStream to copy to
-   * @throws IOException if there's an error
-   */
-  public static void copy(InputStream in, OutputStream out) throws IOException {
-    byte[] tmp = new byte[8192];
-    int len = 0;
-    while (true) {
-      len = in.read(tmp);
-      if (len <= 0) {
-        break;
-      }
-      out.write(tmp, 0, len);
-    }
+    nativeLoader.check(Settings.SIKULI_LIB);
+    nativeLoader.doSomethingSpecial("loadLib", new String[] {libname});
   }
 
   public static String downloadURL(URL url, String localPath) throws IOException {

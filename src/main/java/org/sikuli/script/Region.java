@@ -85,7 +85,29 @@ public class Region {
             x, y, w, h, (getScreen() == null ? "Screen null" : getScreen().toStringShort()),
             throwException ? "Y" : "N", autoWaitTimeout);
   }
-
+  
+  //<editor-fold defaultstate="collapsed" desc="Specials for scripting environment">
+  public Object __enter__() {
+    Debug.error("Region: with(__enter__): Trying to make it a Jython Region for with: usage");
+    IScriptRunner runner = SikuliScript.getScriptRunner("jython", null, null);
+    if (runner != null) {
+      Object[] jyreg = new Object[] {this};
+      if (runner.doSomethingSpecial("createRegionForWith", jyreg)) {
+        if (jyreg[0] != null) {
+          return jyreg[0];
+        }
+      }
+    }
+    Debug.error("Region: with(__enter__): Sorry, not possible");
+    return null;
+}
+  
+  public void __exit__(Object type, Object value, Object traceback) {
+    Debug.error("Region: with(__exit__): Sorry, not a Jython Region and not posssible!");
+  }
+  
+  //</editor-fold>
+  
   //<editor-fold defaultstate="collapsed" desc="Initialization">
   /**
    * Detects on which Screen the Region is present.
@@ -120,6 +142,7 @@ public class Region {
    * @return True, if the Region is on the Screen. False if the Region is not inside the Screen
    */
   protected boolean isRegionOnScreen(Screen screen) {
+//TODO Windows maximized/fullscreen windows (frame outside - screen inside window)
     if (screen == null) {
       return false;
     }
@@ -380,6 +403,7 @@ public class Region {
   }
 
   //</editor-fold>
+  
   //<editor-fold defaultstate="collapsed" desc="handle coordinates">
   /**
    * check if current region contains given point

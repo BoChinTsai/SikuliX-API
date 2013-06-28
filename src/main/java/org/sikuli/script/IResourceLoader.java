@@ -6,9 +6,6 @@
  */
 package org.sikuli.script;
 
-import java.io.File;
-import java.io.IOException;
-
 public interface IResourceLoader {
 
   /**
@@ -25,7 +22,7 @@ public interface IResourceLoader {
   public void check(String what);
   
   /**
-   * copy the native stuff from the jar to the libs folder
+   * copy the res stuff from the jar to the target file/folder
    */
   public void export(String res, String target);
   
@@ -35,10 +32,22 @@ public interface IResourceLoader {
   public void install(String[] args);
   
   /**
+   * generic interface to a special runner action
+   * @param action identifies what to do
+   * @param args contains the needed parameters
+   * @return true if successful, false otherwise
+   */
+  public boolean doSomethingSpecial(String action, Object[] args);
+
+  /**
    * 
    * @return the name of this loader
    */
   public String getName();
   
-  public String getLibType();
+  /**
+   * 
+   * @return the supported resource types {"*TYPE*TYPE"}
+   */
+  public String getResourceTypes();
 }
