@@ -22,4 +22,5 @@
 nb-configuration.xml
 nbactions.xml
 
-._.*
+._*
+.DS_Store
