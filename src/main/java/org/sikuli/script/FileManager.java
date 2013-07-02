@@ -36,11 +36,10 @@ public class FileManager {
   static IResourceLoader nativeLoader = null;
 
   /**
-   * System.load() the given library module <br /> from standard places
-   * (SikuliX/libs) in the following order<br /> 1. -Dsikuli.Home=<br /> 2.
-   * Environement SIKULI_HOME<br /> 3. current working dir<br /> 4. parent of
-   * current working dir<br /> 5. folder user's home (user.home)<br /> 6.
-   * standard installation places of Sikuli<br />
+   * System.load() the given library module <br /> from standard places (SikuliX/libs) in the
+   * following order<br /> 1. -Dsikuli.Home=<br /> 2. Environement SIKULI_HOME<br /> 3. current
+   * working dir<br /> 4. parent of current working dir<br /> 5. folder user's home (user.home)<br
+   * /> 6. standard installation places of Sikuli<br />
    *
    * @param libname
    * @param doLoad = true: load it here
@@ -230,9 +229,8 @@ public class FileManager {
   }
 
   /**
-   * Copy a file *src* to the path *dest* and check if the file name conflicts.
-   * If a file with the same name exists in that path, rename *src* to an
-   * alternative name.
+   * Copy a file *src* to the path *dest* and check if the file name conflicts. If a file with the
+   * same name exists in that path, rename *src* to an alternative name.
    */
   public static File smartCopy(String src, String dest) throws IOException {
     File fSrc = new File(src);
@@ -333,9 +331,9 @@ public class FileManager {
 
   /**
    * Retrieves the actual script file<br /> - from a folder script.sikuli<br />
-   * - from a folder script (no extension) (script.sikuli is used, if exists)<br
-   * /> - from a file script.skl or script.zip (after unzipping to temp)<br /> -
-   * from a jar script.jar (after preparing as extension)<br />
+   * - from a folder script (no extension) (script.sikuli is used, if exists)<br /> - from a file
+   * script.skl or script.zip (after unzipping to temp)<br /> - from a jar script.jar (after
+   * preparing as extension)<br />
    *
    * @param scriptName one of the above.
    * @return The File containing the actual script.
@@ -356,12 +354,14 @@ public class FileManager {
     if (pos == -1) {
       script = scriptName.getName();
       scriptType = "sikuli";
-      if ((new File(scriptName.getAbsolutePath() + ".sikuli")).exists()) {
-        scriptName = new File(scriptName.getAbsolutePath() + ".sikuli");
-      }
+      scriptName = new File(scriptName.getAbsolutePath() + ".sikuli");
     } else {
       script = scriptName.getName().substring(0, pos);
       scriptType = scriptName.getName().substring(pos + 1);
+    }
+    if (!scriptName.exists()) {
+      Debug.error("Not a valid Sikuli script: " + scriptName.getAbsolutePath());
+      System.exit(1);
     }
     if ("skl".equals(scriptType) || "zip".equals(scriptType)) {
       //TODO unzip to temp and run from there
