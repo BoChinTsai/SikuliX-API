@@ -31,15 +31,16 @@ import java.util.zip.ZipInputStream;
 import javax.imageio.ImageIO;
 
 public class FileManager {
+
   static final int DOWNLOAD_BUFFER_SIZE = 153600;
   static IResourceLoader nativeLoader = null;
 
-
   /**
-   * System.load() the given library module <br /> from standard places (SikuliX/libs) in the
-   * following order<br /> 1. -Dsikuli.Home=<br /> 2. Environement SIKULI_HOME<br /> 3. current
-   * working dir<br /> 4. parent of current working dir<br /> 5. folder user's home (user.home)<br
-   * /> 6. standard installation places of Sikuli<br />
+   * System.load() the given library module <br /> from standard places
+   * (SikuliX/libs) in the following order<br /> 1. -Dsikuli.Home=<br /> 2.
+   * Environement SIKULI_HOME<br /> 3. current working dir<br /> 4. parent of
+   * current working dir<br /> 5. folder user's home (user.home)<br /> 6.
+   * standard installation places of Sikuli<br />
    *
    * @param libname
    * @param doLoad = true: load it here
@@ -50,7 +51,7 @@ public class FileManager {
       nativeLoader = getNativeLoader("basic", null);
     }
     nativeLoader.check(Settings.SIKULI_LIB);
-    nativeLoader.doSomethingSpecial("loadLib", new String[] {libname});
+    nativeLoader.doSomethingSpecial("loadLib", new String[]{libname});
   }
 
   public static String downloadURL(URL url, String localPath) throws IOException {
@@ -229,8 +230,9 @@ public class FileManager {
   }
 
   /**
-   * Copy a file *src* to the path *dest* and check if the file name conflicts. If a file with the
-   * same name exists in that path, rename *src* to an alternative name.
+   * Copy a file *src* to the path *dest* and check if the file name conflicts.
+   * If a file with the same name exists in that path, rename *src* to an
+   * alternative name.
    */
   public static File smartCopy(String src, String dest) throws IOException {
     File fSrc = new File(src);
@@ -320,18 +322,20 @@ public class FileManager {
         p = p.substring(0, p.length() - 1);
       }
     }
-    try {
-      return URLDecoder.decode(p, "UTF-8");
-    } catch (UnsupportedEncodingException ex) {
-      return p;
+    if (p.contains("%")) {
+      try {
+        return URLDecoder.decode(p, "UTF-8");
+      } catch (UnsupportedEncodingException ex) {
+      }
     }
+    return p;
   }
 
   /**
-   * Retrieves the actual script file<br /> - from a folder script.sikuli<br /> - from a folder
-   * script (no extension) (script.sikuli is used, if exists)<br /> - from a file script.skl or
-   * script.zip (after unzipping to temp)<br /> - from a jar script.jar (after preparing as
-   * extension)<br />
+   * Retrieves the actual script file<br /> - from a folder script.sikuli<br />
+   * - from a folder script (no extension) (script.sikuli is used, if exists)<br
+   * /> - from a file script.skl or script.zip (after unzipping to temp)<br /> -
+   * from a jar script.jar (after preparing as extension)<br />
    *
    * @param scriptName one of the above.
    * @return The File containing the actual script.
@@ -366,13 +370,13 @@ public class FileManager {
     if ("sikuli".equals(scriptType)) {
       if (runner == null) {
         // check for script.xxx inside folder
-        File[] content = scriptName.listFiles(new FileFilterScript(script+"."));
+        File[] content = scriptName.listFiles(new FileFilterScript(script + "."));
         if (content == null || content.length == 0) {
           Debug.error("Unable to get ScriptRunner from a contained file's file-ending named %s.xxx", script);
           System.exit(1);
         }
         scriptFile = content[0];
-        scriptType = scriptFile.getName().substring(scriptFile.getName().lastIndexOf(".")+1);
+        scriptType = scriptFile.getName().substring(scriptFile.getName().lastIndexOf(".") + 1);
         runner = SikuliScript.setRunner(SikuliScript.getScriptRunner(null, scriptType, args));
       }
       if (scriptFile == null) {
@@ -421,7 +425,7 @@ public class FileManager {
       return fileName.startsWith(_check);
     }
   }
-  
+
   public static IResourceLoader getNativeLoader(String name, String[] args) {
     IResourceLoader nativeLoader = null;
     ServiceLoader<IResourceLoader> loader = ServiceLoader.load(IResourceLoader.class);
@@ -439,5 +443,5 @@ public class FileManager {
       System.exit(1);
     }
     return nativeLoader;
-  }  
+  }
 }

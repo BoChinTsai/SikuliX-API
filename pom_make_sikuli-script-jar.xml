@@ -98,7 +98,7 @@
 
     <dependency>
       <groupId>org.sikuli</groupId>
-      <artifactId>SikuliX-Natives</artifactId>
+      <artifactId>SikuliX-Setup</artifactId>
       <version>1.0.1</version>
       <scope>runtime</scope>
     </dependency>
