@@ -180,7 +180,13 @@ public class Debug {
   }
 
   public static void logx(int level, String prefix, String message, Object... args) {
-    log(level, prefix, message, args);
+    if (level == -1) {
+      prefix = "error";
+    } else if (level == -2) {
+      log(level, "action", message, args);
+    } else {
+      log(level, "debug", message, args);
+    }
   }
 
   private static void log(int level, String prefix, String message, Object... args) {
