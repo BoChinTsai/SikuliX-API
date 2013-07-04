@@ -89,23 +89,9 @@
 
     <dependency>
       <groupId>org.sikuli</groupId>
-      <artifactId>SikuliX-Jython</artifactId>
-      <version>1.0.1</version>
-      <scope>runtime</scope>
-    </dependency>
-
-    <dependency>
-      <groupId>org.sikuli</groupId>
       <artifactId>SikuliX-Setup</artifactId>
       <version>1.0.1</version>
     </dependency>
-
-    <dependency>
-      <groupId>org.python</groupId>
-      <artifactId>jython-standalone</artifactId>
-      <version>2.5.4-rc1</version>
-      <scope>runtime</scope>
-   </dependency>
 
     <dependency>
       <groupId>junit</groupId>
@@ -118,37 +104,6 @@
   </dependencies>
 
   <build>
-    <!-- Enable this plugin to include execute action (needed for eclipse)
-  		<pluginManagement>
-   			<plugins>
-    				<plugin>
-     					<groupId>org.eclipse.m2e</groupId>
-     					<artifactId>lifecycle-mapping</artifactId>
-     					<version>1.0.0</version>
-     					<configuration>
-      						<lifecycleMappingMetadata>
-       							<pluginExecutions>
-        								<pluginExecution>
-         									<pluginExecutionFilter>
-          										<groupId>org.codehaus.mojo</groupId>
-          										<artifactId>aspectj-maven-plugin</artifactId>
-          										<versionRange>[1.0,)</versionRange>
-          										<goals>
-           											<goal>test-compile</goal>
-           											<goal>compile</goal>
-          										</goals>
-         									</pluginExecutionFilter>
-         									<action>
-          										<execute />
-         									</action>
-        								</pluginExecution>
-       							</pluginExecutions>
-      						</lifecycleMappingMetadata>
-     					</configuration>
-    				</plugin>
-   			</plugins>
-  		</pluginManagement>
-    -->
 
     <finalName>sikulix-api</finalName>
 
@@ -175,7 +130,7 @@
           <descriptorRefs>
             <descriptorRef>jar-with-dependencies</descriptorRef>
           </descriptorRefs>
-          <finalName>sikuli-script</finalName>
+          <finalName>sikuli-java</finalName>
         </configuration>
         <executions>
           <execution>
