@@ -6,6 +6,9 @@
  */
 package org.sikuli.script;
 
+import org.sikuli.setup.Settings;
+import org.sikuli.setup.FileManager;
+import org.sikuli.setup.Debug;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.FileNotFoundException;

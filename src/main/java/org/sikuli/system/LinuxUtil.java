@@ -9,7 +9,7 @@ package org.sikuli.system;
 import java.awt.Window;
 import java.io.*;
 import org.sikuli.script.Region;
-import org.sikuli.script.Debug;
+import org.sikuli.setup.Debug;
 
 public class LinuxUtil implements OSUtil {
 

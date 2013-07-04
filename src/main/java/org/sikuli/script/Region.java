@@ -6,6 +6,9 @@
  */
 package org.sikuli.script;
 
+import org.sikuli.setup.IScriptRunner;
+import org.sikuli.setup.Settings;
+import org.sikuli.setup.Debug;
 import java.awt.MouseInfo;
 import java.awt.Point;
 import java.awt.Rectangle;
@@ -50,7 +53,7 @@ public class Region {
   /**
    * Setting, how to react if an image is not found
    */
-  private FindFailedResponse findFailedResponse = Settings.defaultFindFailedResponse;
+  private FindFailedResponse findFailedResponse = FindFailed.defaultFindFailedResponse;
   /**
    * Setting, if exception is thrown if an image is not found
    */
@@ -89,7 +92,7 @@ public class Region {
   //<editor-fold defaultstate="collapsed" desc="Specials for scripting environment">
   public Object __enter__() {
     Debug.error("Region: with(__enter__): Trying to make it a Jython Region for with: usage");
-    IScriptRunner runner = SikuliScript.getScriptRunner("jython", null, null);
+    IScriptRunner runner = Settings.getScriptRunner("jython", null, null);
     if (runner != null) {
       Object[] jyreg = new Object[] {this};
       if (runner.doSomethingSpecial("createRegionForWith", jyreg)) {

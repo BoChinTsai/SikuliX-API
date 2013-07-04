@@ -6,6 +6,7 @@
  */
 package org.sikuli.script;
 
+import org.sikuli.setup.Settings;
 import java.awt.image.BufferedImage;
 import org.sikuli.script.natives.FindResult;
 

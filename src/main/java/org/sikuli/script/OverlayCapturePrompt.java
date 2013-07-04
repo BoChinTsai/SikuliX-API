@@ -6,9 +6,12 @@
  */
 package org.sikuli.script;
 
+import org.sikuli.setup.Settings;
+import org.sikuli.setup.Debug;
 import java.awt.*;
 import java.awt.event.*;
 import java.awt.image.*;
+import org.sikuli.system.SysUtil;
 
 public class OverlayCapturePrompt extends OverlayTransparentWindow implements EventSubject {
 
@@ -151,7 +154,7 @@ public class OverlayCapturePrompt extends OverlayTransparentWindow implements Ev
 		this.setVisible(true);
 		if (! Settings.isJava7()) {
 			if (Settings.isMac()) {
-				Settings.getOSUtil().bringWindowToFront(this, false);
+				SysUtil.getOSUtil().bringWindowToFront(this, false);
 			}
 		}
 		this.requestFocus();

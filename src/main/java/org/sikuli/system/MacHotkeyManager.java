@@ -8,7 +8,7 @@ package org.sikuli.system;
 
 import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
-import org.sikuli.script.FileManager;
+import org.sikuli.setup.FileManager;
 import org.sikuli.script.HotkeyListener;
 import org.sikuli.script.HotkeyManager;
 

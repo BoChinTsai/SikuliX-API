@@ -100,7 +100,6 @@
       <groupId>org.sikuli</groupId>
       <artifactId>SikuliX-Setup</artifactId>
       <version>1.0.1</version>
-      <scope>runtime</scope>
     </dependency>
 
     <dependency>

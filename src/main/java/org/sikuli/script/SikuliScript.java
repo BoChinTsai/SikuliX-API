@@ -6,11 +6,13 @@
  */
 package org.sikuli.script;
 
+import org.sikuli.setup.IScriptRunner;
+import org.sikuli.setup.Settings;
+import org.sikuli.setup.FileManager;
+import org.sikuli.setup.Debug;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.InputStreamReader;
-import java.util.Iterator;
-import java.util.ServiceLoader;
 import javax.swing.JOptionPane;
 import org.apache.commons.cli.CommandLine;
 
@@ -76,9 +78,9 @@ public class SikuliScript {
       if (runner == null) {
         String givenRunnerName = cmdLine.getOptionValue(CommandArgsEnum.INTERACTIVE.longname());
         if (givenRunnerName == null) {
-          runner = getScriptRunner("jython", null, args);
+          runner = Settings.getScriptRunner("jython", null, args);
         } else {
-          runner = getScriptRunner(givenRunnerName, null, args);
+          runner = Settings.getScriptRunner(givenRunnerName, null, args);
           if (runner == null) {
             System.exit(1);
           }
@@ -107,6 +109,7 @@ public class SikuliScript {
       if (script == null) {
         System.exit(1);
       }
+      runner = Settings.getRunner();
       if (imagePath == null) {
         imagePath = FileManager.resolveImagePath(script);
       }
@@ -126,11 +129,6 @@ public class SikuliScript {
       }
       System.exit(1);
     }
-  }
-
-  public static IScriptRunner setRunner(IScriptRunner _runner) {
-    runner = _runner;
-    return runner;
   }
 
   public static void setShowActions(boolean flag) {
@@ -199,32 +197,5 @@ public class SikuliScript {
    */
   public static void shelp() {
     System.out.println(runner.getInteractiveHelp());
-  }
-
-  /**
-   * Finds a ScriptRunner implementation to execute the script.
-   *
-   * @param name Name of the ScriptRunner, might be null (then type is used)
-   * @param ending fileending of script to run
-   * @return first ScriptRunner with matching name or file ending, null if none found
-   */
-  public static IScriptRunner getScriptRunner(String name, String ending, String[] args) {
-    IScriptRunner runner = null;
-    ServiceLoader<IScriptRunner> loader = ServiceLoader.load(IScriptRunner.class);
-    Iterator<IScriptRunner> scriptRunnerIterator = loader.iterator();
-    while (scriptRunnerIterator.hasNext()) {
-      IScriptRunner currentRunner = scriptRunnerIterator.next();
-      if ((name != null && currentRunner.getName().toLowerCase().equals(name.toLowerCase()))
-              || (ending != null && currentRunner.hasFileEnding(ending) != null)) {
-        runner = currentRunner;
-        runner.init(args);
-        break;
-      }
-    }
-    if (runner == null) {
-      Debug.error("SikuliScript: main: Could not load script runner with name: %s", name);
-      System.exit(1);
-    }
-    return runner;
   }
 }

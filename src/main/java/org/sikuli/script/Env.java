@@ -6,8 +6,10 @@
  */
 package org.sikuli.script;
 
+import org.sikuli.setup.Settings;
 import java.awt.*;
 import org.sikuli.system.OSUtil;
+import org.sikuli.system.SysUtil;
 
 /**
  * features moved to other classes, details below with the methods
@@ -54,7 +56,7 @@ public class Env {
 
   @Deprecated
   public static OSUtil getOSUtil() {
-    return Settings.getOSUtil();
+    return SysUtil.getOSUtil();
   }
 
   /**

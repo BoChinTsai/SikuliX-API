@@ -6,6 +6,9 @@
  */
 package org.sikuli.script;
 
+import org.sikuli.setup.Settings;
+import org.sikuli.setup.FileManager;
+import org.sikuli.setup.Debug;
 import java.awt.image.*;
 import java.io.*;
 import java.util.LinkedList;
