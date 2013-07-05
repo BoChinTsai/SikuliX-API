@@ -1029,6 +1029,7 @@ public class Region {
   }
 
   //</editor-fold>
+  
   //<editor-fold defaultstate="collapsed" desc="spatial operators - new regions">
   /**
    * check if current region contains given region
@@ -1043,11 +1044,23 @@ public class Region {
   /**
    * create region with same size at top left corner offset
    *
-   * @param loc
+   * @param loc use its x and y to set the offset
    * @return the new region
    */
   public Region offset(Location loc) {
     return Region.create(x + loc.x, y + loc.y, w, h);
+  }
+
+
+  /**
+   * create region with same size at top left corner offset
+   *
+   * @param x horizontal offset
+   * @param y vertical offset
+   * @return the new region
+   */
+  public Region offset(int _x, int _y) {
+    return Region.create(x + _x, y + _y, w, h);
   }
 
   /**
@@ -1092,7 +1105,6 @@ public class Region {
    */
   public Region grow(int w, int h) {
     Rectangle r = getRect();
-    r.setSize(w, h);
     r.grow(w, h);
     return Region.create(r.x, r.y, r.width, r.height, scr);
   }
@@ -1108,7 +1120,6 @@ public class Region {
    * @return the new region
    */
   public Region grow(int l, int r, int t, int b) {
-    Rectangle re = getRect();
     int _x = x - l;
     int _y = y - b;
     int _w = w + l + r;
