@@ -323,13 +323,13 @@ public class ImageLocator {
 				return _cache.get(uri);
 			}
 			String localFile = FileManager.downloadURL(url, _cache_dir_global.getPath());
-			Debug.log(2, "ImageLocator.getFileFromURL: download " + uri + " to local: " + localFile);
-			_cache.put(uri, localFile);
+      if (localFile != null) {
+        Debug.log(2, "ImageLocator.getFileFromURL: download " + uri + " to local: " + localFile);
+        _cache.put(uri, localFile);
+      }
 			return localFile;
 		} catch (java.net.URISyntaxException e) {
 			Debug.log(2, "ImageLocator.getFileFromURL: URI syntax error: " + url + ", " + e.getMessage());
-			return null;
-		} catch (IOException e) {
 			return null;
 		}
 	}

@@ -105,6 +105,7 @@ public class OverlayTransparentWindow extends JFrame implements EventSubject {
     _obs.update(this);
   }
 
+  @Override
   public void setOpacity(float alpha) {
     if (Settings.JavaVersion > 6) {
       try {
