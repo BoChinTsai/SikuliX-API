@@ -1,16 +1,9 @@
-Sikuli API 1.0.1 <br />Service Update end July 2013
+Sikuli API 1.1 <br />development branch
 ===========
 
-**Download of current versions (1.0.0)** visit the official [**download page on Launchpad**](https://launchpad.net/sikuli/+download).<br />
+**Download of current versions** visit the official [**download page on Launchpad**](https://launchpad.net/sikuli/+download).<br />
 
 Sikuli's Java API supporting visual testing and automation (currently using JNI/C++ to integrate with OpenCV and Tesseract)
-
-**MANDATORY ;-)** [Have a look at major improvements and new features](https://github.com/RaiMan/SikuliX-API/wiki/Release-Notes-API)
-<br /><br />
-Hava a look at the Java docs: 
-[click to view Online](https://dl.dropboxusercontent.com/u/42895525/SikuliX/SikuliX-API-JavaDocs/index.html)
- or [click to download as zipfile](https://dl.dropboxusercontent.com/u/42895525/SikuliX/SikuliX-API-JavaDocs.zip)
-
 
 Sikuli API is targeted at people who want to develop, run and debug programs in Java, other Java based languages or Java aware scripting languages currently not supported by [Sikuli IDE](https://github.com/RaiMan/SikuliX-IDE).
 
