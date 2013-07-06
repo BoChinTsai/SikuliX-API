@@ -1,9 +1,7 @@
-Sikuli API 1.0.1 <br />Branch developement
+Sikuli API 1.0.1 <br />Service Update end July 2013
 ===========
 
 **Download of current versions (1.0.0)** visit the official [**download page on Launchpad**](https://launchpad.net/sikuli/+download).<br />
-
-**latest betaversion: 1.1 Beta100 (not yet available)** --- [click for downloadable beta packages](https://github.com/RaiMan/SikuliX-API/wiki/Packages)
 
 Sikuli's Java API supporting visual testing and automation (currently using JNI/C++ to integrate with OpenCV and Tesseract)
 
@@ -22,13 +20,15 @@ The downloadable packages of Sikuli API contain everything needed to develop, te
 <br /><br />
 This repo is **fully Maven**, so a fork of this repo can be directly used as project in NetBeans/Eclipse/... or with mvn on commandline<br /> 
 It produces a lightweight sikulix-api.jar, that only contains the Sikuli Java stuff and is intended for use in pure Java or in Java aware scripting and testing environments. <br />
-The extra pom_make_sikuli-script-jar can be used to produce the known sikuli-script.jar.<br />
+The extra pom_make_sikuli-script-jar can be used to produce the known sikuli-script.jar, that can be used standalone to run Sikuli Jython scripts from command line (depends on [Sikuli Jython](https://github.com/RaiMan/SikuliX-Jython) and [Sikuli Setup](https://github.com/RaiMan/SikuliX-Setup) )<br />
+The extra pom_make_sikuli-jython-api-jar can be used to produce a jar, that can be used in Jython developement (standalone or with IDEs allowing Jython developement (it does not contain the Jython package like sikuli-script.jar) (depends on [Sikuli Jython](https://github.com/RaiMan/SikuliX-Jython) and [Sikuli Setup](https://github.com/RaiMan/SikuliX-Setup) )<br />
+
 [... click for more info](https://github.com/RaiMan/SikuliX-API/wiki/Maven-support)<br /><br />
 If new to Sikuli, you might aternatively be interested in the pure Java implementation, which is to some extent feature compatible, but not API compatible: [Sikuli Java API](http://code.google.com/p/sikuli-api).
 <br /><br />
 **Roadmap**
- - **2013 June 15:** open a developement branch for Sikuli API 1.1
-  - isolate the script running feature to allow more scripting languages (e.g. JRuby)
+ - **2013 July 6:** open a developement branch for Sikuli API 1.1
+  - isolate the script running feature (already in 1.0.1) to allow more scripting languages (e.g. JRuby)
   - use existing Java wrappers for OpenCV (javacv) and Tesseract (Tes4J) alternatively
   - more enhancements tbd.
 <br /><br />
@@ -53,5 +53,5 @@ If new to Sikuli, you might aternatively be interested in the pure Java implemen
  - you might always post an issue with any content in this repo of course
 
 **Contribution**
- - pull requests are always welcome (preferably after mid June 2013)
+ - pull requests are always welcome
  - everyone is welcome to add interesting stuff, experiences, solutions to the wiki in this repo
