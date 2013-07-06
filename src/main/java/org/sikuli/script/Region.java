@@ -6,14 +6,18 @@
  */
 package org.sikuli.script;
 
-import java.awt.*;
-import java.awt.event.*;
-import java.io.*;
-import java.util.*;
+import java.awt.MouseInfo;
+import java.awt.Point;
+import java.awt.Rectangle;
+import java.awt.event.InputEvent;
+import java.awt.event.KeyEvent;
+import java.io.IOException;
+import java.util.Date;
+import java.util.Iterator;
 import java.util.List;
-import org.python.core.Py;
-import org.python.core.PyObject;
-import org.python.util.PythonInterpreter;
+import org.sikuli.setup.Debug;
+import org.sikuli.setup.IScriptRunner;
+import org.sikuli.setup.Settings;
 
 /**
  * A Region always lies completely inside its parent screen
@@ -22,120 +26,173 @@ import org.python.util.PythonInterpreter;
  */
 public class Region {
 
-  final static float DEFAULT_HIGHLIGHT_TIME = Settings.DefaultHighlightTime;
-  static final int PADDING = Settings.DefaultPadding;
-
-  private String scriptingType = "";
-  private Screen scr;
-  private ScreenHighlighter overlay = null;
-
-  public int x, y;
-	/**
-	 * current width/height - might be cropped to screen
-	 */
-	public int w, h;
-	/**
-	 * width/height is remembered when region is cropped the 1st time and reused later
+  /**
+   * The Screen containing the Region
    */
-	protected int vWidth = -1;
-	protected int vHeight = -1;
-
-  private FindFailedResponse findFailedResponse =
-          Settings.defaultFindFailedResponse;
-	protected boolean throwException = Settings.ThrowException;
+  private Screen scr;
+  /**
+   * The ScreenHighlighter for this Region
+   */
+  private ScreenHighlighter overlay = null;
+  /**
+   * X-coordinate of the Region
+   */
+  public int x;
+  /**
+   * Y-coordinate of the Region
+   */
+  public int y;
+  /**
+   * Width of the Region
+   */
+  public int w;
+  /**
+   * Height of the Region
+   */
+  public int h;
+  /**
+   * Setting, how to react if an image is not found
+   */
+  private FindFailedResponse findFailedResponse = FindFailed.defaultFindFailedResponse;
+  /**
+   * Setting, if exception is thrown if an image is not found
+   */
+  protected boolean throwException = Settings.ThrowException;
+  /**
+   * Default time to wait for an image
+   */
   protected double autoWaitTimeout = Settings.AutoWaitTimeout;
+  /**
+   * Flag, if an observer is running on this region
+   */
   private boolean observing = false;
+  /**
+   * The {@link SikuliEventManager} Singleton instance
+   */
   private SikuliEventManager evtMgr = null;
+  /**
+   * The last found {@link Match} in the Region
+   */
   private Match lastMatch = null;
+  /**
+   * The last found {@link Match}es in the Region
+   */
   private Iterator<Match> lastMatches;
 
+  /**
+   * {@inheritDoc}
+   */
   @Override
   public String toString() {
     return String.format("R[%d,%d %dx%d]@%s E:%s, T:%.1f",
-            x, y, w, h, (getScreen()== null ? "Screen???" : getScreen().toStringShort()),
+            x, y, w, h, (getScreen() == null ? "Screen null" : getScreen().toStringShort()),
             throwException ? "Y" : "N", autoWaitTimeout);
   }
 
-  //<editor-fold defaultstate="collapsed" desc="Initialization">
-  private boolean isJythonScreen () {
-    return ("JythonScreen".equals(scriptingType));
-  }
-
-  private boolean isJythonRegion () {
-    return ("JythonRegion".equals(scriptingType));
-  }
-
-  public void setScriptingType (String type) {
-    scriptingType = type;
-  }
-
-  public String getScriptingType () {
-    return scriptingType;
-  }
-
-  private Region initialize(int X, int Y, int W, int H, Screen parentScreen) {
-    x = X;
-    y = Y;
-    w = W;
-    h = H;
-    if (parentScreen != null) {
-      setScreen(parentScreen);
-    }
-    initScreen(getScreen());
-    return this;
-  }
-
-	protected int getVW() {
-		return (vWidth < 0) ? w : vWidth;
-	}
-
-	protected int getVH() {
-		return (vHeight < 0) ? h : vHeight;
-	}
-
-  private void initScreen(Screen scr) {
-    if (!(this instanceof Screen) && !isJythonScreen()) {
-			Rectangle rect = new Rectangle(x, y, getVW(), getVH());
-			setScreen(null);
-      for (int i = 0; i < Screen.getNumberScreens(); i++) {
-        Rectangle sb = Screen.getBounds(i);
-        if (sb.contains(rect.getLocation())) {
-          setScreen(Screen.getScreen(i));
-          break;
+  //<editor-fold defaultstate="collapsed" desc="Specials for scripting environment">
+  public Object __enter__() {
+    Debug.error("Region: with(__enter__): Trying to make it a Jython Region for with: usage");
+    IScriptRunner runner = Settings.getScriptRunner("jython", null, null);
+    if (runner != null) {
+      Object[] jyreg = new Object[]{this};
+      if (runner.doSomethingSpecial("createRegionForWith", jyreg)) {
+        if (jyreg[0] != null) {
+          return jyreg[0];
         }
       }
-      Screen scrNew = getScreen();
-			if (scrNew == null) {
-				w = getVW();
-				h = getVH();
-        if (scr == null) {
-          Debug.error("Region (%s, %s) outside any screen - subsequent actions might not work as expected", w, h);
-        } else {
-          scrNew = scr;
+    }
+    Debug.error("Region: with(__enter__): Sorry, not possible");
+    return null;
+  }
+
+  public void __exit__(Object type, Object value, Object traceback) {
+    Debug.error("Region: with(__exit__): Sorry, not a Jython Region and not posssible!");
+  }
+
+  //</editor-fold>
+  //<editor-fold defaultstate="collapsed" desc="Initialization">
+  /**
+   * Detects on which Screen the Region is present.
+   *
+   * @param scr The Screen containing the Region
+   */
+  protected void initScreen(Screen scr) {
+    // check given screen first
+    if (scr != null) {
+      if (isRegionOnScreen(scr)) {
+        this.scr = scr;
+        return;
+      }
+    } else {
+      // check all possible screens if no screen was given
+      for (int i = 0; i < Screen.getNumberScreens(); i++) {
+        final Screen curScreen = Screen.getScreen(i);
+        if (isRegionOnScreen(curScreen)) {
+          this.scr = curScreen;
+          return;
         }
-			}
-      if (scrNew != null) {
-        setScreen(scrNew);
-        rect = scrNew.getBounds().intersection(rect);
-				if (rect.width < w || rect.height < h) {
-					Debug.log(1, "%s cropped to screen", this);
-          if (vWidth < 0) {
-            vWidth = w;
-  					vHeight = h;
-          }
-				}
-        x = (int) rect.getX();
-        y = (int) rect.getY();
-				w = (int) rect.getWidth();
-				h = (int) rect.getHeight();
-        return; // to position a breakpoint here
-			}
-		}
-    updateSelf();
+      }
+    }
+    // no screen found
+    Debug.error("Region(%d,%d,%d,%d) outside any screen - subsequent actions might not work as expected", x, y, w, h);
+  }
+
+  /**
+   * Checks if the Screen contains the Region.
+   *
+   * @param screen The Screen in which the Region might be
+   * @return True, if the Region is on the Screen. False if the Region is not
+   * inside the Screen
+   */
+  protected boolean isRegionOnScreen(Screen screen) {
+//TODO Windows maximized/fullscreen windows (frame outside - screen inside window)
+    if (screen == null) {
+      return false;
+    }
+
+    // get intersection of Region and Screen
+    Rectangle rect = screen.getRect().intersection(getRect());
+
+    // no Intersection, Region is not on the Screen
+    if (rect.isEmpty()) {
+      return false;
+    }
+
+    return true;
   }
   //</editor-fold>
 
   //<editor-fold defaultstate="collapsed" desc="Constructors to be used with Jython">
+  /**
+   * Create a region with the provided coordinate / size and screen
+   *
+   * @param X X position
+   * @param Y Y position
+   * @param W width
+   * @param H heigth
+   * @param screenNumber The number of the screen containing the Region
+   */
+  public Region(int X, int Y, int W, int H, int screenNumber) {
+    this(X, Y, W, H, Screen.getScreen(screenNumber));
+  }
+
+  /**
+   * Create a region with the provided coordinate / size and screen
+   *
+   * @param X X position
+   * @param Y Y position
+   * @param W width
+   * @param H heigth
+   * @param parentScreen the screen containing the Region
+   */
+  public Region(int X, int Y, int W, int H, Screen parentScreen) {
+    this.x = X;
+    this.y = Y;
+    this.w = W;
+    this.h = H;
+    initScreen(parentScreen);
+  }
+
   /**
    * Create a region with the provided coordinate / size
    *
@@ -145,7 +202,7 @@ public class Region {
    * @param H heigth
    */
   public Region(int X, int Y, int W, int H) {
-    initialize(X, Y, W, H, null);
+    this(X, Y, W, H, null);
   }
 
   /**
@@ -154,7 +211,7 @@ public class Region {
    * @param r the Rectangle
    */
   public Region(Rectangle r) {
-    initialize(r.x, r.y, r.width, r.height, null);
+    this(r.x, r.y, r.width, r.height, null);
   }
 
   /**
@@ -164,28 +221,13 @@ public class Region {
    * @param r the region
    */
   public Region(Region r) {
+    this(r.x, r.y, r.w, r.h, r.getScreen());
     autoWaitTimeout = r.autoWaitTimeout;
     findFailedResponse = r.findFailedResponse;
     throwException = r.throwException;
-    initialize(r.x, r.y, r.w, r.h, r.getScreen());
   }
-
-  private static Region toJythonRegion(Region r) {
-    if (r == null) {
-      return null;
-    }
-    PythonInterpreter interpreter = new PythonInterpreter();
-    interpreter.exec("from sikuli import Region");
-    PyObject regionClass = interpreter.get("Region");
-    PyObject pyRegion = regionClass.__call__(Py.java2py(r));
-    Region reg = (Region) pyRegion.__tojava__(Region.class);
-    Debug.log(2,"Region.toJythonRegion (%s): %s", reg.isJythonRegion(), reg);
-    return reg;
-  }
-
 
   //</editor-fold>
-
   //<editor-fold defaultstate="collapsed" desc="Quasi-Constructors to be used in Java">
   /**
    * internal use only, used for new Screen objects to get the Region behavior
@@ -213,37 +255,44 @@ public class Region {
    * @param Y top left Y position
    * @param W width
    * @param H heigth
-   * @return
+   * @param scr the source screen
+   * @return the created region
    */
   private static Region create(int X, int Y, int W, int H, Screen scr) {
-    Region reg = new Region();
-    reg = reg.initialize(X, Y, W, H, scr);
-    StackTraceElement[] callstack = Thread.currentThread().getStackTrace();
-    String showMe = callstack[callstack.length-1].toString();
-    if (showMe.contains("SikuliIDE") || showMe.contains("SikuliScript")) {
-      String scrS = scr != null ? scr.toStringShort() : "N/A";
-      if (Settings.makeJythonRegion) {
-        Debug.log(2, "JythonRegion.create(%d, %d, %d, %d)@%s", X, Y, W, H, scrS);
-        return toJythonRegion(reg);
-      } else {
-        return reg;
-      }
-    } else {
-      return reg;
-    }
+    return new Region(X, Y, W, H, scr);
   }
 
-	/**
+  /**
    * Create a region with the provided top left corner and size
-	 *
-	 * @param loc top left corner
-	 * @param w width
-	 * @param h height
-	 * @return
-	 */
-	public static Region create(Location loc, int w, int h) {
+   *
+   * @param loc top left corner
+   * @param w width
+   * @param h height
+   * @return
+   */
+  public static Region create(Location loc, int w, int h) {
     return Region.create(loc.x, loc.y, w, h, null);
-	}
+  }
+  /**
+   * Flag for the {@link #create(Location, int, int, int, int)} method. Sets the
+   * Location to be on the left corner of the new Region.
+   */
+  public final static int CREATE_X_DIRECTION_LEFT = 0;
+  /**
+   * Flag for the {@link #create(Location, int, int, int, int)} method. Sets the
+   * Location to be on the right corner of the new Region.
+   */
+  public final static int CREATE_X_DIRECTION_RIGHT = 1;
+  /**
+   * Flag for the {@link #create(Location, int, int, int, int)} method. Sets the
+   * Location to be on the top corner of the new Region.
+   */
+  public final static int CREATE_Y_DIRECTION_TOP = 0;
+  /**
+   * Flag for the {@link #create(Location, int, int, int, int)} method. Sets the
+   * Location to be on the bottom corner of the new Region.
+   */
+  public final static int CREATE_Y_DIRECTION_BOTTOM = 1;
 
   /**
    * create a region with a corner at the given point<br />as specified with x
@@ -251,19 +300,19 @@ public class Region {
    * bottom right<br />
    *
    * @param loc the refence point
-   * @param x ==0 is left side !=0 is right side
-   * @param y ==0 is top side !=0 is bottom side
+   * @param create_x_direction == 0 is left side !=0 is right side
+   * @param create_y_direction == 0 is top side !=0 is bottom side
    * @param w the width
    * @param h the height
    * @return the new region
    */
-  public static Region create(Location loc, int x, int y, int w, int h) {
+  public static Region create(Location loc, int create_x_direction, int create_y_direction, int w, int h) {
     int X;
     int Y;
     int W = w;
     int H = h;
-    if (x == 0) {
-      if (y == 0) {
+    if (create_x_direction == CREATE_X_DIRECTION_LEFT) {
+      if (create_y_direction == CREATE_Y_DIRECTION_TOP) {
         X = loc.x;
         Y = loc.y;
       } else {
@@ -271,7 +320,7 @@ public class Region {
         Y = loc.y - h;
       }
     } else {
-      if (y == 0) {
+      if (create_y_direction == CREATE_Y_DIRECTION_TOP) {
         X = loc.x - w;
         Y = loc.y;
       } else {
@@ -285,8 +334,8 @@ public class Region {
   /**
    * create a region with a corner at the given point<br />as specified with x
    * y<br /> 0 0 top left<br /> 0 1 bottom left<br /> 1 0 top right<br /> 1 1
-   * bottom right<br />same as the corresponding create method,
-   * here to be naming compatible with class Location
+   * bottom right<br />same as the corresponding create method, here to be
+   * naming compatible with class Location
    *
    * @param loc the refence point
    * @param x ==0 is left side !=0 is right side
@@ -303,12 +352,19 @@ public class Region {
    * Create a region from a Rectangle
    *
    * @param r the Rectangle
-   * @return
+   * @return the new region
    */
   public static Region create(Rectangle r) {
     return Region.create(r.x, r.y, r.width, r.height, null);
   }
 
+  /**
+   * Create a region from a Rectangle on a given Screen
+   *
+   * @param r the Rectangle
+   * @param parentScreen the new parent screen
+   * @return the new region
+   */
   protected static Region create(Rectangle r, Screen parentScreen) {
     return Region.create(r.x, r.y, r.width, r.height, parentScreen);
   }
@@ -336,8 +392,8 @@ public class Region {
    * @return the new region
    */
   public static Region grow(Location loc, int w, int h) {
-    int X = loc.x - (int) w/2;
-    int Y = loc.y - (int) h/2;
+    int X = loc.x - w / 2;
+    int Y = loc.y - h / 2;
     return Region.create(X, Y, w, h);
   }
 
@@ -352,7 +408,6 @@ public class Region {
   }
 
   //</editor-fold>
-
   //<editor-fold defaultstate="collapsed" desc="handle coordinates">
   /**
    * check if current region contains given point
@@ -374,15 +429,6 @@ public class Region {
   }
 
   /**
-   * new region with same offset to current screen's top left on primary screen
-   *
-   * @return new region
-   */
-  public Region copyTo() {
-    return copyTo(Screen.getPrimaryScreen());
-  }
-
-  /**
    * new region with same offset to current screen's top left on given screen
    *
    * @param scrID number of screen
@@ -401,18 +447,7 @@ public class Region {
   public Region copyTo(Screen screen) {
     Location o = new Location(getScreen().getBounds().getLocation());
     Location n = new Location(screen.getBounds().getLocation());
-    return Region.create(n.x + x - o.x, n.y + y - o.y, getVW(), getVH());
-  }
-
-  /**
-   * new region with same offset to current screen's top left <br />on the given
-   * region's screen <br />mainly to support Jython Screen objects
-   *
-   * @param screen new parent screen
-   * @return new region
-   */
-  public Region copyTo(Region reg) {
-    return copyTo(reg.getScreen());
+    return Region.create(n.x + x - o.x, n.y + y - o.y, w, h);
   }
 
   /**
@@ -481,7 +516,7 @@ public class Region {
    * FindFailed to let user decide how to proceed<br /> RETRY - continue to wait
    * for appearence on FindFailed (caution: endless loop)
    *
-   * @param response FindFailedResponse.XXX
+   * @param response the FindFailedResponse
    */
   public void setFindFailedResponse(FindFailedResponse response) {
     findFailedResponse = response;
@@ -506,45 +541,44 @@ public class Region {
   }
 
   /**
-	 *
-	 * @return the screen, that contains the top left corner of the region.
-	 * Returns primary screen if outside of any screen.
-	 */
-	public Screen getScreenContaining() {
-    for (int i = 0; i < Screen.getNumberScreens(); i++) {
-      Rectangle sb = Screen.getBounds(i);
-      if (sb.contains(this.getTopLeft())) {
-        return Screen.getScreen(i);
-      }
-    }
-    return Screen.getPrimaryScreen();
+   *
+   * @return the screen, that contains the top left corner of the region.
+   * Returns primary screen if outside of any screen.
+   * @deprecated Only for compatibility, to get the screen containing this
+   * region, use {@link #getScreen()}
+   */
+  @Deprecated
+  public Screen getScreenContaining() {
+    return getScreen();
   }
 
   /**
+   * Sets a new Screen for this region.
    *
    * @param is the containing screen object
    */
   protected void setScreen(Screen is) {
-    scr = is;
+    initScreen(scr);
   }
 
   /**
-   * internal use from Screen initialization to act like Region
+   * Sets a new Screen for this region.
+   *
    * @param id the containing screen object's id
    */
   protected void setScreen(int id) {
-    scr = Screen.getScreen(id);
+    setScreen(Screen.getScreen(id));
   }
 
   /**
-   * synonym for showMonitors to be available in Jython
+   * synonym for showMonitors
    */
   public void showScreens() {
     Screen.showMonitors();
   }
 
   /**
-   * synonym for resetMonitors to be available in Jython
+   * synonym for resetMonitors
    */
   public void resetScreens() {
     Screen.resetMonitors();
@@ -560,9 +594,9 @@ public class Region {
   }
 
   /**
-   * conveneince method
+   * convenience method
    *
-   * @return the region's center or match's TargetOffset
+   * @return the region's center
    */
   public Location getTarget() {
     return getCenter();
@@ -571,7 +605,7 @@ public class Region {
   /**
    * Moves the region to the area, whose center is the given location
    *
-   * @param loc
+   * @param loc the location which is the new center of the region
    * @return the region itself
    */
   public Region setCenter(Location loc) {
@@ -593,7 +627,7 @@ public class Region {
   /**
    * Moves the region to the area, whose top left corner is the given location
    *
-   * @param loc
+   * @param loc the location which is the new top left point of the region
    * @return the region itself
    */
   public Region setTopLeft(Location loc) {
@@ -611,7 +645,7 @@ public class Region {
   /**
    * Moves the region to the area, whose top right corner is the given location
    *
-   * @param loc
+   * @param loc the location which is the new top right point of the region
    * @return the region itself
    */
   public Region setTopRight(Location loc) {
@@ -634,7 +668,7 @@ public class Region {
    * Moves the region to the area, whose bottom left corner is the given
    * location
    *
-   * @param loc
+   * @param loc the location which is the new bottom left point of the region
    * @return the region itself
    */
   public Region setBottomLeft(Location loc) {
@@ -657,7 +691,7 @@ public class Region {
    * Moves the region to the area, whose bottom right corner is the given
    * location
    *
-   * @param loc
+   * @param loc the location which is the new bottom right point of the region
    * @return the region itself
    */
   public Region setBottomRight(Location loc) {
@@ -672,9 +706,7 @@ public class Region {
   /**
    *
    * @return x of top left corner
-   * @deprecated use region.x instead
    */
-  @Deprecated
   public int getX() {
     return x;
   }
@@ -682,9 +714,7 @@ public class Region {
   /**
    *
    * @return y of top left corner
-   * @deprecated use region.y instead
    */
-  @Deprecated
   public int getY() {
     return y;
   }
@@ -692,9 +722,7 @@ public class Region {
   /**
    *
    * @return width of region
-   * @deprecated use region.w instead
    */
-  @Deprecated
   public int getW() {
     return w;
   }
@@ -702,9 +730,7 @@ public class Region {
   /**
    *
    * @return height of region
-   * @deprecated use region.w instead
    */
-  @Deprecated
   public int getH() {
     return h;
   }
@@ -712,9 +738,7 @@ public class Region {
   /**
    *
    * @param X new x position of top left corner
-   * @deprecated use region.x= instead
    */
-  @Deprecated
   public void setX(int X) {
     x = X;
   }
@@ -722,9 +746,7 @@ public class Region {
   /**
    *
    * @param Y new y position of top left corner
-   * @deprecated use region.y= instead
    */
-  @Deprecated
   public void setY(int Y) {
     y = Y;
   }
@@ -732,9 +754,7 @@ public class Region {
   /**
    *
    * @param W new width
-   * @deprecated use region.w= instead
    */
-  @Deprecated
   public void setW(int W) {
     w = W;
   }
@@ -742,9 +762,7 @@ public class Region {
   /**
    *
    * @param H new height
-   * @deprecated use region.h instead
    */
-  @Deprecated
   public void setH(int H) {
     h = H;
   }
@@ -814,28 +832,13 @@ public class Region {
     return this;
   }
 
-// ****************************************************
+  // ****************************************************
   /**
-   * returns the region being the current ROI of the containing screen
+   * resets this region to the given location, and size <br /> this might move
+   * the region even to another screen
    *
-   * Because of the wanted side effect for the containing screen (Jython level),
-   * this should only be used with screen objects.
-   * For Region objects use getRect() instead.
-   *
-   * @return
-   */
-  public Region getROI() {
-    return Region.create(getScreen().getCurROI());
-  }
-
-  /**
-   * resets this region to the given location, size <br />sets the ROI of the
-   * containing screen to this modified region <br />this might move the region
-   * even to another screen
-   *
-   * Because of the wanted side effect for the containing screen (Jython level),
-   * this should only be used with screen objects.
-   * For Region objects use setRect() instead.
+   * Because of the wanted side effect for the containing screen, this should
+   * only be used with screen objects. For Region objects use setRect() instead.
    *
    * @param X
    * @param Y
@@ -848,76 +851,39 @@ public class Region {
     w = W;
     h = H;
     initScreen(getScreen());
-    getScreen().setCurROI(new Rectangle(X, Y, W, H));
   }
 
   /**
-   * resets this region to the given rectangle <br />sets the ROI of the
-   * containing screen to this modified region<br />this might move the region
+   * resets this region to the given rectangle <br /> this might move the region
    * even to another screen
    *
-   * Because of the wanted side effect for the containing screen (Jython level),
-   * this should only be used with screen objects.
-   * For Region objects use setRect() instead.
+   * Because of the wanted side effect for the containing screen, this should
+   * only be used with screen objects. For Region objects use setRect() instead.
    *
    * @param roi
    */
   public void setROI(Rectangle roi) {
-    x = (int) roi.getX();
-    y = (int) roi.getY();
-    w = (int) roi.getWidth();
-    h = (int) roi.getHeight();
-    initScreen(getScreen());
-    getScreen().setCurROI(roi);
+    setROI(roi.x, roi.y, roi.width, roi.height);
   }
 
   /**
-   * resets this region to the given region <br />sets the ROI of the containing
-   * screen to this modified region<br />this might move the region even to
-   * another screen
+   * resets this region to the given region <br /> this might move the region
+   * even to another screen
    *
-   * Because of the wanted side effect for the containing screen (Jython level),
-   * this should only be used with screen objects.
-   * For Region objects use setRect() instead.
+   * Because of the wanted side effect for the containing screen, this should
+   * only be used with screen objects. For Region objects use setRect() instead.
    *
    * @param reg
    */
   public void setROI(Region reg) {
-    x = reg.x;
-    y = reg.y;
-    w = reg.w;
-    h = reg.h;
-    initScreen(getScreen());
-    getScreen().setCurROI(reg.getRect());
+    setROI(reg.getX(), reg.getY(), reg.getW(), reg.getH());
   }
 
-  /**
-   * resets the ROI of the containing screen
-   * to the physical bounds of the screen again
-   * the region itself is not touched
-   *
-   * Because of the wanted side effect for the containing screen (Jython level),
-   * this should only be used with screen objects.
-   * For Region objects use setRect() instead.
-   *
-   * @param reg
-   */
-  public void resetROI() {
-    if ((this instanceof Screen) || isJythonScreen()) {
-      Rectangle roi = getScreen().getBounds();
-      x = (int) roi.getX();
-      y = (int) roi.getY();
-      w = (int) roi.getWidth();
-      h = (int) roi.getHeight();
-      getScreen().setCurROI(roi);
-    }
-  }
-
-// ****************************************************
+  // ****************************************************
   /**
    *
    * @return the region itself
-   * @deprecated only for bachward compatibility
+   * @deprecated only for backward compatibility
    */
   @Deprecated
   public Region inside() {
@@ -1037,44 +1003,45 @@ public class Region {
 
   // ************************************************
   /**
-	 * get the last image taken on this regions screen
-	 * @return
-	 */
-	public ScreenImage getLastScreenImage() {
-		return getScreen().lastScreenImage;
-	}
+   * get the last image taken on this regions screen
+   *
+   * @return
+   */
+  public ScreenImage getLastScreenImage() {
+    return getScreen().lastScreenImage;
+  }
 
-	/**
-	 * stores the lastScreenImage in the current bundle path with a created unique name
-	 *
-	 * @return the absolute file name
-	 */
-	public String getLastScreenImageFile() throws IOException {
-		return getLastScreenImageFile(Settings.BundlePath, null);
-	}
+  /**
+   * stores the lastScreenImage in the current bundle path with a created unique
+   * name
+   *
+   * @return the absolute file name
+   */
+  public String getLastScreenImageFile() throws IOException {
+    return getLastScreenImageFile(Settings.BundlePath, null);
+  }
 
-	/**
-	 * stores the lastScreenImage in the current bundle path with the given name
-	 *
-	 * @param name file name (.png is added if not there)
-	 * @return the absolute file name
-	 */
-	public String getLastScreenImageFile(String name) throws IOException {
-		return getScreen().lastScreenImage.getFile(Settings.BundlePath, name);
-	}
+  /**
+   * stores the lastScreenImage in the current bundle path with the given name
+   *
+   * @param name file name (.png is added if not there)
+   * @return the absolute file name
+   */
+  public String getLastScreenImageFile(String name) throws IOException {
+    return getScreen().lastScreenImage.getFile(Settings.BundlePath, name);
+  }
 
-	/**
-	 * stores the lastScreenImage in the given path with the given name
-	 *
-	 * @param name file name (.png is added if not there)
-	 * @return the absolute file name
-	 */
-	public String getLastScreenImageFile(String path, String name) throws IOException {
-		return getScreen().lastScreenImage.getFile(path, name);
-	}
+  /**
+   * stores the lastScreenImage in the given path with the given name
+   *
+   * @param name file name (.png is added if not there)
+   * @return the absolute file name
+   */
+  public String getLastScreenImageFile(String path, String name) throws IOException {
+    return getScreen().lastScreenImage.getFile(path, name);
+  }
 
-//</editor-fold>
-
+  //</editor-fold>
   //<editor-fold defaultstate="collapsed" desc="spatial operators - new regions">
   /**
    * check if current region contains given region
@@ -1089,11 +1056,22 @@ public class Region {
   /**
    * create region with same size at top left corner offset
    *
-   * @param loc
+   * @param loc use its x and y to set the offset
    * @return the new region
    */
   public Region offset(Location loc) {
-    return Region.create(x + loc.x, y + loc.y, getVW(), getVH());
+    return Region.create(x + loc.x, y + loc.y, w, h);
+  }
+
+  /**
+   * create region with same size at top left corner offset
+   *
+   * @param x horizontal offset
+   * @param y vertical offset
+   * @return the new region
+   */
+  public Region offset(int _x, int _y) {
+    return Region.create(x + _x, y + _y, w, h);
   }
 
   /**
@@ -1104,7 +1082,7 @@ public class Region {
    */
   @Deprecated
   public Region nearby() {
-    return grow(PADDING, PADDING);
+    return grow(Settings.DefaultPadding, Settings.DefaultPadding);
   }
 
   /**
@@ -1139,7 +1117,6 @@ public class Region {
    */
   public Region grow(int w, int h) {
     Rectangle r = getRect();
-    r.setSize(getVW(), getVH());
     r.grow(w, h);
     return Region.create(r.x, r.y, r.width, r.height, scr);
   }
@@ -1155,11 +1132,10 @@ public class Region {
    * @return the new region
    */
   public Region grow(int l, int r, int t, int b) {
-    Rectangle re = getRect();
     int _x = x - l;
     int _y = y - b;
-    int _w = getVW() + l + r;
-    int _h = getVH() + t + b;
+    int _w = w + l + r;
+    int _h = h + t + b;
     return Region.create(_x, _y, _w, _h);
   }
 
@@ -1188,7 +1164,8 @@ public class Region {
    * @return the new region
    */
   public Region right() {
-    return right(9999999);
+    int distToRightScreenBorder = getScreen().getX() + getScreen().getW() - (getX() + getW());
+    return right(distToRightScreenBorder);
   }
 
   /**
@@ -1231,7 +1208,8 @@ public class Region {
    * @return the new region
    */
   public Region left() {
-    return left(9999999);
+    int distToLeftScreenBorder = getX() - getScreen().getX();
+    return left(distToLeftScreenBorder);
   }
 
   /**
@@ -1276,7 +1254,8 @@ public class Region {
    * @return the new region
    */
   public Region above() {
-    return above(9999999);
+    int distToAboveScreenBorder = getY() - getScreen().getY();
+    return above(distToAboveScreenBorder);
   }
 
   /**
@@ -1321,7 +1300,8 @@ public class Region {
    * @return the new region
    */
   public Region below() {
-    return below(999999);
+    int distToBelowScreenBorder = getScreen().getY() + getScreen().getH() - (getY() + getH());
+    return below(distToBelowScreenBorder);
   }
 
   /**
@@ -1340,16 +1320,13 @@ public class Region {
   }
 
   /**
-   * create a new region containing both regions<br /> the region is cropped to
-   * fit into the current screen<br /> like AWT Rectangle API
+   * create a new region containing both regions
    *
    * @param ur region to unite with
    * @return the new region
    */
   public Region union(Region ur) {
-    Rectangle r = getRect();
-    r.setSize(getVW(), getVH());
-    r = r.union(ur.getRect());
+    Rectangle r = getRect().union(ur.getRect());
     return Region.create(r.x, r.y, r.width, r.height);
   }
 
@@ -1360,9 +1337,7 @@ public class Region {
    * @return the new region
    */
   public Region intersection(Region ir) {
-    Rectangle r = getRect();
-    r.setSize(getVW(), getVH());
-    r = r.intersection(ir.getRect());
+    Rectangle r = getRect().intersection(ir.getRect());
     return Region.create(r.x, r.y, r.width, r.height);
   }
   //</editor-fold>
@@ -1381,10 +1356,6 @@ public class Region {
    * @return the region itself
    */
   public Region highlight() {
-    if (!(getScreen()instanceof Screen)) {
-      Debug.error("highlight only works on the physical desktop screens.");
-      return this;
-    }
     if (overlay == null) {
       highlight(true);
     } else {
@@ -1393,6 +1364,11 @@ public class Region {
     return this;
   }
 
+  /**
+   * Sets the regions Highlighting border
+   *
+   * @param toEnable set overlay enabled or disabled
+   */
   private void highlight(boolean toEnable) {
     Debug.history("toggle highlight " + toString() + ": " + toEnable);
     if (toEnable) {
@@ -1414,47 +1390,44 @@ public class Region {
    * @return the region itself
    */
   public Region highlight(float secs) {
-		if (secs < 0.1) {
-			return highlight((int) secs);
-		}
-    Debug.history("highlight " + toString() + " for " + secs + " secs");
-    if (!(getScreen()instanceof Screen)) {
-      Debug.error("highlight only work on the physical desktop screens.");
-      return this;
+    if (secs < 0.1) {
+      return highlight((int) secs);
     }
+    Debug.history("highlight " + toString() + " for " + secs + " secs");
     ScreenHighlighter _overlay = new ScreenHighlighter(getScreen());
     _overlay.highlight(this, secs);
     return this;
   }
 
-	/**
-	 * hack to implement the getLastMatch() convenience
-	 * 0 means same as highlight()
-	 * &lt.0 same as highlight(secs)
-	 * if available the last match is highlighted
-	 *
-	 * @param secs
-	 * @return
-	 */
-	public Region highlight(int secs) {
-		if (secs > 0) {
-			return highlight((float) secs);
-		} else {
-			if (lastMatch != null) {
-				if (secs < 0) {
-					return lastMatch.highlight((float) -secs);
-				} else {
-					return lastMatch.highlight(Settings.DefaultHighlightTime);
-				}
-			} else {
-				return this;
-			}
-		}
-	}
+  /**
+   * hack to implement the getLastMatch() convenience 0 means same as
+   * highlight() &lt.0 same as highlight(secs) if available the last match is
+   * highlighted
+   *
+   * @param secs
+   * @return
+   */
+  public Region highlight(int secs) {
+    if (secs > 0) {
+      return highlight((float) secs);
+    }
+    if (lastMatch != null) {
+      if (secs < 0) {
+        return lastMatch.highlight((float) -secs);
+      }
+      return lastMatch.highlight(Settings.DefaultHighlightTime);
+    }
+    return this;
+  }
   //</editor-fold>
 
   //<editor-fold defaultstate="collapsed" desc="find public methods">
-  //WARNING: wait(long timeout) is taken by Java Object as final
+  /**
+   * WARNING: wait(long timeout) is taken by Java Object as final. This method
+   * catches any interruptedExceptions
+   *
+   * @param timeout The time to wait
+   */
   public void wait(double timeout) {
     try {
       Thread.sleep((long) (timeout * 1000L));
@@ -1463,12 +1436,18 @@ public class Region {
     }
   }
 
+  /**
+   * Returns the filename of the given Pattern or String
+   *
+   * @param target The Pattern or String
+   * @return The Name of the File
+   */
   private <PatternOrString> String getImageFilename(PatternOrString target) {
     String imageFileName = null;
     if (target instanceof Pattern) {
       imageFileName = ((Pattern) target).getFilename();
     } else if (target instanceof String) {
-        imageFileName = (String) target;
+      imageFileName = (String) target;
     }
     try {
       return ImageLocator.locate(imageFileName);
@@ -1479,6 +1458,10 @@ public class Region {
 
   /**
    * return false to skip return true to try again throw FindFailed to abort
+   *
+   * @param target Handles a failed find action
+   * @return
+   * @throws FindFailed
    */
   private <PatternOrString> boolean handleFindFailed(PatternOrString target) throws FindFailed {
     FindFailedResponse response;
@@ -1486,8 +1469,8 @@ public class Region {
       FindFailedDialog fd = new FindFailedDialog(target);
       fd.setVisible(true);
       response = fd.getResponse();
-			fd.dispose();
-			wait(0.5);
+      fd.dispose();
+      wait(0.5);
     } else {
       response = findFailedResponse;
     }
@@ -1502,9 +1485,9 @@ public class Region {
   }
 
   /**
-   * Match find( Pattern/String ) finds the given pattern on the
-   * screen and returns the best match. If AutoWaitTimeout is set, this is
-   * equivalent to wait().
+   * Match find( Pattern/String ) finds the given pattern on the screen and
+   * returns the best match. If AutoWaitTimeout is set, this is equivalent to
+   * wait().
    *
    * @param target A search criteria
    * @return If found, the element. null otherwise
@@ -1561,6 +1544,13 @@ public class Region {
     }
   }
 
+  /**
+   * Waits for the PatternOrString to appear
+   *
+   * @param target The target to search for
+   * @return The found Match
+   * @throws FindFailed
+   */
   public <PatternOrString> Match wait(PatternOrString target) throws FindFailed {
     return wait(target, autoWaitTimeout);
   }
@@ -1611,7 +1601,7 @@ public class Region {
    * @param target Pattern or String
    * @return the match (null if not found or image file missing)
    */
-  public <PatternOrString> Match exists(PatternOrString target)  {
+  public <PatternOrString> Match exists(PatternOrString target) {
     return exists(target, autoWaitTimeout);
   }
 
@@ -1636,16 +1626,16 @@ public class Region {
     return null;
   }
 
-//TODO implement findText + check text target already here (find(String))
+  //TODO implement findText + check text target already here (find(String))
   /**
    *
    * @param text
    * @param timeout
    * @return
    */
-	public Match findText(String text, double timeout) throws FindFailed {
-		throw new FindFailed("Region.findText: not yet implemented");
-	}
+  public Match findText(String text, double timeout) throws FindFailed {
+    throw new FindFailed("Region.findText: not yet implemented");
+  }
 
   /**
    *
@@ -1663,7 +1653,7 @@ public class Region {
    * @return
    */
   public Match findAllText(String text, double timeout) throws FindFailed {
-		throw new FindFailed("Region.findText: not yet implemented");
+    throw new FindFailed("Region.findText: not yet implemented");
   }
 
   /**
@@ -1689,7 +1679,8 @@ public class Region {
    * boolean waitVanish(Pattern/String/PatternClass target, timeout-sec) waits
    * until target vanishes or timeout (in second) is passed
    *
-   * @return true if target vanishes, false otherwise and if imagefile is missing.
+   * @return true if target vanishes, false otherwise and if imagefile is
+   * missing.
    */
   public <PatternOrString> boolean waitVanish(PatternOrString target, double timeout) {
     try {
@@ -1699,11 +1690,10 @@ public class Region {
         // target has vanished before timeout
         Debug.log(2, "" + target + " has vanished");
         return true;
-      } else {
-        // target has not vanished before timeout
-        Debug.log(2, "" + target + " has not vanished before timeout");
-        return false;
       }
+      // target has not vanished before timeout
+      Debug.log(2, "" + target + " has not vanished before timeout");
+      return false;
 
     } catch (Exception e) {
       Debug.error("Region.waitVanish: seems that imagefile could not be found on disk", target);
@@ -1718,35 +1708,35 @@ public class Region {
    * screen and returns the best match without waiting.
    */
   private <PatternOrString> Match doFind(PatternOrString ptn, RepeatableFind repeating) throws IOException {
-		Finder f;
+    Finder f;
     ScreenImage simg = getScreen().capture(x, y, w, h);
-		if (repeating != null && repeating._finder != null) {
-			f = repeating._finder;
-			f.setScreenImage(simg);
-			f.setRepeating();
-			f.findRepeat();
-		} else {
-			f = new Finder(simg, this);
+    if (repeating != null && repeating._finder != null) {
+      f = repeating._finder;
+      f.setScreenImage(simg);
+      f.setRepeating();
+      f.findRepeat();
+    } else {
+      f = new Finder(simg, this);
       String text;
-			if (ptn instanceof String) {
-				text = f.find((String) ptn);
-				if (null == text) {
-					throw new IOException("ImageFile " + ptn + " not found on disk");
-				} else if ((((String) ptn) + "???").equals(text)) {
-					throw new IOException("Text search currently switched off");
-				}
-			} else {
+      if (ptn instanceof String) {
+        text = f.find((String) ptn);
+        if (null == text) {
+          throw new IOException("ImageFile " + ptn + " not found on disk");
+        } else if ((((String) ptn) + "???").equals(text)) {
+          throw new IOException("Text search currently switched off");
+        }
+      } else {
         text = ((Pattern) ptn).getFilename();
-				if (null == f.find((Pattern) ptn)) {
-					throw new IOException("ImageFile " + text
-									+ " not found on disk");
-				}
-			}
-			if (repeating != null) {
-				repeating._finder = f;
+        if (null == f.find((Pattern) ptn)) {
+          throw new IOException("ImageFile " + text
+                  + " not found on disk");
+        }
+      }
+      if (repeating != null) {
+        repeating._finder = f;
         repeating._imagefilename = text;
-			}
-		}
+      }
+    }
     if (f.hasNext()) {
       return f.next();
     }
@@ -1757,32 +1747,32 @@ public class Region {
    * Match findAllNow( Pattern/String/PatternClass ) finds the given pattern on
    * the screen and returns the best match without waiting.
    */
-	private <PatternOrString> Iterator<Match> doFindAll(PatternOrString ptn, RepeatableFindAll repeating) throws IOException {
-		Finder f;
-		ScreenImage simg = getScreen().capture(x, y, w, h);
-		if (repeating != null && repeating._finder != null) {
-			f = repeating._finder;
-			f.setScreenImage(simg);
-			f.setRepeating();
-			f.findAllRepeat();
-		} else {
-			f = new Finder(simg, this);
-			if (ptn instanceof String) {
-				if (null == f.findAll((String) ptn)) {
-					throw new IOException();
-				}
-			} else {
-				if (null == f.findAll((Pattern) ptn)) {
-					throw new IOException("ImageFile " + ((Pattern) ptn).getFilename()
-									+ " not found on disk");
-				}
-			}
-		}
-		if (f.hasNext()) {
-			return f;
-		}
-		return null;
-	}
+  private <PatternOrString> Iterator<Match> doFindAll(PatternOrString ptn, RepeatableFindAll repeating) throws IOException {
+    Finder f;
+    ScreenImage simg = getScreen().capture(x, y, w, h);
+    if (repeating != null && repeating._finder != null) {
+      f = repeating._finder;
+      f.setScreenImage(simg);
+      f.setRepeating();
+      f.findAllRepeat();
+    } else {
+      f = new Finder(simg, this);
+      if (ptn instanceof String) {
+        if (null == f.findAll((String) ptn)) {
+          throw new IOException();
+        }
+      } else {
+        if (null == f.findAll((Pattern) ptn)) {
+          throw new IOException("ImageFile " + ((Pattern) ptn).getFilename()
+                  + " not found on disk");
+        }
+      }
+    }
+    if (f.hasNext()) {
+      return f;
+    }
+    return null;
+  }
 
   // Repeatable Find ////////////////////////////////
   private abstract class Repeatable {
@@ -1797,7 +1787,7 @@ public class Region {
     boolean repeat(double timeout) throws Exception {
 
       int MaxTimePerScan = (int) (1000.0 / Settings.WaitScanRate);
-			int MaxTimePerScanSecs = MaxTimePerScan/1000;
+      int MaxTimePerScanSecs = MaxTimePerScan / 1000;
       long begin_t = (new Date()).getTime();
       do {
         long before_find = (new Date()).getTime();
@@ -1806,15 +1796,15 @@ public class Region {
         if (ifSuccessful()) {
           return true;
         } else if (timeout < MaxTimePerScanSecs) {
-					// instant return on first search failed if timeout very small or 0
+          // instant return on first search failed if timeout very small or 0
           return false;
         }
 
-				long after_find = (new Date()).getTime();
+        long after_find = (new Date()).getTime();
         if (after_find - before_find < MaxTimePerScan) {
-          getScreen().getActionRobot().delay((int) (MaxTimePerScan - (after_find - before_find)));
+          getScreen().getRobot().delay((int) (MaxTimePerScan - (after_find - before_find)));
         } else {
-          getScreen().getActionRobot().delay(10);
+          getScreen().getRobot().delay(10);
         }
       } while (begin_t + timeout * 1000 > (new Date()).getTime());
 
@@ -1826,7 +1816,7 @@ public class Region {
 
     Object _target;
     Match _match = null;
-		Finder _finder = null;
+    Finder _finder = null;
     String _imagefilename = null;
 
     public <PatternOrString> RepeatableFind(PatternOrString target) {
@@ -1834,11 +1824,11 @@ public class Region {
     }
 
     public Match getMatch() {
- 			if (_finder != null) {
-				_finder.destroy();
-			}
-      return (_match == null ) ? _match : new Match(_match);
-   }
+      if (_finder != null) {
+        _finder.destroy();
+      }
+      return (_match == null) ? _match : new Match(_match);
+    }
 
     @Override
     public void run() throws IOException {
@@ -1867,7 +1857,7 @@ public class Region {
 
     Object _target;
     Iterator<Match> _matches = null;
-		Finder _finder = null;
+    Finder _finder = null;
 
     public <PatternOrString> RepeatableFindAll(PatternOrString target) {
       _target = target;
@@ -1889,140 +1879,43 @@ public class Region {
   }
   //</editor-fold>
 
-	//<editor-fold defaultstate="collapsed" desc="Find internal -- obsolete??">
-	/**
-	 *
-	 * @param ptn
-	 * @return the match if successful
-	 * @throws FindFailed
-	 * @deprecated should not be used anymore - use find() instead
-	 */
-	@Deprecated
-	public <PatternOrString> Match findNow(PatternOrString ptn) throws FindFailed {
-		ScreenImage simg = getScreen().capture(x, y, w, h);
-		Finder f = new Finder(simg, this);
-		Match ret = null;
-		if (ptn instanceof String) {
-			if (null == f.find((String) ptn)) {
-				throw new FindFailed("ImageFile not found");
-			}
-		} else {
-			if (null == f.find((Pattern) ptn)) {
-				throw new FindFailed("ImageFile " + ((Pattern) ptn).getFilename()
-								+ " not found on disk");
-			}
-		}
-		if (f.hasNext()) {
-			ret = f.next();
-		}
-		f.destroy();
-		return ret;
-	}
+  //<editor-fold defaultstate="collapsed" desc="Find internal -- obsolete??">
+  private <PatternStringRegionMatch> Region getRegionFromTarget(PatternStringRegionMatch target) throws FindFailed {
+    if (target instanceof Pattern || target instanceof String) {
+      Match m = find(target);
+      if (m != null) {
+        return m;
+      }
+      return null;
+    }
+    if (target instanceof Region) {
+      return (Region) target;
+    }
+    return null;
+  }
 
-	/**
-	 *
-	 * @param ptn
-	 * @return the itreator of matches if successful
-	 * @throws FindFailed
-	 * @deprecated should not be used anymore - use findAll() instead
-	 */
-	@Deprecated
-	public <PatternOrString> Iterator<Match> findAllNow(PatternOrString ptn)
-					throws FindFailed {
-		ScreenImage simg = getScreen().capture(x, y, w, h);
-		Finder f = new Finder(simg, this);
-		if (ptn instanceof String) {
-			if (null == f.findAll((String) ptn)) {
-				throw new FindFailed("ImageFile not found");
-			}
-		} else {
-			if (null == f.findAll((Pattern) ptn)) {
-				throw new FindFailed("ImageFile " + ((Pattern) ptn).getFilename()
-								+ " not found on disk");
-			}
-		}
-		if (f.hasNext()) {
-			return f;
-		}
-		f.destroy();
-		return null;
-	}
+  private <PatternStringRegionMatchLocation> Location getLocationFromTarget(PatternStringRegionMatchLocation target) throws FindFailed {
+    if (target instanceof Pattern || target instanceof String) {
+      Match m = find(target);
+      if (m != null) {
+        return m.getTarget();
+      }
+      return null;
+    }
+    if (target instanceof Match) {
+      return ((Match) target).getTarget();
+    }
+    if (target instanceof Region) {
+      return ((Region) target).getCenter();
+    }
+    if (target instanceof Location) {
+      return (Location) target;
+    }
+    return null;
+  }
+  //</editor-fold>
 
-	/**
-	 *
-	 * @param target
-	 * @param timeout
-	 * @return the itreator of matches if successful
-	 * @throws FindFailed
-	 * @deprecated does not really make sense - use findAll() instead
-	 */
-	@Deprecated
-	public <PatternOrString> Iterator<Match> waitAll(PatternOrString target, double timeout)
-					throws FindFailed {
-
-		while (true) {
-			try {
-
-				RepeatableFindAll rf = new RepeatableFindAll(target);
-				rf.repeat(timeout);
-				lastMatches = rf.getMatches();
-
-			} catch (Exception e) {
-				throw new FindFailed(e.getMessage());
-			}
-
-			if (lastMatches != null) {
-				break;
-			}
-
-			if (!handleFindFailed(target)) {
-				return null;
-			}
-		}
-
-		return lastMatches;
-	}
-
-	private <PatternStringRegionMatch> Region
-					getRegionFromTarget(PatternStringRegionMatch target)
-					throws FindFailed {
-		if (target instanceof Pattern || target instanceof String) {
-			Match m = find(target);
-			if (m != null) {
-				return m;
-			}
-			return null;
-		}
-		if (target instanceof Region) {
-			return (Region) target;
-		}
-		return null;
-	}
-
-	private <PatternStringRegionMatchLocation> Location
-					getLocationFromTarget(PatternStringRegionMatchLocation target)
-					throws FindFailed {
-		if (target instanceof Pattern || target instanceof String) {
-			Match m = find(target);
-			if (m != null) {
-				return m.getTarget();
-			}
-			return null;
-		}
-		if (target instanceof Match) {
-			return ((Match) target).getTarget();
-		}
-		if (target instanceof Region) {
-			return ((Region) target).getCenter();
-		}
-		if (target instanceof Location) {
-			return (Location) target;
-		}
-		return null;
-	}
-	//</editor-fold>
-
-	//<editor-fold defaultstate="collapsed" desc="Observer">
+  //<editor-fold defaultstate="collapsed" desc="Observer">
   private SikuliEventManager getEventManager() {
     if (evtMgr == null) {
       evtMgr = new SikuliEventManager(this);
@@ -2031,36 +1924,19 @@ public class Region {
   }
 
   public <PatternOrString> void onAppear(PatternOrString target, Object observer) {
-    if (! observer.getClass().getName().startsWith("org.python.core.PyFunction")) {
-      getEventManager().addAppearObserver(target, (SikuliEventObserver) observer);
-    } else {
-      Debug.error("onAppear(%s): invalid Region - use r = Region(r) before as workaround", target);
-    }
+    getEventManager().addAppearObserver(target, (SikuliEventObserver) observer);
   }
 
   public <PatternOrString> void onVanish(PatternOrString target, Object observer) {
-    if (! observer.getClass().getName().startsWith("org.python.core.PyFunction")) {
-      getEventManager().addVanishObserver(target, (SikuliEventObserver) observer);
-    } else {
-      Debug.error("onVanish(%s): invalid Region - use r = Region(r) before as workaround", target);
-    }
+    getEventManager().addVanishObserver(target, (SikuliEventObserver) observer);
   }
 
   public void onChange(int threshold, Object observer) {
-    if (! observer.getClass().getName().startsWith("org.python.core.PyFunction")) {
-      getEventManager().addChangeObserver(threshold, (SikuliEventObserver) observer);
-    } else {
-      Debug.error("onChange(%s): invalid Region - use r = Region(r) before as workaround", threshold);
-    }
+    getEventManager().addChangeObserver(threshold, (SikuliEventObserver) observer);
   }
 
   public void onChange(SikuliEventObserver observer) {
-    if (! observer.getClass().getName().startsWith("org.python.core.PyFunction")) {
-      getEventManager().addChangeObserver(Settings.ObserveMinChangedPixels,
-                                          (SikuliEventObserver) observer);
-    } else {
-      Debug.error("onChange(): invalid Region - use r = Region(r) before as workaround");
-    }
+    getEventManager().addChangeObserver(Settings.ObserveMinChangedPixels, observer);
   }
 
   public void observe() {
@@ -2083,7 +1959,7 @@ public class Region {
 
   public void observe(double secs) {
     if (evtMgr == null) {
-      Debug.error("observe(): Nothing to observe (for Jython: region might be invalid)");
+      Debug.error("observe(): Nothing to observe (Region might be invalid)");
       return;
     }
     int MaxTimePerScan = (int) (1000.0 / Settings.ObserveScanRate);
@@ -2093,7 +1969,7 @@ public class Region {
     while (observing && begin_t + secs * 1000 > (new Date()).getTime()) {
       long before_find = (new Date()).getTime();
       ScreenImage simg = getScreen().capture(x, y, w, h);
-      if (! evtMgr.update(simg)) {
+      if (!evtMgr.update(simg)) {
         break;
       }
       long after_find = (new Date()).getTime();
@@ -2110,7 +1986,7 @@ public class Region {
 
   //<editor-fold defaultstate="collapsed" desc="Mouse actions - clicking">
   // returns target offset of lastmatch if exists
-	//Region.center / Match.targetOffset otherwise
+  //Region.center / Match.targetOffset otherwise
   private Location checkMatch() {
     if (lastMatch != null) {
       return lastMatch.getTarget();
@@ -2158,8 +2034,8 @@ public class Region {
     try { // needed to cut throw chain for FindFailed
       return click(checkMatch(), 0);
     } catch (FindFailed ex) {
+      return 0;
     }
-    return 0;
   }
 
   /**
@@ -2207,8 +2083,8 @@ public class Region {
     try { // needed to cut throw chain for FindFailed
       return doubleClick(checkMatch(), 0);
     } catch (FindFailed ex) {
+      return 0;
     }
-    return 0;
   }
 
   /**
@@ -2256,8 +2132,8 @@ public class Region {
     try { // needed to cut throw chain for FindFailed
       return rightClick(checkMatch(), 0);
     } catch (FindFailed ex) {
+      return 0;
     }
-    return 0;
   }
 
   /**
@@ -2295,14 +2171,13 @@ public class Region {
     return ret;
   }
 
-  private int _click(Location loc, int buttons, int modifiers,
-          boolean dblClick) {
+  private int _click(Location loc, int buttons, int modifiers, boolean dblClick) {
     if (loc == null) {
       return 0;
     }
     Debug.history(getClickMsg(loc, buttons, modifiers, dblClick));
     getScreen().showTarget(loc);
-    RobotDesktop r = getScreen().getActionRobot();
+    RobotDesktop r = getScreen().getRobot();
     r.pressModifiers(modifiers);
     r.smoothMove(loc);
     r.mouseDown(buttons);
@@ -2316,8 +2191,7 @@ public class Region {
     return 1;
   }
 
-  private String getClickMsg(Location loc, int buttons, int modifiers,
-          boolean dblClick) {
+  private String getClickMsg(Location loc, int buttons, int modifiers, boolean dblClick) {
     String msg = "";
     if (modifiers != 0) {
       msg += KeyEvent.getKeyModifiersText(modifiers) + "+";
@@ -2356,19 +2230,18 @@ public class Region {
    * Drag from a position and drop to another using left mouse button<br
    * />applying Settings.DelayAfterDrag and DelayBeforeDrop
    *
-   * @param <PatternFilenameRegionMatchLocation> t1 source position
-   * @param <PatternFilenameRegionMatchLocation> t2 destination position
+   * @param t1 source position
+   * @param t2 destination position
    * @return 1 if possible, 0 otherwise
    * @throws FindFailed if the Find operation failed
    */
-  public <PatternFilenameRegionMatchLocation> int dragDrop(PatternFilenameRegionMatchLocation t1,
-          PatternFilenameRegionMatchLocation t2)
+  public <PatternFilenameRegionMatchLocation> int dragDrop(PatternFilenameRegionMatchLocation t1, PatternFilenameRegionMatchLocation t2)
           throws FindFailed {
     Location loc1 = getLocationFromTarget(t1);
     Location loc2 = getLocationFromTarget(t2);
     if (loc1 != null && loc2 != null) {
       getScreen().showTarget(loc1);
-      RobotDesktop r = getScreen().getActionRobot();
+      RobotDesktop r = getScreen().getRobot();
       r.smoothMove(loc1);
       r.mouseDown(InputEvent.BUTTON1_MASK);
       r.delay((int) (Settings.DelayAfterDrag * 1000));
@@ -2393,7 +2266,7 @@ public class Region {
           throws FindFailed {
     Location loc = getLocationFromTarget(target);
     if (loc != null) {
-      RobotDesktop r = getScreen().getActionRobot();
+      RobotDesktop r = getScreen().getRobot();
       getScreen().showTarget(loc);
       r.smoothMove(loc);
       r.mouseDown(InputEvent.BUTTON1_MASK);
@@ -2417,7 +2290,7 @@ public class Region {
     Location loc = getLocationFromTarget(target);
     if (loc != null) {
       getScreen().showTarget(loc);
-      RobotDesktop r = getScreen().getActionRobot();
+      RobotDesktop r = getScreen().getRobot();
       r.smoothMove(loc);
       r.delay((int) (Settings.DelayBeforeDrop * 1000));
       r.mouseUp(InputEvent.BUTTON1_MASK);
@@ -2437,7 +2310,7 @@ public class Region {
    * @param buttons
    */
   public void mouseDown(int buttons) {
-    getScreen().getActionRobot().mouseDown(buttons);
+    getScreen().getRobot().mouseDown(buttons);
   }
 
   /**
@@ -2454,7 +2327,7 @@ public class Region {
    * @param buttons
    */
   public void mouseUp(int buttons) {
-    getScreen().getActionRobot().mouseUp(buttons);
+    getScreen().getRobot().mouseUp(buttons);
   }
 
   /**
@@ -2470,9 +2343,8 @@ public class Region {
       } catch (FindFailed ex) {
         return 0;
       }
-    } else {
-      return 0;
     }
+    return 0;
   }
 
   /**
@@ -2490,7 +2362,7 @@ public class Region {
     Location loc = getLocationFromTarget(target);
     if (loc != null) {
       getScreen().showTarget(loc);
-      RobotDesktop r = getScreen().getActionRobot();
+      RobotDesktop r = getScreen().getRobot();
       r.smoothMove(loc);
       r.waitForIdle();
       return 1;
@@ -2508,7 +2380,7 @@ public class Region {
    */
   public int wheel(int direction, int steps) {
     for (int i = 0; i < steps; i++) {
-      RobotDesktop r = getScreen().getActionRobot();
+      RobotDesktop r = getScreen().getRobot();
       r.mouseWheel(direction);
       r.delay(50);
     }
@@ -2552,7 +2424,7 @@ public class Region {
    * @param keycode
    */
   public void keyDown(int keycode) {
-    getScreen().getActionRobot().keyDown(keycode);
+    getScreen().getRobot().keyDown(keycode);
   }
 
   /**
@@ -2564,14 +2436,14 @@ public class Region {
    * @param keys
    */
   public void keyDown(String keys) {
-    getScreen().getActionRobot().keyDown(keys);
+    getScreen().getRobot().keyDown(keys);
   }
 
   /**
    * release all currently pressed keys
    */
   public void keyUp() {
-    getScreen().getActionRobot().keyUp();
+    getScreen().getRobot().keyUp();
   }
 
   /**
@@ -2580,7 +2452,7 @@ public class Region {
    * @param keycode
    */
   public void keyUp(int keycode) {
-    getScreen().getActionRobot().keyUp(keycode);
+    getScreen().getRobot().keyUp(keycode);
   }
 
   /**
@@ -2589,7 +2461,7 @@ public class Region {
    * @param keys
    */
   public void keyUp(String keys) {
-    getScreen().getActionRobot().keyUp(keys);
+    getScreen().getRobot().keyUp(keys);
   }
 
   /**
@@ -2630,10 +2502,12 @@ public class Region {
 
   /**
    * enters the given text one character/key after another using
+   *
    * keyDown/keyUp<br />while holding down the given modifier keys <br />about
    * the usable Key constants see keyDown(keys) <br />Class Key only provides a
    * subset of a US-QWERTY PC keyboard layout<br />the text is entered at the
    * current position of the focus/carret
+   *
    *
    * @param text containing characters and/or Key constants
    * @param modifiers constants according to class Key - combine using +
@@ -2714,13 +2588,25 @@ public class Region {
       for (int i = 0; i < text.length(); i++) {
         showText += Key.toJavaKeyCodeText(text.charAt(i));
       }
-      Debug.history(
-              (modifiers != 0 ? KeyEvent.getKeyModifiersText(modifiers) + "+" : "")
-              + "TYPE \"" + showText + "\"");
-      RobotDesktop r = getScreen().getActionRobot();
+      String modText = "";
+      String modWindows = null;
+      if ((modifiers & KeyModifier.WIN) != 0) {
+        modifiers -= KeyModifier.WIN;
+        modifiers |= KeyModifier.META;
+        Debug.log(2, "Key.WIN as modifier");
+        modWindows = "Windows";
+      }
+      if (modifiers != 0) {
+        modText = String.format("( %s ) ", KeyEvent.getKeyModifiersText(modifiers));
+        if (modWindows != null) {
+          modText = modText.replace("Meta", modWindows);
+        }
+      }
+      Debug.history(modText + "TYPE \"" + showText + "\"");
+      RobotDesktop r = getScreen().getRobot();
       for (int i = 0; i < text.length(); i++) {
         r.pressModifiers(modifiers);
-//TODO allow symbolic keys as #NAME. (CUT, COPY, PASTE, (select) ALL, ...)
+        //TODO allow symbolic keys as #NAME. (CUT, COPY, PASTE, (select) ALL, ...)
         r.typeChar(text.charAt(i), RobotIF.KeyMode.PRESS_RELEASE);
         r.releaseModifiers(modifiers);
         r.delay(20);
@@ -2728,6 +2614,7 @@ public class Region {
       r.waitForIdle();
       return 1;
     }
+
     return 0;
   }
 
@@ -2762,7 +2649,7 @@ public class Region {
     if (text != null) {
       App.setClipboard(text);
       int mod = Key.getHotkeyModifier();
-      RobotDesktop r = getScreen().getActionRobot();
+      RobotDesktop r = getScreen().getRobot();
       r.keyDown(mod);
       r.keyDown(KeyEvent.VK_V);
       r.keyUp(KeyEvent.VK_V);
@@ -2775,57 +2662,52 @@ public class Region {
 
   //<editor-fold defaultstate="collapsed" desc="OCR - read text from Screen">
   /**
-	 * STILL EXPERIMENTAL: tries to read the text in this region<br />
-	 * might contain misread characters, NL characters and other stuff, when
-	 * interpreting contained grafics as text<br />
-	 * Best results: one line of text with no grafics in the line
-	 *
-	 * @return the text read (utf8 encoded)
-	 */
-	public String text() {
-		if (Settings.OcrTextRead) {
-			ScreenImage simg = getScreen().capture(x, y, w, h);
-      TextRecognizer tr = TextRecognizer.getInstance();
-      if (tr == null) {
-  			Debug.error("Region.text: text recognition is now switched off");
-  			return "--- no text ---";
-      } else {
-  			String textRead = tr.recognize(simg);
-    		Debug.log(2, "Region.text: #(" + textRead + ")#");
-      	return textRead;
-      }
-		} else {
-			Debug.error("Region.text: text recognition is currently switched off");
-			return "--- no text ---";
-		}
-	}
-
-  /**
-	 * VERY EXPERIMENTAL: returns a list of matches, that represent single words,
-	 * that have been found in this region<br />
-	 * the match's x,y,w,h the region of the word<br />
-	 * Match.getText() returns the word (utf8) at this match<br />
-	 * Match.getScore() returns a value between 0 ... 1, that represents
-	 * some OCR-confidence value<br />
-	 * (the higher, the better the OCR engine thinks the result is)
-	 *
-	 * @return a list of matches
-	 */
-	public List<Match> listText() {
-		if (Settings.OcrTextRead) {
+   * STILL EXPERIMENTAL: tries to read the text in this region<br /> might
+   * contain misread characters, NL characters and other stuff, when
+   * interpreting contained grafics as text<br /> Best results: one line of text
+   * with no grafics in the line
+   *
+   * @return the text read (utf8 encoded)
+   */
+  public String text() {
+    if (Settings.OcrTextRead) {
       ScreenImage simg = getScreen().capture(x, y, w, h);
       TextRecognizer tr = TextRecognizer.getInstance();
       if (tr == null) {
-  			Debug.error("Region.text: text recognition is now switched off");
-  			return null;
-      } else {
-    		Debug.log(2, "Region.listText");
-  			return tr.listText(simg, this);
+        Debug.error("Region.text: text recognition is now switched off");
+        return "--- no text ---";
       }
-		} else {
-			Debug.error("Region.text: text recognition is currently switched off");
-			return null;
-		}
+      String textRead = tr.recognize(simg);
+      Debug.log(2, "Region.text: #(" + textRead + ")#");
+      return textRead;
+    }
+    Debug.error("Region.text: text recognition is currently switched off");
+    return "--- no text ---";
+  }
+
+  /**
+   * VERY EXPERIMENTAL: returns a list of matches, that represent single words,
+   * that have been found in this region<br /> the match's x,y,w,h the region of
+   * the word<br /> Match.getText() returns the word (utf8) at this match<br />
+   * Match.getScore() returns a value between 0 ... 1, that represents some
+   * OCR-confidence value<br /> (the higher, the better the OCR engine thinks
+   * the result is)
+   *
+   * @return a list of matches
+   */
+  public List<Match> listText() {
+    if (Settings.OcrTextRead) {
+      ScreenImage simg = getScreen().capture(x, y, w, h);
+      TextRecognizer tr = TextRecognizer.getInstance();
+      if (tr == null) {
+        Debug.error("Region.text: text recognition is now switched off");
+        return null;
+      }
+      Debug.log(2, "Region.listText");
+      return tr.listText(simg, this);
+    }
+    Debug.error("Region.text: text recognition is currently switched off");
+    return null;
   }
   //</editor-fold>
 }

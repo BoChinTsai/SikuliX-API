@@ -6,6 +6,8 @@
  */
 package org.sikuli.script;
 
+import org.sikuli.setup.Settings;
+import org.sikuli.setup.Debug;
 import java.awt.Toolkit;
 import java.awt.datatransfer.ClipboardOwner;
 import java.awt.datatransfer.DataFlavor;
@@ -19,10 +21,11 @@ import java.io.StringReader;
 import java.nio.ByteBuffer;
 import java.nio.CharBuffer;
 import org.sikuli.system.OSUtil;
+import org.sikuli.system.SysUtil;
 
 public class App {
 
-  protected static final OSUtil _osUtil = Settings.getOSUtil();
+  protected static final OSUtil _osUtil = SysUtil.getOSUtil();
   protected String _appName;
   protected int _pid;
 

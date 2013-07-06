@@ -6,9 +6,13 @@
  */
 package org.sikuli.script;
 
+import org.sikuli.setup.Settings;
+import org.sikuli.setup.Debug;
 import java.awt.*;
 import java.awt.event.*;
 import java.awt.image.*;
+import java.util.Date;
+import org.sikuli.system.SysUtil;
 
 public class OverlayCapturePrompt extends OverlayTransparentWindow implements EventSubject {
 
@@ -34,6 +38,8 @@ public class OverlayCapturePrompt extends OverlayTransparentWindow implements Ev
 	int srcx, srcy, destx, desty;
 	boolean _canceled = false;
 	String _msg;
+  boolean didPurgeMessage = false;
+  boolean dragging = false; 
 
 	public OverlayCapturePrompt(Screen scr, EventObserver ob) {
 		init(scr, ob);
@@ -54,11 +60,25 @@ public class OverlayCapturePrompt extends OverlayTransparentWindow implements Ev
 		setCursor(Cursor.getPredefinedCursor(Cursor.CROSSHAIR_CURSOR));
 		rectSelection = new Rectangle();
 		addMouseListener(new MouseAdapter() {
+
+      @Override
+			public void mouseMoved(java.awt.event.MouseEvent e) {
+        if (_msg == null) {
+          return;
+        }
+        _msg = null;
+        repaint();
+      }
+      
 			@Override
 			public void mousePressed(java.awt.event.MouseEvent e) {
 				if (_scr_img == null) {
 					return;
 				}
+        if (_msg != null) {
+          _msg = null;
+          didPurgeMessage = true;
+        }
 				destx = srcx = e.getX();
 				desty = srcy = e.getY();
 				srcScreenId = (new ScreenUnion()).getIdFromPoint(srcx, srcy);
@@ -71,6 +91,10 @@ public class OverlayCapturePrompt extends OverlayTransparentWindow implements Ev
 				if (_scr_img == null) {
 					return;
 				}
+        if (!dragging && didPurgeMessage) {
+          didPurgeMessage = false;
+          return;
+        }
 				if (e.getButton() == java.awt.event.MouseEvent.BUTTON3) {
 					_canceled = true;
 					Debug.log(2, "CapturePrompt: aborted using right mouse button");
@@ -88,6 +112,7 @@ public class OverlayCapturePrompt extends OverlayTransparentWindow implements Ev
 				if (_scr_img == null) {
 					return;
 				}
+        dragging = true;
 				destx = e.getX();
 				desty = e.getY();
 				repaint();
@@ -98,6 +123,11 @@ public class OverlayCapturePrompt extends OverlayTransparentWindow implements Ev
 			@Override
 			public void keyPressed(KeyEvent e) {
 				if (e.getKeyCode() == KeyEvent.VK_ESCAPE) {
+          if (_msg != null) {
+            _msg = null;
+            repaint();
+            return;
+          }
 					_canceled = true;
 					Debug.log(2, "CapturePrompt: aborted using key ESC");
 					setVisible(false);
@@ -147,11 +177,11 @@ public class OverlayCapturePrompt extends OverlayTransparentWindow implements Ev
 		this.setBounds(_scr.getBounds());
 		this.setAlwaysOnTop(true);
 		_msg = msg;
-
+Debug.log(2, "CapturePrompt: "+_msg);
 		this.setVisible(true);
 		if (! Settings.isJava7()) {
 			if (Settings.isMac()) {
-				Settings.getOSUtil().bringWindowToFront(this, false);
+				SysUtil.getOSUtil().bringWindowToFront(this, false);
 			}
 		}
 		this.requestFocus();

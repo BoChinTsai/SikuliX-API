@@ -6,8 +6,13 @@
  */
 package org.sikuli.script;
 
+import org.sikuli.setup.Settings;
+import org.sikuli.setup.FileManager;
+import org.sikuli.setup.Debug;
 import java.awt.image.BufferedImage;
-import java.io.*;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URL;
@@ -235,32 +240,30 @@ public class ImageLocator {
 		}
 	}
 
-	/**
-	 * the current list is emptied (preserving list[0] = bundlepath and entries
-	 * created automatically by Jython import) <br />then add
-	 * -DSIKULI_IMAGE_PATH=... and Env(SIKULI_IMAGE_PATH) <br /> then the given
-	 * path(s) are added using addImagePath()
-	 *
-	 * @param path absolute or relative path(s) or url(s) might be a path list
-	 * string with seperator : (or ; Windows)
-	 */
-	public static void resetImagePath(String path) {
-		clearImagePath();
-		addImagePath(path);
-	}
+    /**
+     * the current list is emptied <br />then add
+     * -DSIKULI_IMAGE_PATH=... and Env(SIKULI_IMAGE_PATH) <br /> then the given
+     * path(s) are added using addImagePath()
+     *
+     * @param path absolute or relative path(s) or url(s) might be a path list
+     * string with seperator : (or ; Windows)
+     */
+    public static void resetImagePath(String path) {
+        clearImagePath();
+        addImagePath(path);
+    }
 
-	/**
-	 * the current list is emptied (preserving list[0] = bundlepath and entries
-	 * created automatically by Jython import) <br />then add
-	 * -DSIKULI_IMAGE_PATH=... and Env(SIKULI_IMAGE_PATH) <br /> then the given
-	 * path(s) are added using addImagePath()
-	 *
-	 * @param path absolute or relative path(s) or url(s) as string array
-	 */
-	public static void resetImagePath(String[] pl) {
-		clearImagePath();
-		addImagePath(pl);
-	}
+    /**
+     * the current list is emptied <br />then add
+     * -DSIKULI_IMAGE_PATH=... and Env(SIKULI_IMAGE_PATH) <br /> then the given
+     * path(s) are added using addImagePath()
+     *
+     * @param path absolute or relative path(s) or url(s) as string array
+     */
+    public static void resetImagePath(String[] pl) {
+        clearImagePath();
+        addImagePath(pl);
+    }
 
 	/**
 	 * the given path is added to the list replacing the first entry and
@@ -320,13 +323,13 @@ public class ImageLocator {
 				return _cache.get(uri);
 			}
 			String localFile = FileManager.downloadURL(url, _cache_dir_global.getPath());
-			Debug.log(2, "ImageLocator.getFileFromURL: download " + uri + " to local: " + localFile);
-			_cache.put(uri, localFile);
+      if (localFile != null) {
+        Debug.log(2, "ImageLocator.getFileFromURL: download " + uri + " to local: " + localFile);
+        _cache.put(uri, localFile);
+      }
 			return localFile;
 		} catch (java.net.URISyntaxException e) {
 			Debug.log(2, "ImageLocator.getFileFromURL: URI syntax error: " + url + ", " + e.getMessage());
-			return null;
-		} catch (IOException e) {
 			return null;
 		}
 	}

@@ -6,66 +6,55 @@
  */
 package org.sikuli.script;
 
-import java.awt.*;
-import java.io.IOException;
+import org.sikuli.setup.Settings;
+import org.sikuli.setup.Debug;
+import java.awt.AWTException;
+import java.awt.GraphicsDevice;
+import java.awt.GraphicsEnvironment;
+import java.awt.Rectangle;
 
 /**
- * A screen represents a physical monitor with its coordinates and size
- * according to the global point system: the screen areas are grouped
- * around a point (0,0) like in a cartesian system (the top left corner and the
- * points containd in the screen area might have negative x and/or y values)
- * <br >The screens are aranged in an array (index = id) and
- * each screen is always the same object (not possible to create new objects).
- * <br />A screen inherits from class Region, so it can be used as such
- * in all aspects. If you need the region of the screen more than once,
- * you have to create new ones based on the screen.
- *<br />The so called primary screen here is the one with top left (0,0).
- * It is not guaranteed, that the primary screen has id 0, since the
- * sequence of the screens and hence there id depends
- * on the system dependent monitor configuration.
+ * A screen represents a physical monitor with its coordinates and size according to the global
+ * point system: the screen areas are grouped around a point (0,0) like in a cartesian system (the
+ * top left corner and the points containd in the screen area might have negative x and/or y values)
+ * <br >The screens are aranged in an array (index = id) and each screen is always the same object
+ * (not possible to create new objects).
+ * <br />A screen inherits from class Region, so it can be used as such in all aspects. If you need
+ * the region of the screen more than once, you have to create new ones based on the screen.
+ * <br />The so called primary screen here is the one with top left (0,0). It is not guaranteed,
+ * that the primary screen has id 0, since the sequence of the screens and hence there id depends on
+ * the system dependent monitor configuration.
  *
  * @author RaiMan
  */
 public class Screen extends Region implements EventObserver, ScreenIF {
 
-  static GraphicsEnvironment genv = null;
-  static GraphicsDevice[] gdevs;
-  static RobotDesktop[] robots;
-  static Screen[] screens;
+  protected static GraphicsEnvironment genv = null;
+  protected static GraphicsDevice[] gdevs;
+  protected RobotDesktop robot;
+  protected static Screen[] screens;
   protected static int primaryScreen = -1;
-  protected static RobotDesktop actionRobot;
-  private int curID = 0;
-  private GraphicsDevice curGD;
-  private Rectangle curROI;
+  protected int curID = 0;
+  protected GraphicsDevice curGD;
   protected boolean waitPrompt;
   protected OverlayCapturePrompt prompt;
   protected ScreenImage lastScreenImage;
 
   //<editor-fold defaultstate="collapsed" desc="Initialization">
   private static void initScreens() {
-		initScreens(false);
-	}
+    initScreens(false);
+  }
 
   private static void initScreens(boolean reset) {
-    if (genv != null && ! reset) {
+    if (genv != null && !reset) {
       return;
     }
     genv = GraphicsEnvironment.getLocalGraphicsEnvironment();
     gdevs = genv.getScreenDevices();
-    robots = new RobotDesktop[gdevs.length];
     screens = new Screen[gdevs.length];
     for (int i = 0; i < gdevs.length; i++) {
       screens[i] = new Screen(i, true);
       screens[i].initScreen();
-      try {
-        robots[i] = new RobotDesktop(screens[i]);
-      } catch (AWTException e) {
-        Debug.error("Can't initialize Java Robot " + i);
-        robots[i] = null;
-        screens[i] = null;
-      }
-      //robots[i].setAutoWaitForIdle(false); //TODO: make sure we don't need this
-      robots[i].setAutoDelay(10);
     }
     primaryScreen = 0;
     for (int i = 0; i < getNumberScreens(); i++) {
@@ -74,100 +63,98 @@ public class Screen extends Region implements EventObserver, ScreenIF {
         break;
       }
     }
-    try {
-      actionRobot = new RobotDesktop(screens[primaryScreen]);
-      actionRobot.setAutoDelay(10);
-    } catch (AWTException e) {
-      Debug.error("Can't initialize Java Robot " + primaryScreen);
-      actionRobot = null;
-      screens[primaryScreen] = null;
-    }
-    Debug.log(2, "Screen static initScreens");
+    Debug.log(2, "Screen: initScreens: basic initialization (%d Screen(s) found)", getNumberScreens());
   }
 
-	// hack to get an additional internal constructor for the initialization
+  // hack to get an additional internal constructor for the initialization
   private Screen(int id, boolean init) {
-		super();
+    super();
     curID = id;
-		setScreen(curID);
   }
 
   /**
-	 * Is the screen object at the given id
-	 *
-	 * @param id
-	 */
-	public Screen(int id) {
-		super();
+   * Is the screen object at the given id
+   *
+   * @param id
+   * @throws Exception TODO: implement an own Exception instead of using the Exception class
+   */
+  public Screen(int id) throws Exception {
+    super();
     initScreens();
-    curID = id;
+
     if (id < 0 || id >= gdevs.length) {
-      curID = getPrimaryId();
+      throw new IllegalArgumentException("Screen ID " + id + " not in valid range (between 0 and " + (gdevs.length - 1));
     }
+
+    curID = id;
+    curGD = gdevs[curID];
     initScreen();
   }
 
   /**
-   * Is the screen object having the top left corner as (0,0).
-	 * If such a screen does not exist it is the screen with id 0.
+   * Is the screen object having the top left corner as (0,0). If such a screen does not exist it is
+   * the screen with id 0.
    */
   public Screen() {
-		super();
+    super();
     initScreens();
     curID = getPrimaryId();
+    curGD = gdevs[curID];
     initScreen();
+  }
+
+  /**
+   * {@inheritDoc} TODO: remove this method if it is not needed
+   */
+  @Override
+  protected void initScreen(Screen scr) {
+    updateSelf();
   }
 
   private void initScreen() {
     curGD = gdevs[curID];
-    if (screens[curID] == null) {
-      x = 0;
-      y = 0;
-      w = vWidth = -1;
-      h = vHeight = -1;
-      curROI = new Rectangle(x, y, w, h);
-      Debug.error("Screen cannot be used. No Robot: " + toStringShort());
-    } else {
-      Rectangle bounds = getBounds();
-      x = (int) bounds.getX();
-      y = (int) bounds.getY();
-      w = vWidth = (int) bounds.getWidth();
-      h = vHeight = (int) bounds.getHeight();
-      curROI = new Rectangle(x, y, w, h);
+    Rectangle bounds = getBounds();
+    x = (int) bounds.getX();
+    y = (int) bounds.getY();
+    w = (int) bounds.getWidth();
+    h = (int) bounds.getHeight();
+    try {
+      robot = new RobotDesktop(this);
+      robot.setAutoDelay(10);
+    } catch (AWTException e) {
+      Debug.error("Can't initialize Java Robot on Screen " + curID + ": " + e.getMessage());
+      robot = null;
     }
-		setScreen(curID);
   }
 
-  protected Rectangle getCurROI() {
-    return curROI;
-  }
-
-  protected void setCurROI(Rectangle roi) {
-    curROI = new Rectangle(roi.x, roi.y, roi.width, roi.height);
-  }
-
+  /**
+   * {@inheritDoc}
+   */
   @Override
   public Screen getScreen() {
     return this;
   }
 
+  /**
+   * {@inheritDoc}
+   */
   @Override
   protected void setScreen(Screen s) {
-    // to block the Region method
+    throw new UnsupportedOperationException("The setScreen() method cannot be called from a Screen object.");
   }
 
-	/**
+  /**
    * show the current monitor setup
    */
   public static void showMonitors() {
     initScreens();
     Debug.info("*** monitor configuration [ %s Screen(s)] ***", Screen.getNumberScreens());
     Debug.info("*** Primary is Screen %d", Screen.getPrimaryId());
-		for (int i=0; i < gdevs.length; i++) {
+    for (int i = 0; i < gdevs.length; i++) {
       Debug.info("Screen %d: %s", i, Screen.getScreen(i).toStringShort());
     }
     Debug.info("*** end monitor configuration ***");
-	}
+  }
 
   /**
    * re-initialize the monitor setup (e.g. when it was changed while running)
@@ -181,14 +168,14 @@ public class Screen extends Region implements EventObserver, ScreenIF {
     initScreens(true);
     Debug.info("*** new monitor configuration [ %s Screen(s)] ***", Screen.getNumberScreens());
     Debug.info("*** Primary is Screen %d", Screen.getPrimaryId());
-		for (int i=0; i < gdevs.length; i++) {
+    for (int i = 0; i < gdevs.length; i++) {
       Debug.info("Screen %d: %s", i, Screen.getScreen(i).toStringShort());
     }
     Debug.error("*** end new monitor configuration ***");
   }
 
   //</editor-fold>
-
+  
   //<editor-fold defaultstate="collapsed" desc="getters setters">
   protected boolean useFullscreen() {
     return false;
@@ -198,211 +185,192 @@ public class Screen extends Region implements EventObserver, ScreenIF {
     initScreens();
     if (id < 0 || id >= gdevs.length) {
       return primaryScreen;
-    } else {
-      return id;
     }
+    return id;
   }
 
   /**
-	 *
-	 * @return number of available screens
-	 */
-	public static int getNumberScreens() {
+   *
+   * @return number of available screens
+   */
+  public static int getNumberScreens() {
     initScreens();
     return gdevs.length;
   }
 
   /**
-	 *
-	 * @return the id of the screen at (0,0), if not exists 0
-	 */
-	public static int getPrimaryId() {
+   *
+   * @return the id of the screen at (0,0), if not exists 0
+   */
+  public static int getPrimaryId() {
     initScreens();
     return primaryScreen;
   }
 
   /**
-	 *
-	 * @return the screen at (0,0), if not exists the one with id 0
-	 */
+   *
+   * @return the screen at (0,0), if not exists the one with id 0
+   */
   public static Screen getPrimaryScreen() {
     return screens[getPrimaryId()];
   }
 
   /**
-	 *
-	 * @param id of the screen
-	 * @return the screen with given id, the primary screen if id is invalid
-	 */
-	public static Screen getScreen(int id) {
+   *
+   * @param id of the screen
+   * @return the screen with given id, the primary screen if id is invalid
+   */
+  public static Screen getScreen(int id) {
     return screens[getValidID(id)];
   }
 
   /**
-	 *
-	 * @param id
-	 * @return the physical coordinate/size <br />as AWT.Rectangle to avoid mix up with getROI
-	 */
-	public static Rectangle getBounds(int id) {
+   *
+   * @param id
+   * @return the physical coordinate/size <br />as AWT.Rectangle to avoid mix up with getROI
+   */
+  public static Rectangle getBounds(int id) {
     return gdevs[getValidID(id)].getDefaultConfiguration().getBounds();
   }
 
   /**
-	 * each screen has exactly one robot (internally used for screen capturing)
-	 * <br />available as a convenience for those who know what they are doing.
-	 * Should not be needed normally.
-	 *
-	 * @param id
-	 * @return the AWT.Robot of the given screen, if id invalid the primary screen
-	 */
-	public static RobotDesktop getRobot(int id) {
-    return robots[getValidID(id)];
+   * each screen has exactly one robot (internally used for screen capturing)
+   * <br />available as a convenience for those who know what they are doing. Should not be needed
+   * normally.
+   *
+   * @param id
+   * @return the AWT.Robot of the given screen, if id invalid the primary screen
+   */
+  public static RobotDesktop getRobot(int id) {
+    return getScreen(id).getRobot();
   }
 
   /**
-	 * the one robot, that runs and coordinates all mouse and keyboard activities
-	 * <br />available as a convenience for those who know what they are doing.
-	 * Should not be needed normally.
-	 * @return an AWT.Robot (always same object)
-	 */
-	public RobotDesktop getActionRobot() {
-    return actionRobot;
-  }
-
-  /**
-	 *
-	 * @return
-	 */
-	public int getID() {
+   *
+   * @return
+   */
+  public int getID() {
     return curID;
   }
 
   /**
-	 *
-	 * @return
-	 */
-	public GraphicsDevice getGraphicsDevice() {
+   *
+   * @return
+   */
+  public GraphicsDevice getGraphicsDevice() {
     return curGD;
   }
 
   /**
-	 *
-	 * @return
-	 */
-	@Override
+   * Gets the Robot of this Screen.
+   *
+   * @return The Robot for this Screen
+   */
+  @Override
   public RobotDesktop getRobot() {
-    return robots[curID];
+    return robot;
   }
 
- 	@Override
+  @Override
   public Rectangle getBounds() {
     return curGD.getDefaultConfiguration().getBounds();
   }
 
   /**
-	 * creates a region on the current screen with the given coordinate/size.
-	 * The coordinate is translated to the current screen from its
-	 * relative position on the screen it would have been created normally.
-	 *
-	 * @param loc
-	 * @param width
-	 * @param height
-	 * @return the new region
-	 */
-	public Region newRegion(Location loc, int width, int height) {
-			return Region.create(loc.copyTo(this), width, height);
+   * creates a region on the current screen with the given coordinate/size. The coordinate is
+   * translated to the current screen from its relative position on the screen it would have been
+   * created normally.
+   *
+   * @param loc
+   * @param width
+   * @param height
+   * @return the new region
+   */
+  public Region newRegion(Location loc, int width, int height) {
+    return Region.create(loc.copyTo(this), width, height);
   }
 
   /**
-	 * creates a location on the current screen with the given point.
-	 * The coordinate is translated to the current screen from its
-	 * relative position on the screen it would have been created normally.
-	 *
-	 * @param loc
-	 * @return the new location
-	 */
-	public Location newLocation(Location loc) {
-			return (new Location(loc)).copyTo(this);
+   * creates a location on the current screen with the given point. The coordinate is translated to
+   * the current screen from its relative position on the screen it would have been created
+   * normally.
+   *
+   * @param loc
+   * @return the new location
+   */
+  public Location newLocation(Location loc) {
+    return (new Location(loc)).copyTo(this);
   }
 
-//</editor-fold>
-
+  //</editor-fold>
+  
   //<editor-fold defaultstate="collapsed" desc="Capture - SelectRegion">
   /**
-	 * create a ScreenImage with the physical bounds of this screen
-	 *
-	 * @return the image
-	 */
-	@Override
+   * create a ScreenImage with the physical bounds of this screen
+   *
+   * @return the image
+   */
+  @Override
   public ScreenImage capture() {
-    return capture(getCurROI());
+    return capture(getRect());
   }
 
   /**
-	 * create a ScreenImage with given coordinates on this screen.
-	 * Will be translated to this screen if (x,y) is outside.
-	 *
-	 * @param x
-	 * @param y
-	 * @param w
-	 * @param h
-	 * @return the image
-	 */
-	@Override
+   * create a ScreenImage with given coordinates on this screen.
+   *
+   * @param x x-coordinate of the region to be captured
+   * @param y y-coordinate of the region to be captured
+   * @param w width of the region to be captured
+   * @param h height of the region to be captured
+   * @return the image of the region
+   */
+  @Override
   public ScreenImage capture(int x, int y, int w, int h) {
-    Rectangle rect = newRegion(new Location(x,y), w, h).getRect();
+    Rectangle rect = newRegion(new Location(x, y), w, h).getRect();
     return capture(rect);
   }
 
   /**
-	 * create a ScreenImage with given rectangle on this screen
-	 * Will be translated to this screen if top left is outside.
-	 *
-	 * @param rect
-	 * @return the image
-	 */
-	@Override
+   * create a ScreenImage with given rectangle on this screen.
+   *
+   * @param rect The Rectangle to be captured
+   * @return the image of the region
+   */
+  @Override
   public ScreenImage capture(Rectangle rect) {
-    rect = newRegion(new Location(rect.x, rect.y), rect.width, rect.height).getRect();
-    Rectangle bounds = getBounds();
-    rect.x -= bounds.x;
-    rect.y -= bounds.y;
-    ScreenImage simg = robots[curID].captureScreen(rect);
-    simg.x += bounds.x;
-    simg.y += bounds.y;
+    ScreenImage simg = robot.captureScreen(rect);
     lastScreenImage = simg;
     Debug.log(2, "Screen.capture: " + rect);
     return simg;
   }
 
   /**
-	 * create a ScreenImage with given region on this screen
-	 * Will be translated to this screen if top left is outside.
-	 *
-	 * @param reg
-	 * @return the image
-	 */
-	@Override
+   * create a ScreenImage with given region on this screen
+   *
+   * @param reg The Region to be captured
+   * @return the image of the region
+   */
+  @Override
   public ScreenImage capture(Region reg) {
-    return capture(newRegion(reg.getTopLeft(), reg.getVW(), reg.getVH()).getRect());
+    return capture(reg.getRect());
   }
 
   /**
-	 * interactive capture with predefined message: lets the user capture a
-	 * screen image using the mouse to draw the rectangle
-	 *
-	 * @return the image
-	 */
-	public ScreenImage userCapture() {
+   * interactive capture with predefined message: lets the user capture a screen image using the
+   * mouse to draw the rectangle
+   *
+   * @return the image
+   */
+  public ScreenImage userCapture() {
     return userCapture("Select a region on the screen");
   }
 
   /**
-	 * interactive capture with given message: lets the user capture a
-	 * screen image using the mouse to draw the rectangle
-	 *
-	 * @return the image
-	 */
+   * interactive capture with given message: lets the user capture a screen image using the mouse to
+   * draw the rectangle
+   *
+   * @return the image
+   */
   public ScreenImage userCapture(final String msg) {
     waitPrompt = true;
     Thread th = new Thread() {
@@ -431,21 +399,20 @@ public class Screen extends Region implements EventObserver, ScreenIF {
   }
 
   /**
-	 * interactive region create with predefined message: lets the user
-	 * draw the rectangle using the mouse
-	 *
-	 * @return the region
-	 */
+   * interactive region create with predefined message: lets the user draw the rectangle using the
+   * mouse
+   *
+   * @return the region
+   */
   public Region selectRegion() {
     return selectRegion("Select a region on the screen");
   }
 
   /**
-	 * interactive region create with given message: lets the user
-	 * draw the rectangle using the mouse
-	 *
-	 * @return the region
-	 */
+   * interactive region create with given message: lets the user draw the rectangle using the mouse
+   *
+   * @return the region
+   */
   public Region selectRegion(final String msg) {
     ScreenImage sim = userCapture(msg);
     if (sim == null) {
@@ -457,10 +424,11 @@ public class Screen extends Region implements EventObserver, ScreenIF {
   }
 
   /**
-	 * Internal use only
-	 * @param s
-	 */
-	@Override
+   * Internal use only
+   *
+   * @param s
+   */
+  @Override
   public void update(EventSubject s) {
     waitPrompt = false;
   }
@@ -482,28 +450,18 @@ public class Screen extends Region implements EventObserver, ScreenIF {
   @Override
   public String toString() {
     Rectangle r = getBounds();
-    if (curROI.equals(r)) {
-      return String.format("S(%d)[%d,%d %dx%d] E:%s, T:%.1f",
-              curID, (int) r.getX(), (int) r.getY(),
-              (int) r.getWidth(), (int) r.getHeight(),
-              throwException ? "Y" : "N", autoWaitTimeout);
-    } else {
-      int rx = (int) r.getX();
-      int ry = (int) r.getY();
-      return String.format("S(%d)[%d,%d %dx%d] ROI[%d,%d, %dx%d] E:%s, T:%.1f",
-              curID, rx, ry,
-              (int) r.getWidth(), (int) r.getHeight(),
-              curROI.x - rx, curROI.y - ry, curROI.width, curROI.height,
-              throwException ? "Y" : "N", autoWaitTimeout);
-    }
+    return String.format("S(%d)[%d,%d %dx%d] E:%s, T:%.1f",
+            curID, (int) r.getX(), (int) r.getY(),
+            (int) r.getWidth(), (int) r.getHeight(),
+            throwException ? "Y" : "N", autoWaitTimeout);
   }
 
   /**
-	 * only a short version of toString()
-	 *
-	 * @return like S(0) [0,0, 1440x900]
-	 */
-	public String toStringShort() {
+   * only a short version of toString()
+   *
+   * @return like S(0) [0,0, 1440x900]
+   */
+  public String toStringShort() {
     Rectangle r = getBounds();
     return String.format("S(%d)[%d,%d %dx%d]",
             curID, (int) r.getX(), (int) r.getY(),

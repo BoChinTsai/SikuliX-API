@@ -6,6 +6,8 @@
  */
 package org.sikuli.script;
 
+import org.sikuli.setup.Settings;
+import org.sikuli.setup.Debug;
 import java.awt.AWTException;
 import java.util.*;
 import org.sikuli.script.natives.FindInput;

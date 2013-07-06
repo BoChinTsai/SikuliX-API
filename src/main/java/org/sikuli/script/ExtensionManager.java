@@ -10,9 +10,9 @@ import java.io.*;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.regex.Pattern;
-import org.sikuli.script.Debug;
-import org.sikuli.script.FileManager;
-import org.sikuli.script.Settings;
+import org.sikuli.setup.Debug;
+import org.sikuli.setup.FileManager;
+import org.sikuli.setup.Settings;
 
 public class ExtensionManager {
 	private static ExtensionManager _instance = null;

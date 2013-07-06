@@ -6,24 +6,16 @@
  */
 package org.sikuli.script;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import org.apache.commons.cli.*;
+import org.sikuli.setup.Debug;
+import org.apache.commons.cli.CommandLine;
+import org.apache.commons.cli.CommandLineParser;
+import org.apache.commons.cli.HelpFormatter;
+import org.apache.commons.cli.OptionBuilder;
+import org.apache.commons.cli.Options;
+import org.apache.commons.cli.ParseException;
+import org.apache.commons.cli.PosixParser;
 
 public class CommandArgs {
-
-  public static String[] getPyArgs(CommandLine cl) {
-    ArrayList<String> pargs = new ArrayList<String>();
-    if (cl.hasOption("run")) {
-      pargs.add(cl.getOptionValue("run"));
-    }
-    if (cl.hasOption("args")) {
-      pargs.addAll(Arrays.asList(cl.getOptionValues("args")));
-    } else {
-      pargs.addAll(Arrays.asList(cl.getArgs()));
-    }
-    return pargs.toArray(new String[0]);
-  }
 
   Options _options;
   String _callerType;
@@ -61,44 +53,52 @@ public class CommandArgs {
     return cmd;
   }
 
+  /**
+   * Adds all options to the Options object
+   */
+  @SuppressWarnings("static-access")
   private void init() {
     _options = new Options();
-    _options.addOption("h", "help", false, "print this help message");
+    _options.addOption(CommandArgsEnum.HELP.shortname(), CommandArgsEnum.HELP.longname(), false, CommandArgsEnum.HELP.description());
     if (isIDE(_callerType)) {
-      _options.addOption("s", "stderr", false,
-              "print runtime errors to stderr instead of popping up a message box");
+      _options.addOption(CommandArgsEnum.STDERR.shortname(), CommandArgsEnum.STDERR.longname(), false, CommandArgsEnum.STDERR.description());
       _options.addOption(
-              OptionBuilder.withLongOpt("load")
-              .withDescription("peload scripts in IDE")
+              OptionBuilder.withLongOpt(CommandArgsEnum.LOAD.longname())
+              .withDescription(CommandArgsEnum.LOAD.description())
               .hasOptionalArgs()
-              .withArgName("one or more foobar.sikuli")
-              .create('l'));
+              .withArgName(CommandArgsEnum.LOAD.argname())
+              .create(CommandArgsEnum.LOAD.shortname().charAt(0)));
     }
     if (isScript(_callerType)) {
-      _options.addOption("i", "interactive", false,
-              "start interactive Sikuli Jython session\n(Sikuli, sys, time already imported)");
       _options.addOption(
-              OptionBuilder.withLongOpt("test")
-              .withDescription("run script using Jython's unittest")
-              .hasArg()
-              .withArgName("foobar.sikuli")
-              .create('t'));
+              OptionBuilder.withLongOpt(CommandArgsEnum.INTERACTIVE.longname())
+              .hasOptionalArg()
+              .withArgName(CommandArgsEnum.INTERACTIVE.argname())
+              .withDescription(CommandArgsEnum.INTERACTIVE.description())
+              .create(CommandArgsEnum.INTERACTIVE.shortname().charAt(0)));
       _options.addOption(
-              OptionBuilder.withLongOpt("run")
-              .withDescription("run script")
+              OptionBuilder.withLongOpt(CommandArgsEnum.TEST.longname())
               .hasArg()
-              .withArgName("foobar.sikuli")
-              .create('r'));
+              .withArgName(CommandArgsEnum.TEST.argname())
+              .withDescription(CommandArgsEnum.TEST.description())
+              .create(CommandArgsEnum.TEST.shortname().charAt(0)));
+      _options.addOption(
+              OptionBuilder.withLongOpt(CommandArgsEnum.RUN.longname())
+              .hasArg()
+              .withArgName(CommandArgsEnum.RUN.argname())
+              .withDescription(CommandArgsEnum.RUN.description())
+              .create(CommandArgsEnum.RUN.shortname().charAt(0)));
+      _options.addOption(
+              OptionBuilder.withLongOpt(CommandArgsEnum.ARGS.longname())
+              .withArgName(CommandArgsEnum.ARGS.argname())
+              .withDescription(CommandArgsEnum.ARGS.description())
+              .create());
     }
-    _options.addOption(
-            OptionBuilder.hasArgs()
-            .withLongOpt("args")
-            .withArgName("arguments")
-            .withDescription("arguments passed to Jython's sys.argv")
-            .create());
-
   }
 
+  /**
+   * Prints the help
+   */
   public void printHelp() {
     HelpFormatter formatter = new HelpFormatter();
     if (isScript(_callerType)) {
@@ -108,7 +108,7 @@ public class CommandArgs {
               _options,
               "-----\n<foobar.sikuli>\n"
               + "path relative to current working directory or absolute path\n"
-							+ "though deprecated: so called executables .skl can be used too\n"
+              + "though deprecated: so called executables .skl can be used too\n"
               + "-------------------------------------------------------------",
               true);
     } else if (isIDE(_callerType)) {

@@ -6,6 +6,7 @@
  */
 package org.sikuli.script;
 
+import org.sikuli.setup.Settings;
 import java.awt.image.BufferedImage;
 import org.sikuli.script.natives.FindResult;
 
@@ -143,7 +144,7 @@ public class Match extends Region implements Comparable {
   protected void setImage(String imageFileName) {
     image = imageFileName;
     if (Settings.Highlight) {
-      highlight(DEFAULT_HIGHLIGHT_TIME);
+      highlight(Settings.DefaultHighlightTime);
     }
   }
 

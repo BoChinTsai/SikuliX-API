@@ -6,6 +6,8 @@
  */
 package org.sikuli.script;
 
+import org.sikuli.setup.Settings;
+import org.sikuli.setup.Debug;
 import java.awt.event.KeyEvent;
 import java.lang.reflect.Constructor;
 
@@ -93,6 +95,11 @@ public abstract class HotkeyManager {
     Debug.info("add hotkey: " + txtMod + " " + txtCode);
     return _instance._addHotkey(keyCode, modifiers, listener);
   }
+  
+    public boolean addHotkey(int htype, HotkeyListener listener) {
+      return true;
+    }
+
 
   /**
    * uninstall a hotkey listener.

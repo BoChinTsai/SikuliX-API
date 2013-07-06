@@ -12,9 +12,9 @@ import java.io.*;
 import java.net.*;
 import javax.swing.*;
 import javax.swing.event.*;
-import org.sikuli.script.Debug;
-import org.sikuli.script.FileManager;
-import org.sikuli.script.Settings;
+import org.sikuli.setup.Debug;
+import org.sikuli.setup.FileManager;
+import org.sikuli.setup.Settings;
 
 public class AutoUpdater {
 
