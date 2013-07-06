@@ -38,7 +38,8 @@ public class OverlayCapturePrompt extends OverlayTransparentWindow implements Ev
 	int srcx, srcy, destx, desty;
 	boolean _canceled = false;
 	String _msg;
-  long msgDisplayEnd;
+  boolean didPurgeMessage = false;
+  boolean dragging = false; 
 
 	public OverlayCapturePrompt(Screen scr, EventObserver ob) {
 		init(scr, ob);
@@ -65,10 +66,8 @@ public class OverlayCapturePrompt extends OverlayTransparentWindow implements Ev
         if (_msg == null) {
           return;
         }
-        if ((new Date()).getTime() > msgDisplayEnd) {
-          _msg = null;
-          repaint();
-        }
+        _msg = null;
+        repaint();
       }
       
 			@Override
@@ -76,6 +75,10 @@ public class OverlayCapturePrompt extends OverlayTransparentWindow implements Ev
 				if (_scr_img == null) {
 					return;
 				}
+        if (_msg != null) {
+          _msg = null;
+          didPurgeMessage = true;
+        }
 				destx = srcx = e.getX();
 				desty = srcy = e.getY();
 				srcScreenId = (new ScreenUnion()).getIdFromPoint(srcx, srcy);
@@ -88,9 +91,8 @@ public class OverlayCapturePrompt extends OverlayTransparentWindow implements Ev
 				if (_scr_img == null) {
 					return;
 				}
-        if (_msg != null) {
-          _msg = null;
-          repaint();
+        if (!dragging && didPurgeMessage) {
+          didPurgeMessage = false;
           return;
         }
 				if (e.getButton() == java.awt.event.MouseEvent.BUTTON3) {
@@ -110,6 +112,7 @@ public class OverlayCapturePrompt extends OverlayTransparentWindow implements Ev
 				if (_scr_img == null) {
 					return;
 				}
+        dragging = true;
 				destx = e.getX();
 				desty = e.getY();
 				repaint();
@@ -182,7 +185,6 @@ Debug.log(2, "CapturePrompt: "+_msg);
 			}
 		}
 		this.requestFocus();
-    msgDisplayEnd = (new Date()).getTime() + MSG_DISPLAY_TIME;
 	}
 
 	private void captureScreen(Screen scr) {
