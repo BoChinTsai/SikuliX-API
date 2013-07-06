@@ -6,9 +6,9 @@
  */
 package org.sikuli.script;
 
-import org.sikuli.setup.Settings;
 import java.awt.Toolkit;
 import java.awt.event.KeyEvent;
+import org.sikuli.setup.Settings;
 
 public class Key {
 
@@ -75,12 +75,14 @@ public class Key {
   public static final char C_CTRL = '\ue021';
   public static final String ALT = "\ue022";
   public static final char C_ALT = '\ue022';
+  public static final String ALTGR = "\ue043";
+  public static final char C_ALTGR = '\ue043';
   public static final String META = "\ue023";
   public static final char C_META = '\ue023';
   public static final String CMD = "\ue023";
   public static final char C_CMD = '\ue023';
-  public static final String WIN = "\ue023";
-  public static final char C_WIN = '\ue023';
+  public static final String WIN = "\ue042";
+  public static final char C_WIN = '\ue042';
   public static final String PRINTSCREEN = "\ue024";
   public static final char C_PRINTSCREEN = '\ue024';
   public static final String SCROLL_LOCK = "\ue025";
@@ -311,6 +313,7 @@ public class Key {
       case Key.C_DIVIDE:    return new int[]{KeyEvent.VK_DIVIDE};
       case Key.C_DECIMAL:   return new int[]{KeyEvent.VK_DECIMAL};
       case Key.C_CONTEXT:   return new int[]{KeyEvent.VK_CONTEXT_MENU};
+      case Key.C_WIN:   return new int[]{KeyEvent.VK_WINDOWS};
 
       default:
         throw new IllegalArgumentException("Cannot convert character " + key);
@@ -383,6 +386,7 @@ public class Key {
       case Key.C_DIVIDE: return "#NDIV.";
       case Key.C_DECIMAL: return "#NDEC.";
       case Key.C_CONTEXT: return "#NCON.";
+      case Key.C_WIN:   return "#WIN.";
 
       default:
         return "" + key;
@@ -404,6 +408,8 @@ public class Key {
         modNew |= KeyModifier.CMD;
       } else if (Key.C_META == key) {
         modNew |= KeyModifier.META;
+      } else if (Key.C_ALTGR == key) {
+        modNew |= KeyModifier.ALTGR;
       } else if (Key.C_WIN == key) {
         modNew |= KeyModifier.WIN;
       }

@@ -6,9 +6,6 @@
  */
 package org.sikuli.script;
 
-import org.sikuli.setup.IScriptRunner;
-import org.sikuli.setup.Settings;
-import org.sikuli.setup.Debug;
 import java.awt.MouseInfo;
 import java.awt.Point;
 import java.awt.Rectangle;
@@ -18,6 +15,9 @@ import java.io.IOException;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
+import org.sikuli.setup.Debug;
+import org.sikuli.setup.IScriptRunner;
+import org.sikuli.setup.Settings;
 
 /**
  * A Region always lies completely inside its parent screen
@@ -88,13 +88,13 @@ public class Region {
             x, y, w, h, (getScreen() == null ? "Screen null" : getScreen().toStringShort()),
             throwException ? "Y" : "N", autoWaitTimeout);
   }
-  
+
   //<editor-fold defaultstate="collapsed" desc="Specials for scripting environment">
   public Object __enter__() {
     Debug.error("Region: with(__enter__): Trying to make it a Jython Region for with: usage");
     IScriptRunner runner = Settings.getScriptRunner("jython", null, null);
     if (runner != null) {
-      Object[] jyreg = new Object[] {this};
+      Object[] jyreg = new Object[]{this};
       if (runner.doSomethingSpecial("createRegionForWith", jyreg)) {
         if (jyreg[0] != null) {
           return jyreg[0];
@@ -103,14 +103,13 @@ public class Region {
     }
     Debug.error("Region: with(__enter__): Sorry, not possible");
     return null;
-}
-  
+  }
+
   public void __exit__(Object type, Object value, Object traceback) {
     Debug.error("Region: with(__exit__): Sorry, not a Jython Region and not posssible!");
   }
-  
+
   //</editor-fold>
-  
   //<editor-fold defaultstate="collapsed" desc="Initialization">
   /**
    * Detects on which Screen the Region is present.
@@ -142,7 +141,8 @@ public class Region {
    * Checks if the Screen contains the Region.
    *
    * @param screen The Screen in which the Region might be
-   * @return True, if the Region is on the Screen. False if the Region is not inside the Screen
+   * @return True, if the Region is on the Screen. False if the Region is not
+   * inside the Screen
    */
   protected boolean isRegionOnScreen(Screen screen) {
 //TODO Windows maximized/fullscreen windows (frame outside - screen inside window)
@@ -215,7 +215,8 @@ public class Region {
   }
 
   /**
-   * Create a new region from another region<br />including the region's settings
+   * Create a new region from another region<br />including the region's
+   * settings
    *
    * @param r the region
    */
@@ -227,7 +228,6 @@ public class Region {
   }
 
   //</editor-fold>
-
   //<editor-fold defaultstate="collapsed" desc="Quasi-Constructors to be used in Java">
   /**
    * internal use only, used for new Screen objects to get the Region behavior
@@ -274,29 +274,30 @@ public class Region {
     return Region.create(loc.x, loc.y, w, h, null);
   }
   /**
-   * Flag for the {@link #create(Location, int, int, int, int)} method. Sets the Location to be on
-   * the left corner of the new Region.
+   * Flag for the {@link #create(Location, int, int, int, int)} method. Sets the
+   * Location to be on the left corner of the new Region.
    */
   public final static int CREATE_X_DIRECTION_LEFT = 0;
   /**
-   * Flag for the {@link #create(Location, int, int, int, int)} method. Sets the Location to be on
-   * the right corner of the new Region.
+   * Flag for the {@link #create(Location, int, int, int, int)} method. Sets the
+   * Location to be on the right corner of the new Region.
    */
   public final static int CREATE_X_DIRECTION_RIGHT = 1;
   /**
-   * Flag for the {@link #create(Location, int, int, int, int)} method. Sets the Location to be on
-   * the top corner of the new Region.
+   * Flag for the {@link #create(Location, int, int, int, int)} method. Sets the
+   * Location to be on the top corner of the new Region.
    */
   public final static int CREATE_Y_DIRECTION_TOP = 0;
   /**
-   * Flag for the {@link #create(Location, int, int, int, int)} method. Sets the Location to be on
-   * the bottom corner of the new Region.
+   * Flag for the {@link #create(Location, int, int, int, int)} method. Sets the
+   * Location to be on the bottom corner of the new Region.
    */
   public final static int CREATE_Y_DIRECTION_BOTTOM = 1;
 
   /**
-   * create a region with a corner at the given point<br />as specified with x y<br /> 0 0 top
-   * left<br /> 0 1 bottom left<br /> 1 0 top right<br /> 1 1 bottom right<br />
+   * create a region with a corner at the given point<br />as specified with x
+   * y<br /> 0 0 top left<br /> 0 1 bottom left<br /> 1 0 top right<br /> 1 1
+   * bottom right<br />
    *
    * @param loc the refence point
    * @param create_x_direction == 0 is left side !=0 is right side
@@ -331,9 +332,10 @@ public class Region {
   }
 
   /**
-   * create a region with a corner at the given point<br />as specified with x y<br /> 0 0 top
-   * left<br /> 0 1 bottom left<br /> 1 0 top right<br /> 1 1 bottom right<br />same as the
-   * corresponding create method, here to be naming compatible with class Location
+   * create a region with a corner at the given point<br />as specified with x
+   * y<br /> 0 0 top left<br /> 0 1 bottom left<br /> 1 0 top right<br /> 1 1
+   * bottom right<br />same as the corresponding create method, here to be
+   * naming compatible with class Location
    *
    * @param loc the refence point
    * @param x ==0 is left side !=0 is right side
@@ -406,7 +408,6 @@ public class Region {
   }
 
   //</editor-fold>
-  
   //<editor-fold defaultstate="collapsed" desc="handle coordinates">
   /**
    * check if current region contains given point
@@ -450,8 +451,8 @@ public class Region {
   }
 
   /**
-   * used in SikuliEventManager.callChangeObserver, Finder.next to adjust region relative
-   * coordinates of matches to screen coordinates
+   * used in SikuliEventManager.callChangeObserver, Finder.next to adjust region
+   * relative coordinates of matches to screen coordinates
    *
    * @param m
    * @return
@@ -465,9 +466,9 @@ public class Region {
 
   //<editor-fold defaultstate="collapsed" desc="handle Settings">
   /**
-   * true - (initial setting) should throw exception FindFailed if find unsuccessful in this
-   * region<br /> false - do not abort script on FindFailed (might leed to null pointer exceptions
-   * later)
+   * true - (initial setting) should throw exception FindFailed if find
+   * unsuccessful in this region<br /> false - do not abort script on FindFailed
+   * (might leed to null pointer exceptions later)
    *
    * @param flag true/false
    */
@@ -490,8 +491,8 @@ public class Region {
   }
 
   /**
-   * the time in seconds a find operation should wait for the appearence of the target in this
-   * region<br /> initial value 3 secs
+   * the time in seconds a find operation should wait for the appearence of the
+   * target in this region<br /> initial value 3 secs
    *
    * @param sec
    */
@@ -509,10 +510,11 @@ public class Region {
   }
 
   /**
-   * FindFailedResponse.<br /> ABORT - (initial value) abort script on FindFailed (=
-   * setThrowException(true) )<br /> SKIP - ignore FindFailed (same as setThrowException(false) )<br
-   * /> PROMPT - display prompt on FindFailed to let user decide how to proceed<br /> RETRY -
-   * continue to wait for appearence on FindFailed (caution: endless loop)
+   * FindFailedResponse.<br /> ABORT - (initial value) abort script on
+   * FindFailed (= setThrowException(true) )<br /> SKIP - ignore FindFailed
+   * (same as setThrowException(false) )<br /> PROMPT - display prompt on
+   * FindFailed to let user decide how to proceed<br /> RETRY - continue to wait
+   * for appearence on FindFailed (caution: endless loop)
    *
    * @param response the FindFailedResponse
    */
@@ -540,10 +542,10 @@ public class Region {
 
   /**
    *
-   * @return the screen, that contains the top left corner of the region. Returns primary screen if
-   * outside of any screen.
-   * @deprecated Only for compatibility, to get the screen containing this region, use
-   * {@link #getScreen()}
+   * @return the screen, that contains the top left corner of the region.
+   * Returns primary screen if outside of any screen.
+   * @deprecated Only for compatibility, to get the screen containing this
+   * region, use {@link #getScreen()}
    */
   @Deprecated
   public Screen getScreenContaining() {
@@ -663,7 +665,8 @@ public class Region {
   }
 
   /**
-   * Moves the region to the area, whose bottom left corner is the given location
+   * Moves the region to the area, whose bottom left corner is the given
+   * location
    *
    * @param loc the location which is the new bottom left point of the region
    * @return the region itself
@@ -685,7 +688,8 @@ public class Region {
   }
 
   /**
-   * Moves the region to the area, whose bottom right corner is the given location
+   * Moves the region to the area, whose bottom right corner is the given
+   * location
    *
    * @param loc the location which is the new bottom right point of the region
    * @return the region itself
@@ -786,7 +790,8 @@ public class Region {
   }
 
   /**
-   * set the regions position/size<br />this might move the region even to another screen
+   * set the regions position/size<br />this might move the region even to
+   * another screen
    *
    * @param r the AWT Rectagle to use for position/size
    * @return the region itself
@@ -797,7 +802,8 @@ public class Region {
   }
 
   /**
-   * set the regions position/size<br />this might move the region even to another screen
+   * set the regions position/size<br />this might move the region even to
+   * another screen
    *
    * @param X new x of top left corner
    * @param Y new y of top left corner
@@ -815,7 +821,8 @@ public class Region {
   }
 
   /**
-   * set the regions position/size<br />this might move the region even to another screen
+   * set the regions position/size<br />this might move the region even to
+   * another screen
    *
    * @param r the region to use for position/size
    * @return the region itself
@@ -827,11 +834,11 @@ public class Region {
 
   // ****************************************************
   /**
-   * resets this region to the given location, and size <br /> this might move the region even to
-   * another screen
+   * resets this region to the given location, and size <br /> this might move
+   * the region even to another screen
    *
-   * Because of the wanted side effect for the containing screen, this should only be used with
-   * screen objects. For Region objects use setRect() instead.
+   * Because of the wanted side effect for the containing screen, this should
+   * only be used with screen objects. For Region objects use setRect() instead.
    *
    * @param X
    * @param Y
@@ -847,11 +854,11 @@ public class Region {
   }
 
   /**
-   * resets this region to the given rectangle <br /> this might move the region even to another
-   * screen
+   * resets this region to the given rectangle <br /> this might move the region
+   * even to another screen
    *
-   * Because of the wanted side effect for the containing screen, this should only be used with
-   * screen objects. For Region objects use setRect() instead.
+   * Because of the wanted side effect for the containing screen, this should
+   * only be used with screen objects. For Region objects use setRect() instead.
    *
    * @param roi
    */
@@ -860,10 +867,11 @@ public class Region {
   }
 
   /**
-   * resets this region to the given region <br /> this might move the region even to another screen
+   * resets this region to the given region <br /> this might move the region
+   * even to another screen
    *
-   * Because of the wanted side effect for the containing screen, this should only be used with
-   * screen objects. For Region objects use setRect() instead.
+   * Because of the wanted side effect for the containing screen, this should
+   * only be used with screen objects. For Region objects use setRect() instead.
    *
    * @param reg
    */
@@ -883,7 +891,8 @@ public class Region {
   }
 
   /**
-   * set the regions position<br />this might move the region even to another screen
+   * set the regions position<br />this might move the region even to another
+   * screen
    *
    * @param loc new top left corner
    * @return the region itself
@@ -895,7 +904,8 @@ public class Region {
   }
 
   /**
-   * set the regions position<br />this might move the region even to another screen
+   * set the regions position<br />this might move the region even to another
+   * screen
    *
    * @param loc new top left corner
    * @return the region itself
@@ -908,7 +918,8 @@ public class Region {
   }
 
   /**
-   * set the regions position/size<br />this might move the region even to another screen
+   * set the regions position/size<br />this might move the region even to
+   * another screen
    *
    * @param r
    * @return the region itself
@@ -938,8 +949,8 @@ public class Region {
   }
 
   /**
-   * extend the region, so it contains the given region<br />but only the part inside the current
-   * screen
+   * extend the region, so it contains the given region<br />but only the part
+   * inside the current screen
    *
    * @param r the region to include
    * @return the region itself
@@ -953,8 +964,8 @@ public class Region {
   }
 
   /**
-   * extend the region, so it contains the given point<br />but only the part inside the current
-   * screen
+   * extend the region, so it contains the given point<br />but only the part
+   * inside the current screen
    *
    * @param loc the point to include
    * @return the region itself
@@ -969,8 +980,8 @@ public class Region {
 
   // ************************************************
   /**
-   * a find operation saves its match on success in the used region object<br />unchanged if not
-   * successful
+   * a find operation saves its match on success in the used region object<br
+   * />unchanged if not successful
    *
    * @return the Match object from last successful find in this region
    */
@@ -980,10 +991,11 @@ public class Region {
 
   // ************************************************
   /**
-   * a findAll operation saves its matches on success in the used region object<br />unchanged if
-   * not successful
+   * a findAll operation saves its matches on success in the used region
+   * object<br />unchanged if not successful
    *
-   * @return a Match-Iterator of matches from last successful findAll in this region
+   * @return a Match-Iterator of matches from last successful findAll in this
+   * region
    */
   public Iterator<Match> getLastMatches() {
     return lastMatches;
@@ -1000,7 +1012,8 @@ public class Region {
   }
 
   /**
-   * stores the lastScreenImage in the current bundle path with a created unique name
+   * stores the lastScreenImage in the current bundle path with a created unique
+   * name
    *
    * @return the absolute file name
    */
@@ -1029,7 +1042,6 @@ public class Region {
   }
 
   //</editor-fold>
-  
   //<editor-fold defaultstate="collapsed" desc="spatial operators - new regions">
   /**
    * check if current region contains given region
@@ -1050,7 +1062,6 @@ public class Region {
   public Region offset(Location loc) {
     return Region.create(x + loc.x, y + loc.y, w, h);
   }
-
 
   /**
    * create region with same size at top left corner offset
@@ -1097,7 +1108,8 @@ public class Region {
   }
 
   /**
-   * create a region enlarged w pixels on left and right side<br /> and h pixels at top and bottom
+   * create a region enlarged w pixels on left and right side<br /> and h pixels
+   * at top and bottom
    *
    * @param w
    * @param h
@@ -1110,8 +1122,8 @@ public class Region {
   }
 
   /**
-   * create a region enlarged l pixels on left and r pixels right side<br /> and t pixels at top
-   * side and b pixels at bottom side
+   * create a region enlarged l pixels on left and r pixels right side<br /> and
+   * t pixels at top side and b pixels at bottom side
    *
    * @param l
    * @param b
@@ -1145,8 +1157,9 @@ public class Region {
   }
 
   /**
-   * create a region right of the right side with same height<br /> the new region extends to the
-   * right screen border<br /> use grow() to include the current region
+   * create a region right of the right side with same height<br /> the new
+   * region extends to the right screen border<br /> use grow() to include the
+   * current region
    *
    * @return the new region
    */
@@ -1156,8 +1169,8 @@ public class Region {
   }
 
   /**
-   * create a region right of the right side with same height and given width<br /> use grow() to
-   * include the current region
+   * create a region right of the right side with same height and given width<br
+   * /> use grow() to include the current region
    *
    * @param width
    * @return the new region
@@ -1188,8 +1201,9 @@ public class Region {
   }
 
   /**
-   * create a region left of the left side with same height<br /> the new region extends to the left
-   * screen border<br /> use grow() to include the current region
+   * create a region left of the left side with same height<br /> the new region
+   * extends to the left screen border<br /> use grow() to include the current
+   * region
    *
    * @return the new region
    */
@@ -1199,8 +1213,8 @@ public class Region {
   }
 
   /**
-   * create a region left of the left side with same height and given width<br /> use grow() to
-   * include the current region
+   * create a region left of the left side with same height and given width<br
+   * /> use grow() to include the current region
    *
    * @param width
    * @return the new region
@@ -1223,7 +1237,8 @@ public class Region {
   }
 
   /**
-   * negative offset goes towards top of screen <br />might be off current screen
+   * negative offset goes towards top of screen <br />might be off current
+   * screen
    *
    * @return point with given offset vertically to middle point on top edge
    */
@@ -1232,8 +1247,9 @@ public class Region {
   }
 
   /**
-   * create a region above the top side with same width<br /> the new region extends to the top
-   * screen border<br /> use grow() to include the current region
+   * create a region above the top side with same width<br /> the new region
+   * extends to the top screen border<br /> use grow() to include the current
+   * region
    *
    * @return the new region
    */
@@ -1243,8 +1259,8 @@ public class Region {
   }
 
   /**
-   * create a region above the top side with same width and given height<br /> use grow() to include
-   * the current region
+   * create a region above the top side with same width and given height<br />
+   * use grow() to include the current region
    *
    * @param height
    * @return the new region
@@ -1267,7 +1283,8 @@ public class Region {
   }
 
   /**
-   * positive offset goes towards bottom of screen <br />might be off current screen
+   * positive offset goes towards bottom of screen <br />might be off current
+   * screen
    *
    * @return point with given offset vertically to middle point on bottom edge
    */
@@ -1276,8 +1293,9 @@ public class Region {
   }
 
   /**
-   * create a region below the bottom side with same width<br /> the new region extends to the
-   * bottom screen border<br /> use grow() to include the current region
+   * create a region below the bottom side with same width<br /> the new region
+   * extends to the bottom screen border<br /> use grow() to include the current
+   * region
    *
    * @return the new region
    */
@@ -1287,8 +1305,8 @@ public class Region {
   }
 
   /**
-   * create a region below the bottom side with same width and given height<br /> use grow() to
-   * include the current region
+   * create a region below the bottom side with same width and given height<br
+   * /> use grow() to include the current region
    *
    * @param height
    * @return the new region
@@ -1365,8 +1383,8 @@ public class Region {
   }
 
   /**
-   * show the regions Highlight for the given time in seconds (currently red frame) if 0 - use the
-   * global Settings.SlowMotionDelay
+   * show the regions Highlight for the given time in seconds (currently red
+   * frame) if 0 - use the global Settings.SlowMotionDelay
    *
    * @param secs time in seconds
    * @return the region itself
@@ -1382,8 +1400,9 @@ public class Region {
   }
 
   /**
-   * hack to implement the getLastMatch() convenience 0 means same as highlight() &lt.0 same as
-   * highlight(secs) if available the last match is highlighted
+   * hack to implement the getLastMatch() convenience 0 means same as
+   * highlight() &lt.0 same as highlight(secs) if available the last match is
+   * highlighted
    *
    * @param secs
    * @return
@@ -1404,8 +1423,8 @@ public class Region {
 
   //<editor-fold defaultstate="collapsed" desc="find public methods">
   /**
-   * WARNING: wait(long timeout) is taken by Java Object as final. This method catches any
-   * interruptedExceptions
+   * WARNING: wait(long timeout) is taken by Java Object as final. This method
+   * catches any interruptedExceptions
    *
    * @param timeout The time to wait
    */
@@ -1466,8 +1485,9 @@ public class Region {
   }
 
   /**
-   * Match find( Pattern/String ) finds the given pattern on the screen and returns the best match.
-   * If AutoWaitTimeout is set, this is equivalent to wait().
+   * Match find( Pattern/String ) finds the given pattern on the screen and
+   * returns the best match. If AutoWaitTimeout is set, this is equivalent to
+   * wait().
    *
    * @param target A search criteria
    * @return If found, the element. null otherwise
@@ -1494,8 +1514,9 @@ public class Region {
   }
 
   /**
-   * Iterator<Match> findAll( Pattern/String/PatternClass ) finds the given pattern on the screen
-   * and returns the best match. If AutoWaitTimeout is set, this is equivalent to wait().
+   * Iterator<Match> findAll( Pattern/String/PatternClass ) finds the given
+   * pattern on the screen and returns the best match. If AutoWaitTimeout is
+   * set, this is equivalent to wait().
    *
    * @param target A search criteria
    * @return All elements matching
@@ -1535,8 +1556,8 @@ public class Region {
   }
 
   /**
-   * Match wait(Pattern/String/PatternClass target, timeout-sec) waits until target appears or
-   * timeout (in second) is passed
+   * Match wait(Pattern/String/PatternClass target, timeout-sec) waits until
+   * target appears or timeout (in second) is passed
    *
    * @param target A search criteria
    * @param timeout Timeout in seconds
@@ -1645,8 +1666,8 @@ public class Region {
   }
 
   /**
-   * boolean waitVanish(Pattern/String/PatternClass target, timeout-sec) waits until target vanishes
-   * or timeout (in second) is passed
+   * boolean waitVanish(Pattern/String/PatternClass target, timeout-sec) waits
+   * until target vanishes or timeout (in second) is passed
    *
    * @return true if the target vanishes, otherwise returns false.
    */
@@ -1655,10 +1676,11 @@ public class Region {
   }
 
   /**
-   * boolean waitVanish(Pattern/String/PatternClass target, timeout-sec) waits until target vanishes
-   * or timeout (in second) is passed
+   * boolean waitVanish(Pattern/String/PatternClass target, timeout-sec) waits
+   * until target vanishes or timeout (in second) is passed
    *
-   * @return true if target vanishes, false otherwise and if imagefile is missing.
+   * @return true if target vanishes, false otherwise and if imagefile is
+   * missing.
    */
   public <PatternOrString> boolean waitVanish(PatternOrString target, double timeout) {
     try {
@@ -1682,8 +1704,8 @@ public class Region {
 
   //<editor-fold defaultstate="collapsed" desc="find internal methods">
   /**
-   * Match findNow( Pattern/String/PatternClass ) finds the given pattern on the screen and returns
-   * the best match without waiting.
+   * Match findNow( Pattern/String/PatternClass ) finds the given pattern on the
+   * screen and returns the best match without waiting.
    */
   private <PatternOrString> Match doFind(PatternOrString ptn, RepeatableFind repeating) throws IOException {
     Finder f;
@@ -1722,8 +1744,8 @@ public class Region {
   }
 
   /**
-   * Match findAllNow( Pattern/String/PatternClass ) finds the given pattern on the screen and
-   * returns the best match without waiting.
+   * Match findAllNow( Pattern/String/PatternClass ) finds the given pattern on
+   * the screen and returns the best match without waiting.
    */
   private <PatternOrString> Iterator<Match> doFindAll(PatternOrString ptn, RepeatableFindAll repeating) throws IOException {
     Finder f;
@@ -1973,8 +1995,9 @@ public class Region {
   }
 
   /**
-   * move the mouse pointer to region's last successful match <br />use center if no lastMatch <br
-   * />if region is a match: move to targetOffset <br />same as mouseMove
+   * move the mouse pointer to region's last successful match <br />use center
+   * if no lastMatch <br />if region is a match: move to targetOffset <br />same
+   * as mouseMove
    *
    * @return 1 if possible, 0 otherwise
    */
@@ -1987,9 +2010,10 @@ public class Region {
   }
 
   /**
-   * move the mouse pointer to the given target location<br /> same as mouseMove<br /> Pattern or
-   * Filename - do a find before and use the match<br /> Region - position at center<br /> Match -
-   * position at match's targetOffset<br /> Location - position at that point<br />
+   * move the mouse pointer to the given target location<br /> same as
+   * mouseMove<br /> Pattern or Filename - do a find before and use the match<br
+   * /> Region - position at center<br /> Match - position at match's
+   * targetOffset<br /> Location - position at that point<br />
    *
    * @param <PatternFilenameRegionMatchLocation> target
    * @return 1 if possible, 0 otherwise
@@ -2001,8 +2025,8 @@ public class Region {
   }
 
   /**
-   * left click at the region's last successful match <br />use center if no lastMatch <br />if
-   * region is a match: click targetOffset
+   * left click at the region's last successful match <br />use center if no
+   * lastMatch <br />if region is a match: click targetOffset
    *
    * @return 1 if possible, 0 otherwise
    */
@@ -2015,9 +2039,10 @@ public class Region {
   }
 
   /**
-   * left click at the given target location<br /> Pattern or Filename - do a find before and use
-   * the match<br /> Region - position at center<br /> Match - position at match's targetOffset<br
-   * /> Location - position at that point<br />
+   * left click at the given target location<br /> Pattern or Filename - do a
+   * find before and use the match<br /> Region - position at center<br /> Match
+   * - position at match's targetOffset<br /> Location - position at that
+   * point<br />
    *
    * @param <PatternFilenameRegionMatchLocation> target
    * @return 1 if possible, 0 otherwise
@@ -2029,9 +2054,10 @@ public class Region {
   }
 
   /**
-   * left click at the given target location<br /> holding down the given modifier keys<br />
-   * Pattern or Filename - do a find before and use the match<br /> Region - position at center<br
-   * /> Match - position at match's targetOffset<br /> Location - position at that point<br />
+   * left click at the given target location<br /> holding down the given
+   * modifier keys<br /> Pattern or Filename - do a find before and use the
+   * match<br /> Region - position at center<br /> Match - position at match's
+   * targetOffset<br /> Location - position at that point<br />
    *
    * @param <PatternFilenameRegionMatchLocation> target
    * @param modifiers the value of the resulting bitmask (see KeyModifier)
@@ -2048,8 +2074,8 @@ public class Region {
   }
 
   /**
-   * double click at the region's last successful match <br />use center if no lastMatch <br />if
-   * region is a match: click targetOffset
+   * double click at the region's last successful match <br />use center if no
+   * lastMatch <br />if region is a match: click targetOffset
    *
    * @return 1 if possible, 0 otherwise
    */
@@ -2062,9 +2088,10 @@ public class Region {
   }
 
   /**
-   * double click at the given target location<br /> Pattern or Filename - do a find before and use
-   * the match<br /> Region - position at center<br /> Match - position at match's targetOffset<br
-   * /> Location - position at that point<br />
+   * double click at the given target location<br /> Pattern or Filename - do a
+   * find before and use the match<br /> Region - position at center<br /> Match
+   * - position at match's targetOffset<br /> Location - position at that
+   * point<br />
    *
    * @param <PatternFilenameRegionMatchLocation> target
    * @return 1 if possible, 0 otherwise
@@ -2076,9 +2103,10 @@ public class Region {
   }
 
   /**
-   * double click at the given target location<br /> holding down the given modifier keys<br />
-   * Pattern or Filename - do a find before and use the match<br /> Region - position at center<br
-   * /> Match - position at match's targetOffset<br /> Location - position at that point<br />
+   * double click at the given target location<br /> holding down the given
+   * modifier keys<br /> Pattern or Filename - do a find before and use the
+   * match<br /> Region - position at center<br /> Match - position at match's
+   * targetOffset<br /> Location - position at that point<br />
    *
    * @param <PatternFilenameRegionMatchLocation> target
    * @param modifiers the value of the resulting bitmask (see KeyModifier)
@@ -2095,8 +2123,8 @@ public class Region {
   }
 
   /**
-   * right click at the region's last successful match <br />use center if no lastMatch <br />if
-   * region is a match: click targetOffset
+   * right click at the region's last successful match <br />use center if no
+   * lastMatch <br />if region is a match: click targetOffset
    *
    * @return 1 if possible, 0 otherwise
    */
@@ -2109,9 +2137,10 @@ public class Region {
   }
 
   /**
-   * right click at the given target location<br /> Pattern or Filename - do a find before and use
-   * the match<br /> Region - position at center<br /> Match - position at match's targetOffset<br
-   * /> Location - position at that point<br />
+   * right click at the given target location<br /> Pattern or Filename - do a
+   * find before and use the match<br /> Region - position at center<br /> Match
+   * - position at match's targetOffset<br /> Location - position at that
+   * point<br />
    *
    * @param <PatternFilenameRegionMatchLocation> target
    * @return 1 if possible, 0 otherwise
@@ -2123,9 +2152,10 @@ public class Region {
   }
 
   /**
-   * right click at the given target location<br /> holding down the given modifier keys<br />
-   * Pattern or Filename - do a find before and use the match<br /> Region - position at center<br
-   * /> Match - position at match's targetOffset<br /> Location - position at that point<br />
+   * right click at the given target location<br /> holding down the given
+   * modifier keys<br /> Pattern or Filename - do a find before and use the
+   * match<br /> Region - position at center<br /> Match - position at match's
+   * targetOffset<br /> Location - position at that point<br />
    *
    * @param <PatternFilenameRegionMatchLocation> target
    * @param modifiers the value of the resulting bitmask (see KeyModifier)
@@ -2184,8 +2214,8 @@ public class Region {
 
   //<editor-fold defaultstate="collapsed" desc="Mouse actions - drag & drop">
   /**
-   * Drag from region's last match and drop at given target <br />applying Settings.DelayAfterDrag
-   * and DelayBeforeDrop <br /> using left mouse button
+   * Drag from region's last match and drop at given target <br />applying
+   * Settings.DelayAfterDrag and DelayBeforeDrop <br /> using left mouse button
    *
    * @param <PatternFilenameRegionMatchLocation> target destination position
    * @return 1 if possible, 0 otherwise
@@ -2197,8 +2227,8 @@ public class Region {
   }
 
   /**
-   * Drag from a position and drop to another using left mouse button<br />applying
-   * Settings.DelayAfterDrag and DelayBeforeDrop
+   * Drag from a position and drop to another using left mouse button<br
+   * />applying Settings.DelayAfterDrag and DelayBeforeDrop
    *
    * @param t1 source position
    * @param t2 destination position
@@ -2225,8 +2255,8 @@ public class Region {
   }
 
   /**
-   * Prepare a drag action: move mouse to given target <br />press and hold left mouse button <br
-   * />wait Settings.DelayAfterDrag
+   * Prepare a drag action: move mouse to given target <br />press and hold left
+   * mouse button <br />wait Settings.DelayAfterDrag
    *
    * @param <PatternFilenameRegionMatchLocation> target
    * @return 1 if possible, 0 otherwise
@@ -2273,8 +2303,9 @@ public class Region {
 
   //<editor-fold defaultstate="collapsed" desc="Mouse actions - low level + Wheel">
   /**
-   * press and hold the specified buttons - use + to combine Button.LEFT left mouse button
-   * Button.MIDDLE middle mouse button Button.RIGHT right mouse button
+   * press and hold the specified buttons - use + to combine Button.LEFT left
+   * mouse button Button.MIDDLE middle mouse button Button.RIGHT right mouse
+   * button
    *
    * @param buttons
    */
@@ -2290,8 +2321,8 @@ public class Region {
   }
 
   /**
-   * release the specified mouse buttons (see mouseDown) if buttons==0, all currently held buttons
-   * are released
+   * release the specified mouse buttons (see mouseDown) if buttons==0, all
+   * currently held buttons are released
    *
    * @param buttons
    */
@@ -2300,7 +2331,8 @@ public class Region {
   }
 
   /**
-   * move the mouse pointer to the region's last successful match<br />same as hover<br />
+   * move the mouse pointer to the region's last successful match<br />same as
+   * hover<br />
    *
    * @return 1 if possible, 0 otherwise
    */
@@ -2316,9 +2348,10 @@ public class Region {
   }
 
   /**
-   * move the mouse pointer to the given target location<br /> same as hover<br /> Pattern or
-   * Filename - do a find before and use the match<br /> Region - position at center<br /> Match -
-   * position at match's targetOffset<br /> Location - position at that point<br />
+   * move the mouse pointer to the given target location<br /> same as hover<br
+   * /> Pattern or Filename - do a find before and use the match<br /> Region -
+   * position at center<br /> Match - position at match's targetOffset<br />
+   * Location - position at that point<br />
    *
    * @param <PatternFilenameRegionMatchLocation> target
    * @return 1 if possible, 0 otherwise
@@ -2338,8 +2371,8 @@ public class Region {
   }
 
   /**
-   * Move the wheel at the current mouse position<br /> the given steps in the given direction: <br
-   * />Button.WHEEL_DOWN, Button.WHEEL_UP
+   * Move the wheel at the current mouse position<br /> the given steps in the
+   * given direction: <br />Button.WHEEL_DOWN, Button.WHEEL_UP
    *
    * @param direction to move the wheel
    * @param steps the number of steps
@@ -2355,8 +2388,9 @@ public class Region {
   }
 
   /**
-   * move the mouse pointer to the given target location<br /> and move the wheel the given steps in
-   * the given direction: <br />Button.WHEEL_DOWN, Button.WHEEL_UP
+   * move the mouse pointer to the given target location<br /> and move the
+   * wheel the given steps in the given direction: <br />Button.WHEEL_DOWN,
+   * Button.WHEEL_UP
    *
    * @param <PatternFilenameRegionMatchLocation> target
    * @param direction to move the wheel
@@ -2384,8 +2418,8 @@ public class Region {
 
   //<editor-fold defaultstate="collapsed" desc="Keyboard actions + paste">
   /**
-   * press and hold the given key use a constant from java.awt.event.KeyEvent which might be special
-   * in the current machine/system environment
+   * press and hold the given key use a constant from java.awt.event.KeyEvent
+   * which might be special in the current machine/system environment
    *
    * @param keycode
    */
@@ -2394,9 +2428,10 @@ public class Region {
   }
 
   /**
-   * press and hold the given keys including modifier keys <br />use the key constants defined in
-   * class Key, <br />which only provides a subset of a US-QWERTY PC keyboard layout <br />might be
-   * mixed with simple characters <br />use + to concatenate Key constants
+   * press and hold the given keys including modifier keys <br />use the key
+   * constants defined in class Key, <br />which only provides a subset of a
+   * US-QWERTY PC keyboard layout <br />might be mixed with simple characters
+   * <br />use + to concatenate Key constants
    *
    * @param keys
    */
@@ -2430,9 +2465,10 @@ public class Region {
   }
 
   /**
-   * enters the given text one character/key after another using keyDown/keyUp <br />about the
-   * usable Key constants see keyDown(keys) <br />Class Key only provides a subset of a US-QWERTY PC
-   * keyboard layout<br />the text is entered at the current position of the focus/carret
+   * enters the given text one character/key after another using keyDown/keyUp
+   * <br />about the usable Key constants see keyDown(keys) <br />Class Key only
+   * provides a subset of a US-QWERTY PC keyboard layout<br />the text is
+   * entered at the current position of the focus/carret
    *
    * @param text containing characters and/or Key constants
    * @return 1 if possible, 0 otherwise
@@ -2446,9 +2482,10 @@ public class Region {
   }
 
   /**
-   * enters the given text one character/key after another using keyDown/keyUp<br />while holding
-   * down the given modifier keys <br />about the usable Key constants see keyDown(keys) <br />Class
-   * Key only provides a subset of a US-QWERTY PC keyboard layout<br />the text is entered at the
+   * enters the given text one character/key after another using
+   * keyDown/keyUp<br />while holding down the given modifier keys <br />about
+   * the usable Key constants see keyDown(keys) <br />Class Key only provides a
+   * subset of a US-QWERTY PC keyboard layout<br />the text is entered at the
    * current position of the focus/carret
    *
    * @param text containing characters and/or Key constants
@@ -2466,9 +2503,10 @@ public class Region {
   /**
    * enters the given text one character/key after another using
    *
-   * keyDown/keyUp<br />while holding down the given modifier keys <br />about the usable Key
-   * constants see keyDown(keys) <br />Class Key only provides a subset of a US-QWERTY PC keyboard
-   * layout<br />the text is entered at the current position of the focus/carret
+   * keyDown/keyUp<br />while holding down the given modifier keys <br />about
+   * the usable Key constants see keyDown(keys) <br />Class Key only provides a
+   * subset of a US-QWERTY PC keyboard layout<br />the text is entered at the
+   * current position of the focus/carret
    *
    *
    * @param text containing characters and/or Key constants
@@ -2490,10 +2528,10 @@ public class Region {
   }
 
   /**
-   * first does a click(target) at the given target position to gain focus/carret <br />enters the
-   * given text one character/key after another using keyDown/keyUp <br />about the usable Key
-   * constants see keyDown(keys) <br />Class Key only provides a subset of a US-QWERTY PC keyboard
-   * layout
+   * first does a click(target) at the given target position to gain
+   * focus/carret <br />enters the given text one character/key after another
+   * using keyDown/keyUp <br />about the usable Key constants see keyDown(keys)
+   * <br />Class Key only provides a subset of a US-QWERTY PC keyboard layout
    *
    * @param <PatternFilenameRegionMatchLocation> target
    * @param text containing characters and/or Key constants
@@ -2506,9 +2544,10 @@ public class Region {
   }
 
   /**
-   * first does a click(target) at the given target position to gain focus/carret <br />enters the
-   * given text one character/key after another using keyDown/keyUp <br />while holding down the
-   * given modifier keys<br />about the usable Key constants see keyDown(keys) <br />Class Key only
+   * first does a click(target) at the given target position to gain
+   * focus/carret <br />enters the given text one character/key after another
+   * using keyDown/keyUp <br />while holding down the given modifier keys<br
+   * />about the usable Key constants see keyDown(keys) <br />Class Key only
    * provides a subset of a US-QWERTY PC keyboard layout
    *
    * @param <PatternFilenameRegionMatchLocation> target
@@ -2522,9 +2561,10 @@ public class Region {
   }
 
   /**
-   * first does a click(target) at the given target position to gain focus/carret <br />enters the
-   * given text one character/key after another using keyDown/keyUp <br />while holding down the
-   * given modifier keys<br />about the usable Key constants see keyDown(keys) <br />Class Key only
+   * first does a click(target) at the given target position to gain
+   * focus/carret <br />enters the given text one character/key after another
+   * using keyDown/keyUp <br />while holding down the given modifier keys<br
+   * />about the usable Key constants see keyDown(keys) <br />Class Key only
    * provides a subset of a US-QWERTY PC keyboard layout
    *
    * @param <PatternFilenameRegionMatchLocation> target
@@ -2548,9 +2588,21 @@ public class Region {
       for (int i = 0; i < text.length(); i++) {
         showText += Key.toJavaKeyCodeText(text.charAt(i));
       }
-      Debug.history(
-              (modifiers != 0 ? KeyEvent.getKeyModifiersText(modifiers) + "+" : "")
-              + "TYPE \"" + showText + "\"");
+      String modText = "";
+      String modWindows = null;
+      if ((modifiers & KeyModifier.WIN) != 0) {
+        modifiers -= KeyModifier.WIN;
+        modifiers |= KeyModifier.META;
+        Debug.log(2, "Key.WIN as modifier");
+        modWindows = "Windows";
+      }
+      if (modifiers != 0) {
+        modText = String.format("( %s ) ", KeyEvent.getKeyModifiersText(modifiers));
+        if (modWindows != null) {
+          modText = modText.replace("Meta", modWindows);
+        }
+      }
+      Debug.history(modText + "TYPE \"" + showText + "\"");
       RobotDesktop r = getScreen().getRobot();
       for (int i = 0; i < text.length(); i++) {
         r.pressModifiers(modifiers);
@@ -2562,12 +2614,13 @@ public class Region {
       r.waitForIdle();
       return 1;
     }
+
     return 0;
   }
 
   /**
-   * pastes the text at the current position of the focus/carret <br />using the clipboard and
-   * strg/ctrl/cmd-v (paste keyboard shortcut)
+   * pastes the text at the current position of the focus/carret <br />using the
+   * clipboard and strg/ctrl/cmd-v (paste keyboard shortcut)
    *
    * @param text a string, which might contain unicode characters
    * @return 0 if possible, 1 otherwise
@@ -2581,8 +2634,9 @@ public class Region {
   }
 
   /**
-   * first does a click(target) at the given target position to gain focus/carret <br /> and then
-   * pastes the text <br /> using the clipboard and strg/ctrl/cmd-v (paste keyboard shortcut)
+   * first does a click(target) at the given target position to gain
+   * focus/carret <br /> and then pastes the text <br /> using the clipboard and
+   * strg/ctrl/cmd-v (paste keyboard shortcut)
    *
    * @param <PatternFilenameRegionMatchLocation> target
    * @param text a string, which might contain unicode characters
@@ -2608,9 +2662,10 @@ public class Region {
 
   //<editor-fold defaultstate="collapsed" desc="OCR - read text from Screen">
   /**
-   * STILL EXPERIMENTAL: tries to read the text in this region<br /> might contain misread
-   * characters, NL characters and other stuff, when interpreting contained grafics as text<br />
-   * Best results: one line of text with no grafics in the line
+   * STILL EXPERIMENTAL: tries to read the text in this region<br /> might
+   * contain misread characters, NL characters and other stuff, when
+   * interpreting contained grafics as text<br /> Best results: one line of text
+   * with no grafics in the line
    *
    * @return the text read (utf8 encoded)
    */
@@ -2631,11 +2686,12 @@ public class Region {
   }
 
   /**
-   * VERY EXPERIMENTAL: returns a list of matches, that represent single words, that have been found
-   * in this region<br /> the match's x,y,w,h the region of the word<br /> Match.getText() returns
-   * the word (utf8) at this match<br /> Match.getScore() returns a value between 0 ... 1, that
-   * represents some OCR-confidence value<br /> (the higher, the better the OCR engine thinks the
-   * result is)
+   * VERY EXPERIMENTAL: returns a list of matches, that represent single words,
+   * that have been found in this region<br /> the match's x,y,w,h the region of
+   * the word<br /> Match.getText() returns the word (utf8) at this match<br />
+   * Match.getScore() returns a value between 0 ... 1, that represents some
+   * OCR-confidence value<br /> (the higher, the better the OCR engine thinks
+   * the result is)
    *
    * @return a list of matches
    */

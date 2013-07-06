@@ -12,9 +12,10 @@ public class KeyModifier {
    public static final int CTRL = InputEvent.CTRL_MASK;
    public static final int SHIFT = InputEvent.SHIFT_MASK;
    public static final int ALT = InputEvent.ALT_MASK;
+   public static final int ALTGR = InputEvent.ALT_GRAPH_MASK;
    public static final int META = InputEvent.META_MASK;
    public static final int CMD = InputEvent.META_MASK;
-   public static final int WIN = InputEvent.META_MASK;
+   public static final int WIN = 64;
 
    @Deprecated
    public static final int KEY_CTRL = InputEvent.CTRL_MASK;
