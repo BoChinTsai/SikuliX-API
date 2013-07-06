@@ -95,6 +95,11 @@ public abstract class HotkeyManager {
     Debug.info("add hotkey: " + txtMod + " " + txtCode);
     return _instance._addHotkey(keyCode, modifiers, listener);
   }
+  
+    public boolean addHotkey(int htype, HotkeyListener listener) {
+      return true;
+    }
+
 
   /**
    * uninstall a hotkey listener.
