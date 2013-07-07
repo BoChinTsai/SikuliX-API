@@ -19,10 +19,7 @@ Same goes for people who want to develop, run and debug scripts using Sikuli IDE
 The downloadable packages of Sikuli API contain everything needed to develop, test, run and debug with any suitable IDE (e.g. Eclipse, Netbeans, ...) or however you like ;-).
 <br /><br />
 This repo is **fully Maven**, so a fork of this repo can be directly used as project in NetBeans/Eclipse/... or with mvn on commandline<br /> 
-It produces a lightweight sikulix-api.jar, that only contains the Sikuli Java stuff and is intended for use in pure Java or in Java aware scripting and testing environments (depends on [Sikuli Setup](https://github.com/RaiMan/SikuliX-Setup) )<br />
-The extra **pom_make_sikuli-java-jar** can be used to produce a jar, that can be used in Java based non-maven developement  (contains (depends on) [Sikuli Setup](https://github.com/RaiMan/SikuliX-Setup) )<br />
-The extra **pom_make_sikuli-script-jar** can be used to produce the known sikuli-script.jar, that can be used standalone to run Sikuli Jython scripts from command line (contains (depends on) [Sikuli Jython](https://github.com/RaiMan/SikuliX-Jython) and [Sikuli Setup](https://github.com/RaiMan/SikuliX-Setup) and the latest Jython package)<br />
-The extra **pom_make_sikuli-jython-api-jar** can be used to produce a jar, that can be used in Jython developement (standalone or with IDEs allowing Jython developement (it does not contain the Jython package like sikuli-script.jar) (contains (depends on) [Sikuli Jython](https://github.com/RaiMan/SikuliX-Jython) and [Sikuli Setup](https://github.com/RaiMan/SikuliX-Setup) )<br />
+It produces a lightweight **sikulix-api.jar**, that only contains the Sikuli Java and Jython API and is intended for use in pure Java or in Java aware scripting and testing environments and with pure Jython developement (contains (depends on) [Sikuli Setup](https://github.com/RaiMan/SikuliX-Setup) )<br />
 
 [... click for more info](https://github.com/RaiMan/SikuliX-API/wiki/Maven-support)<br /><br />
 If new to Sikuli, you might aternatively be interested in the pure Java implementation, which is to some extent feature compatible, but not API compatible: [Sikuli Java API](http://code.google.com/p/sikuli-api).
