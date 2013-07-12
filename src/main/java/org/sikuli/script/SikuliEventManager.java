@@ -6,8 +6,8 @@
  */
 package org.sikuli.script;
 
-import org.sikuli.setup.Settings;
-import org.sikuli.setup.Debug;
+import org.sikuli.basics.Settings;
+import org.sikuli.basics.Debug;
 import java.awt.AWTException;
 import java.util.*;
 import org.sikuli.script.natives.FindInput;
@@ -20,33 +20,46 @@ import org.sikuli.script.natives.Vision;
 public class SikuliEventManager {
 
   protected enum State {
-
-    UNKNOWN, MISSING, APPEARED, VANISHED
+    FIRST, UNKNOWN, MISSING, APPEARED, VANISHED, REPEAT
   }
   private Region _region;
   private Mat _lastImgMat = null;
   private Map<Object, State> _state;
+  private Map<Object, Long> _wait;
+  private Map<Object, Integer> _count;
   private Map<Object, Match> _lastMatch;
   private Map<Object, SikuliEventObserver> _appearOb, _vanishOb;
   private Map<Integer, SikuliEventObserver> _changeOb;
+  private Map<Integer, Integer> _countc;
   private int _minChanges;
   private boolean sthgLeft;
 
   public SikuliEventManager(Region region) {
     _region = region;
     _state = new HashMap<Object, State>();
+    _wait = new HashMap<Object, Long>();
+    _count = new HashMap<Object, Integer>();
     _lastMatch = new HashMap<Object, Match>();
     _appearOb = new HashMap<Object, SikuliEventObserver>();
     _vanishOb = new HashMap<Object, SikuliEventObserver>();
     _changeOb = new HashMap<Integer, SikuliEventObserver>();
+    _countc = new HashMap<Integer, Integer>();
   }
 
   public void initialize() {
-    Debug.log(2, "SikuliEventManager: resetting observe states");
+    Debug.log(2, "SikuliEventManager: resetting observe states for " + _region.toStringShort());
     sthgLeft = true;
     for (Object ptn : _state.keySet()) {
-      _state.put(ptn, State.UNKNOWN);
+      _state.put(ptn, State.FIRST);
+      _count.put(ptn, 0);
     }
+    for (int n : _countc.keySet()) {
+      _count.put(n, 0);      
+    }
+  }
+
+  public int getCount(Object ptn) {
+    return _count.get(ptn);
   }
 
   private <PSC> float getSimiliarity(PSC ptn) {
@@ -62,7 +75,7 @@ public class SikuliEventManager {
 
   public <PSC> void addAppearObserver(PSC ptn, SikuliEventObserver ob) {
     _appearOb.put(ptn, ob);
-    _state.put(ptn, State.UNKNOWN);
+    _state.put(ptn, State.FIRST);
   }
 
   public <PSC> void removeAppearObserver(PSC ptn) {
@@ -72,7 +85,7 @@ public class SikuliEventManager {
 
   public <PSC> void addVanishObserver(PSC ptn, SikuliEventObserver ob) {
     _vanishOb.put(ptn, ob);
-    _state.put(ptn, State.UNKNOWN);
+    _state.put(ptn, State.FIRST);
   }
 
   public <PSC> void removeVanishObserver(PSC ptn) {
@@ -80,23 +93,25 @@ public class SikuliEventManager {
     _state.remove(ptn);
   }
 
-  protected void callAppearObserver(Object ptn, Match m) {
+  private void callAppearObserver(Object ptn, Match m) {
     SikuliEventAppear se = new SikuliEventAppear(ptn, m, _region);
     SikuliEventObserver ob = _appearOb.get(ptn);
     ob.targetAppeared(se);
   }
 
-  protected void callVanishObserver(Object ptn, Match m) {
+  private void callVanishObserver(Object ptn, Match m) {
     SikuliEventVanish se = new SikuliEventVanish(ptn, m, _region);
     SikuliEventObserver ob = _vanishOb.get(ptn);
     ob.targetVanished(se);
   }
 
-  protected void checkPatterns(ScreenImage simg) {
+  private void checkPatterns(ScreenImage simg) {
     Finder finder = new Finder(simg, _region);
     String imgOK;
     for (Object ptn : _state.keySet()) {
-      if (_state.get(ptn) != State.UNKNOWN) {
+      if (_state.get(ptn) != State.FIRST && 
+          _state.get(ptn) != State.UNKNOWN &&
+          _state.get(ptn) != State.REPEAT) {
         continue;
       }
       if (ptn.getClass().isInstance("")) {
@@ -105,9 +120,23 @@ public class SikuliEventManager {
         imgOK = finder.find((Pattern) ptn);
       }
       if (null == imgOK) {
-        Debug.error("Observe: ImageFile not found", ptn);
+        Debug.error("EventMgr: checkPatterns: ImageFile not found", ptn);
         _state.put(ptn, State.MISSING);
         continue;
+      }
+      if (_state.get(ptn) == State.REPEAT) {
+        if (_lastMatch.get(ptn).exists(ptn) != null) {
+          if ((new Date()).getTime() > _wait.get(ptn)) {
+            _state.put(ptn, State.APPEARED);
+            // time out
+          }
+          sthgLeft = true;
+          continue; // still there
+        } else {
+          _state.put(ptn, State.UNKNOWN);
+          sthgLeft = true;
+          continue; // has vanished, repeat
+        }
       }
       Match m = null;
       boolean hasMatch = false;
@@ -118,25 +147,57 @@ public class SikuliEventManager {
           _lastMatch.put(ptn, m);
         }
       }
-      Debug.log(9, "check pattern: " + _state.get(ptn) + " match:" + hasMatch);
-      sthgLeft = true;
+      if (hasMatch) {
+        Debug.log(2, "EventMgr: checkPatterns: " + ptn.toString() + " match: " + 
+                m.toStringShort() + " in " + _region.toStringShort());
+      } else if (_state.get(ptn) == State.FIRST) {
+        Debug.log(2, "EventMgr: checkPatterns: " + ptn.toString() + " match: " + 
+                "NO" + " in " + _region.toStringShort());
+        _state.put(ptn, State.UNKNOWN);
+      }
       if (_appearOb.containsKey(ptn)) {
-        if (_state.get(ptn) != State.APPEARED && hasMatch) {
-          _state.put(ptn, State.APPEARED);
-          sthgLeft = false;
-          callAppearObserver(ptn, m);
+        if (_state.get(ptn) != State.APPEARED) {
+          if (hasMatch) {
+            _state.put(ptn, State.APPEARED);
+            _count.put(ptn, _count.get(ptn) + 1);
+            callAppearObserver(ptn, m);
+          } else {
+            sthgLeft = true;
+          }
         }
       } else if (_vanishOb.containsKey(ptn)) {
-        if (_state.get(ptn) != State.VANISHED && !hasMatch) {
-          sthgLeft = false;
-          _state.put(ptn, State.VANISHED);
-          callVanishObserver(ptn, _lastMatch.get(ptn));
+        if (_state.get(ptn) != State.VANISHED) {
+          if (!hasMatch) {
+            _state.put(ptn, State.VANISHED);
+            _count.put(ptn, _count.get(ptn) + 1);
+            callVanishObserver(ptn, _lastMatch.get(ptn));
+          } else {
+            sthgLeft = true;
+          }
         }
       }
+      if (!_region.isObserving()) {
+        break;
+      }
     }
-
   }
 
+  public void repeat(SikuliEvent.Type type, Object pattern, Match match, long secs) {
+    if (type == SikuliEvent.Type.CHANGE) {
+      Debug.error("EventMgr: repeat: CHANGE repeats automatically");
+    } else if (type == SikuliEvent.Type.VANISH) {
+      Debug.error("EventMgr: repeat: not supported for VANISH");      
+    } else if (type == SikuliEvent.Type.APPEAR) {
+      _state.put(pattern, State.REPEAT);
+      if (secs <= 0) {
+        secs = (long) _region.getWaitForVanish();
+      }
+      _wait.put(pattern, (new Date()).getTime() + 1000 * secs);
+      Debug.log(2, "EventMgr: repeat: requested for APPEAR: " + 
+              pattern.toString() + " at " + match.toStringShort() + " after " + secs + " seconds");
+    }
+  }
+  
   public void addChangeObserver(int threshold, SikuliEventObserver ob) {
     _changeOb.put(new Integer(threshold), ob);
     _minChanges = getMinChanges();
@@ -157,7 +218,7 @@ public class SikuliEventManager {
     return min;
   }
 
-  protected void callChangeObserver(FindResults results) throws AWTException {
+  private void callChangeObserver(FindResults results) throws AWTException {
     for (Integer n : _changeOb.keySet()) {
       List<Match> changes = new ArrayList<Match>();
       for (int i = 0; i < results.size(); i++) {
@@ -167,6 +228,7 @@ public class SikuliEventManager {
         }
       }
       if (changes.size() > 0) {
+        _countc.put(n, _countc.get(n) + 1);
         SikuliEventChange se = new SikuliEventChange(changes, _region);
         SikuliEventObserver ob = _changeOb.get(n);
         ob.targetChanged(se);
@@ -174,7 +236,7 @@ public class SikuliEventManager {
     }
   }
 
-  protected void checkChanges(ScreenImage img) {
+  private void checkChanges(ScreenImage img) {
     if (_lastImgMat == null) {
       _lastImgMat = OpenCV.convertBufferedImageToMat(img.getImage());
       return;
@@ -188,7 +250,7 @@ public class SikuliEventManager {
     try {
       callChangeObserver(results);
     } catch (AWTException e) {
-      e.printStackTrace();
+      Debug.error("EventMgr: checkChanges: ", e.getMessage());
     }
     _lastImgMat = target;
   }
@@ -197,16 +259,22 @@ public class SikuliEventManager {
     boolean ret;
     ret = sthgLeft;
     if (sthgLeft) {
+      sthgLeft = false;
       checkPatterns(simg);
+      if (!_region.isObserving()) {
+        return false;
+      }
     }
-    ret = sthgLeft;
-    if (_changeOb.size() > 0) {
-      checkChanges(simg);
-      ret = true;
+    if (_region.isObserving()) {
+      ret = sthgLeft;
+      if (_changeOb.size() > 0) {
+        checkChanges(simg);
+        if (!_region.isObserving()) {
+          return false;
+        }
+        ret = true;
+      }
     }
     return ret;
-  }
-
-  protected void finalize() throws Throwable {
   }
 }

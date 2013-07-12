@@ -6,7 +6,8 @@
  */
 package org.sikuli.script;
 
-import org.sikuli.setup.Settings;
+import org.sikuli.basics.ImageLocator;
+import org.sikuli.basics.Settings;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 
@@ -22,6 +23,7 @@ public class Pattern {
 	private BufferedImage imgBuf = null;
   private float similarity = (float) Settings.MinSimilarity;
   private Location offset = new Location(0, 0);
+  private int waitAfter = 0;
   private final static String isBImg = "-- BufferedImage --";
 
   /**
@@ -225,6 +227,21 @@ public class Pattern {
 		imgBuf = simg.getImage();
 		return this;
 	}
+  
+  /**
+   * set the seconds to wait, after this pattern is acted on
+   * @param secs
+   */
+  public void setTimeAfter(int secs) {
+    waitAfter = secs;
+  }
+
+  /**
+   * get the seconds to wait, after this pattern is acted on
+   */
+  public int setTimeAfter() {
+    return waitAfter;
+  }
 
   @Override
   public String toString() {

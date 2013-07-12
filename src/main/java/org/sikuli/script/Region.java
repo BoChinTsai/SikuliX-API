@@ -6,6 +6,7 @@
  */
 package org.sikuli.script;
 
+import org.sikuli.basics.ImageLocator;
 import java.awt.MouseInfo;
 import java.awt.Point;
 import java.awt.Rectangle;
@@ -15,9 +16,8 @@ import java.io.IOException;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
-import org.sikuli.setup.Debug;
-import org.sikuli.setup.IScriptRunner;
-import org.sikuli.setup.Settings;
+import org.sikuli.basics.Debug;
+import org.sikuli.basics.Settings;
 
 /**
  * A Region always lies completely inside its parent screen
@@ -51,25 +51,35 @@ public class Region {
    */
   public int h;
   /**
-   * Setting, how to react if an image is not found
+   * Setting, how to react if an image is not found {@link FindFailed}
    */
   private FindFailedResponse findFailedResponse = FindFailed.defaultFindFailedResponse;
   /**
-   * Setting, if exception is thrown if an image is not found
+   * Setting {@link Settings}, if exception is thrown if an image is not found
    */
-  protected boolean throwException = Settings.ThrowException;
+  private boolean throwException = Settings.ThrowException;
   /**
-   * Default time to wait for an image
+   * Default time to wait for an image {@link Settings}
    */
-  protected double autoWaitTimeout = Settings.AutoWaitTimeout;
+  private double autoWaitTimeout = Settings.AutoWaitTimeout;
+  private float waitScanRate = Settings.WaitScanRate;
   /**
-   * Flag, if an observer is running on this region
+   * Flag, if an observer is running on this region {@link Settings}
    */
   private boolean observing = false;
+  private float observeScanRate = Settings.ObserveScanRate;
+  private int waitForVanish = Settings.WaitForVanish;
   /**
    * The {@link SikuliEventManager} Singleton instance
    */
   private SikuliEventManager evtMgr = null;
+  public SikuliEventManager getEvtMgr() {
+    return evtMgr;
+  }
+  public void setEvtMgr(SikuliEventManager em) {
+     evtMgr = em;
+  }
+  
   /**
    * The last found {@link Match} in the Region
    */
@@ -89,7 +99,12 @@ public class Region {
             throwException ? "Y" : "N", autoWaitTimeout);
   }
 
-  //<editor-fold defaultstate="collapsed" desc="Specials for scripting environment">
+  public String toStringShort() {
+    return String.format("R[%d,%d %dx%d]@S(%s)", x, y, w, h, (getScreen() == null ? "?" : getScreen().getID()));
+  }
+
+  //<editor-fold defaultstate="collapsed" desc="OFF: Specials for scripting environment">
+  /* 
   public Object __enter__() {
     Debug.error("Region: with(__enter__): Trying to make it a Jython Region for with: usage");
     IScriptRunner runner = Settings.getScriptRunner("jython", null, null);
@@ -108,8 +123,9 @@ public class Region {
   public void __exit__(Object type, Object value, Object traceback) {
     Debug.error("Region: with(__exit__): Sorry, not a Jython Region and not posssible!");
   }
-
+  */
   //</editor-fold>
+  
   //<editor-fold defaultstate="collapsed" desc="Initialization">
   /**
    * Detects on which Screen the Region is present.
@@ -228,6 +244,7 @@ public class Region {
   }
 
   //</editor-fold>
+  
   //<editor-fold defaultstate="collapsed" desc="Quasi-Constructors to be used in Java">
   /**
    * internal use only, used for new Screen objects to get the Region behavior
@@ -408,6 +425,7 @@ public class Region {
   }
 
   //</editor-fold>
+  
   //<editor-fold defaultstate="collapsed" desc="handle coordinates">
   /**
    * check if current region contains given point
@@ -529,6 +547,55 @@ public class Region {
   public FindFailedResponse getFindFailedResponse() {
     return findFailedResponse;
   }
+
+  /**
+   * 
+   * @return the regions current WaitScanRate
+   */
+  public float getWaitScanRate() {
+    return waitScanRate;
+  }
+
+  /**
+   * set the regions individual WaitScanRate
+   * @param waitScanRate
+   */
+  public void setWaitScanRate(float waitScanRate) {
+    this.waitScanRate = waitScanRate;
+  }
+  
+  /**
+   * 
+   * @return the regions current ObserveScanRate
+   */
+  public float getObserveScanRate() {
+    return observeScanRate;
+  }
+
+  /**
+   * set the regions individual ObserveScanRate
+   * @param observeScanRate
+   */
+  public void setObserveScanRate(float observeScanRate) {
+    this.observeScanRate = observeScanRate;
+  }
+
+  /**
+   * 
+   * @return the regions current WaitForVaish time in seconds
+   */
+  public int getWaitForVanish() {
+    return waitForVanish;
+  }
+
+  /**
+   * set the regions individual WaitForVanish
+   * @param waitForVanish time in seconds
+   */
+  public void setWaitForVanish(int waitForVanish) {
+    this.waitForVanish = waitForVanish;
+  }
+  
   //</editor-fold>
 
   //<editor-fold defaultstate="collapsed" desc="getters / setters / modificators">
@@ -1042,6 +1109,7 @@ public class Region {
   }
 
   //</editor-fold>
+  
   //<editor-fold defaultstate="collapsed" desc="spatial operators - new regions">
   /**
    * check if current region contains given region
@@ -1786,7 +1854,7 @@ public class Region {
     // throws Exception if any unexpected error occurs
     boolean repeat(double timeout) throws Exception {
 
-      int MaxTimePerScan = (int) (1000.0 / Settings.WaitScanRate);
+      int MaxTimePerScan = (int) (1000.0 / waitScanRate);
       int MaxTimePerScanSecs = MaxTimePerScan / 1000;
       long begin_t = (new Date()).getTime();
       do {
@@ -1923,6 +1991,10 @@ public class Region {
     return evtMgr;
   }
 
+  public boolean isObserving() {
+    return observing;
+  }
+  
   public <PatternOrString> void onAppear(PatternOrString target, Object observer) {
     getEventManager().addAppearObserver(target, (SikuliEventObserver) observer);
   }
@@ -1942,27 +2014,15 @@ public class Region {
   public void observe() {
     observe(Float.POSITIVE_INFINITY);
   }
-
-  public void observeInBackground(final double secs) {
-    Thread th = new Thread() {
-      @Override
-      public void run() {
-        observe(secs);
-      }
-    };
-    th.start();
-  }
-
-  public void stopObserver() {
-    observing = false;
-  }
-
+  
   public void observe(double secs) {
+//TODO repeated observe, observe all, observe any
     if (evtMgr == null) {
-      Debug.error("observe(): Nothing to observe (Region might be invalid)");
+      Debug.error("Region: observe: Nothing to observe (Region might be invalid): " + this.toStringShort());
       return;
     }
-    int MaxTimePerScan = (int) (1000.0 / Settings.ObserveScanRate);
+    Debug.log(2, "Region: observe: starting in " + this.toStringShort() + " for " + secs + " seconds");
+    int MaxTimePerScan = (int) (1000.0 / observeScanRate);
     long begin_t = (new Date()).getTime();
     observing = true;
     evtMgr.initialize();
@@ -1970,9 +2030,13 @@ public class Region {
       long before_find = (new Date()).getTime();
       ScreenImage simg = getScreen().capture(x, y, w, h);
       if (!evtMgr.update(simg)) {
+        observing = false;
         break;
       }
       long after_find = (new Date()).getTime();
+      if (!observing) {
+        break;
+      }
       try {
         if (after_find - before_find < MaxTimePerScan) {
           Thread.sleep((int) (MaxTimePerScan - (after_find - before_find)));
@@ -1980,7 +2044,41 @@ public class Region {
       } catch (Exception e) {
       }
     }
-    stopObserver();
+    if (observing) {
+      observing = false;
+      Debug.log(2, "Region: observe: stopped due to timeout in " 
+              + this.toStringShort() + " for " + secs + " seconds");
+    } else {
+      Debug.log(2, "Region: observe: observing has ended for " + this.toStringShort());
+    }
+  }
+
+  public void observeInBackground(double secs) {
+    if (observing) {
+      Debug.error("Region: observeInBackground: already running for this region. Only one allowed!");
+      return;
+    }
+    Debug.log(3, "entering observeInBackground for %f secs", secs);
+    ObserverThread o = new ObserverThread(secs);
+    o.run();
+  }
+
+  private class ObserverThread implements Runnable {
+    private double time;
+    
+    ObserverThread(double time) {
+      this.time = time;
+    }
+    
+    @Override
+    public void run() {
+      observe(time);
+    }
+  }
+  
+  public void stopObserver() {
+    Debug.log(2, "Region: observe: request to stop observer for " + this.toStringShort());
+    observing = false;
   }
   //</editor-fold>
 

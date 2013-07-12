@@ -15,27 +15,19 @@ public class SikuliEvent {
     APPEAR, VANISH, CHANGE
   }
   public Type type;
-  //DEPRECATED (leave them to be compatiable to 0.10)
-  public int x, y, w, h;
-  public Region region;
+  public Region region = null;
   // AppearEvent must have a match
   // VanishEvent may have a match, depending on if the pattern appeared before
-  public Match match;
+  public Match match = null;
   // ChangeEvent has 0+ changes.
-  public List<Match> changes;
+  public List<Match> changes = null;
   // the pattern for observing this event
-  public Object pattern;
+  public Object pattern = null;
 
   public SikuliEvent() {
   }
 
   public SikuliEvent(Object ptn, Match m, Region r) {
-    if (m != null) {
-      x = m.x;
-      y = m.y;
-      w = m.w;
-      h = m.h;
-    }
     region = r;
     match = m;
     pattern = ptn;
@@ -45,9 +37,41 @@ public class SikuliEvent {
     return region;
   }
 
+  public Match getMatch() {
+    return match;
+  }
+
+  public Pattern getPattern() {
+    if (pattern.getClass().isInstance("")) {
+      return (new Pattern((String) pattern));
+    } else {
+      return (new Pattern((Pattern) pattern));
+    }
+  }
+
+  public void repeat() {
+    repeat(0);
+  }
+  
+  public void repeat(long secs) {
+    region.getEvtMgr().repeat(type, pattern, match, secs); 
+  }
+  
+  public int getCount() {
+    if (type == Type.CHANGE) {
+      return 0;
+    } else {
+      return region.getEvtMgr().getCount(pattern);
+    } 
+  }
+  
+  public void stopObserver() {
+    region.stopObserver();
+  }
+  
   @Override
   public String toString() {
-    return String.format("SikuliEvent(%s) on %s | %s | Last %s",
+    return String.format("SikuliEvent(%s) on %s with %s having last match: %s",
             type, region, pattern, match);
   }
 }
