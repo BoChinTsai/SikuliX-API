@@ -29,11 +29,6 @@
 
   <developers>
     <developer>
-      <id>kelthuzad</id>
-      <name>kelthuzad</name>
-      <email>j_the_k@web.de</email>
-    </developer>
-    <developer>
       <id>RaiMan</id>
       <name>RaiMan</name>
       <email>rmhdevelop@me.com</email>
@@ -104,38 +99,6 @@
   </dependencies>
 
   <build>
-    <!-- Enable this plugin to include execute action (needed for eclipse)
-  		<pluginManagement>
-   			<plugins>
-    				<plugin>
-     					<groupId>org.eclipse.m2e</groupId>
-     					<artifactId>lifecycle-mapping</artifactId>
-     					<version>1.0.0</version>
-     					<configuration>
-      						<lifecycleMappingMetadata>
-       							<pluginExecutions>
-        								<pluginExecution>
-         									<pluginExecutionFilter>
-          										<groupId>org.codehaus.mojo</groupId>
-          										<artifactId>aspectj-maven-plugin</artifactId>
-          										<versionRange>[1.0,)</versionRange>
-          										<goals>
-           											<goal>test-compile</goal>
-           											<goal>compile</goal>
-          										</goals>
-         									</pluginExecutionFilter>
-         									<action>
-          										<execute />
-         									</action>
-        								</pluginExecution>
-       							</pluginExecutions>
-      						</lifecycleMappingMetadata>
-     					</configuration>
-    				</plugin>
-   			</plugins>
-  		</pluginManagement>
-    -->
-
     <finalName>sikulix-api</finalName>
 
     <plugins>
@@ -148,53 +111,31 @@
         </configuration>
       </plugin>
 
-      <!-- Plugin to create an executable jar 
+      <!-- Plugin to create an additional jar containing all stuff (sikuli-script.jar)-->
       <plugin>
-        <artifactId>maven-jar-plugin</artifactId>
+        <artifactId>maven-assembly-plugin</artifactId>
         <version>2.4</version>
         <configuration>
-          <archive>
+<!--          <archive>
             <manifest>
               <mainClass>org.sikuli.script.SikuliScript</mainClass>
             </manifest>
-          </archive>
+          </archive> -->
+          <descriptorRefs>
+            <descriptorRef>jar-with-dependencies</descriptorRef>
+          </descriptorRefs>
+          <finalName>sikulix-java</finalName>
         </configuration>
-      </plugin>
-      -->
-
-      <!-- Plugin to create an additional jar containing the source
-      <plugin>
-        <artifactId>maven-source-plugin</artifactId>
-        <version>2.2.1</version>
         <executions>
           <execution>
-            <id>attach-sources</id>
-            <phase>verify</phase>
+            <id>make-assembly</id>
+            <phase>package</phase>
             <goals>
-              <goal>jar-no-fork</goal>
+              <goal>single</goal>
             </goals>
           </execution>
         </executions>
       </plugin>
-      -->
-
-      <!-- Plugin to run the jar using mvn exec:java -Dexec.args=" ... parms ... "
-      <plugin>
-        <groupId>org.codehaus.mojo</groupId>
-        <artifactId>exec-maven-plugin</artifactId>
-        <version>1.2.1</version>
-        <executions>
-          <execution>
-            <goals>
-              <goal>java</goal>
-            </goals>
-          </execution>
-        </executions>
-        <configuration>
-          <mainClass>org.sikuli.script.SikuliScript</mainClass>
-        </configuration>
-      </plugin>
-      -->
 
     </plugins>
   </build>
