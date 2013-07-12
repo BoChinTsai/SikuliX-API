@@ -6,8 +6,8 @@
  */
 package org.sikuli.script;
 
-import org.sikuli.setup.Settings;
-import org.sikuli.setup.Debug;
+import org.sikuli.basics.Settings;
+import org.sikuli.basics.Debug;
 import java.awt.AWTException;
 import java.awt.Color;
 import java.awt.Rectangle;
@@ -224,6 +224,9 @@ public class RobotDesktop extends Robot implements RobotIF {
 
   @Override
   public void typeChar(char character, KeyMode mode) {
+    Debug.log(3, "Robot: doType: %s ( %d )", 
+            KeyEvent.getKeyText(Key.toJavaKeyCode(character)[0]).toString(), 
+            Key.toJavaKeyCode(character)[0]);
     doType(mode, Key.toJavaKeyCode(character));
   }
 
