@@ -6,8 +6,8 @@
  */
 package org.sikuli.script;
 
-import org.sikuli.setup.Settings;
-import org.sikuli.setup.Debug;
+import org.sikuli.basics.Settings;
+import org.sikuli.basics.Debug;
 import java.awt.AWTException;
 import java.awt.GraphicsDevice;
 import java.awt.GraphicsEnvironment;
@@ -340,7 +340,7 @@ public class Screen extends Region implements EventObserver, ScreenIF {
   public ScreenImage capture(Rectangle rect) {
     ScreenImage simg = robot.captureScreen(rect);
     lastScreenImage = simg;
-    Debug.log(2, "Screen.capture: " + rect);
+    Debug.log(3, "Screen.capture: " + rect);
     return simg;
   }
 
@@ -453,7 +453,7 @@ public class Screen extends Region implements EventObserver, ScreenIF {
     return String.format("S(%d)[%d,%d %dx%d] E:%s, T:%.1f",
             curID, (int) r.getX(), (int) r.getY(),
             (int) r.getWidth(), (int) r.getHeight(),
-            throwException ? "Y" : "N", autoWaitTimeout);
+            getThrowException() ? "Y" : "N", getAutoWaitTimeout());
   }
 
   /**
