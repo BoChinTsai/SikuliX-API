@@ -7,7 +7,7 @@
 package org.sikuli.system;
 
 import java.awt.Window;
-import org.sikuli.setup.Debug;
+import org.sikuli.basics.Debug;
 import org.sikuli.script.Region;
 
 public class DummyOSUtil implements OSUtil {

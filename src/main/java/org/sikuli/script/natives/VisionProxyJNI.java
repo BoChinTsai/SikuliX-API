@@ -8,7 +8,7 @@
 
 package org.sikuli.script.natives;
 
-   import org.sikuli.setup.FileManager;
+   import org.sikuli.basics.FileManager;
 
 public class VisionProxyJNI {
 

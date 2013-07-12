@@ -6,8 +6,8 @@
  */
 package org.sikuli.script;
 
-import org.sikuli.setup.Settings;
-import org.sikuli.setup.Debug;
+import org.sikuli.basics.Settings;
+import org.sikuli.basics.Debug;
 import java.awt.Color;
 import java.awt.Graphics;
 import java.awt.Graphics2D;

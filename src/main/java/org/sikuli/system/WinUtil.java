@@ -8,8 +8,8 @@ package org.sikuli.system;
 
 import java.awt.Rectangle;
 import java.awt.Window;
-import org.sikuli.setup.Debug;
-import org.sikuli.setup.FileManager;
+import org.sikuli.basics.Debug;
+import org.sikuli.basics.FileManager;
 import org.sikuli.script.Region;
 
 public class WinUtil implements OSUtil {

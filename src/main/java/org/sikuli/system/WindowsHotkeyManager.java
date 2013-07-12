@@ -8,7 +8,7 @@ package org.sikuli.system;
 
 import com.melloware.jintellitype.JIntellitype;
 import java.util.*;
-import org.sikuli.setup.Debug;
+import org.sikuli.basics.Debug;
 import org.sikuli.script.HotkeyEvent;
 import org.sikuli.script.HotkeyListener;
 import org.sikuli.script.HotkeyManager;

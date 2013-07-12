@@ -6,9 +6,9 @@
  */
 package org.sikuli.script;
 
-import org.sikuli.setup.Settings;
-import org.sikuli.setup.FileManager;
-import org.sikuli.setup.Debug;
+import org.sikuli.basics.Settings;
+import org.sikuli.basics.FileManager;
+import org.sikuli.basics.Debug;
 import java.awt.*;
 import java.awt.image.*;
 import java.io.*;

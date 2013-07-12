@@ -7,6 +7,6 @@
 package org.sikuli.script;
 
 public class Constants {
-   public static float FOREVER = Float.POSITIVE_INFINITY;
+   public static double FOREVER = Double.POSITIVE_INFINITY;
 }
 

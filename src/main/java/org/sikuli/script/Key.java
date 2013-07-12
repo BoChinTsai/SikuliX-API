@@ -8,7 +8,7 @@ package org.sikuli.script;
 
 import java.awt.Toolkit;
 import java.awt.event.KeyEvent;
-import org.sikuli.setup.Settings;
+import org.sikuli.basics.Settings;
 
 public class Key {
 

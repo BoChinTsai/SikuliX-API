@@ -6,7 +6,8 @@
  */
 package org.sikuli.script;
 
-import org.sikuli.setup.Settings;
+import org.sikuli.basics.ImageLocator;
+import org.sikuli.basics.Settings;
 import java.awt.image.BufferedImage;
 import org.sikuli.script.natives.FindResult;
 
@@ -223,7 +224,13 @@ public class Match extends Region implements Comparable {
       starget = String.format("Center:%d,%d", c.x, c.y);
     }
     return String.format("M[%d,%d %dx%d]@%s S:%.2f %s", x, y, w, h,
-              (getScreen()== null ? "Screen???" : getScreen().toStringShort()),
+              (getScreen()== null ? "Screen null" : getScreen().toStringShort()),
               simScore, starget);
+  }
+
+  @Override
+  public String toStringShort() {
+    return String.format("M[%d,%d %dx%d]@S(%s)", x, y, w, h,
+              (getScreen()== null ? "?" : getScreen().getID()));
   }
 }

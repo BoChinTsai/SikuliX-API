@@ -6,10 +6,11 @@
  */
 package org.sikuli.script;
 
-import org.sikuli.setup.IScriptRunner;
-import org.sikuli.setup.Settings;
-import org.sikuli.setup.FileManager;
-import org.sikuli.setup.Debug;
+import org.sikuli.basics.ImageLocator;
+import org.sikuli.basics.IScriptRunner;
+import org.sikuli.basics.Settings;
+import org.sikuli.basics.FileManager;
+import org.sikuli.basics.Debug;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.InputStreamReader;
@@ -78,9 +79,9 @@ public class SikuliScript {
       if (runner == null) {
         String givenRunnerName = cmdLine.getOptionValue(CommandArgsEnum.INTERACTIVE.longname());
         if (givenRunnerName == null) {
-          runner = Settings.getScriptRunner("jython", null, args);
+          runner = FileManager.getScriptRunner("jython", null, args);
         } else {
-          runner = Settings.getScriptRunner(givenRunnerName, null, args);
+          runner = FileManager.getScriptRunner(givenRunnerName, null, args);
           if (runner == null) {
             System.exit(1);
           }
@@ -109,7 +110,7 @@ public class SikuliScript {
       if (script == null) {
         System.exit(1);
       }
-      runner = Settings.getRunner();
+      runner = FileManager.getRunner();
       if (imagePath == null) {
         imagePath = FileManager.resolveImagePath(script);
       }
@@ -140,6 +141,15 @@ public class SikuliScript {
     }
   }
 
+  public static void popup(String message, String title) {
+    JOptionPane.showMessageDialog(null, message,
+            title, JOptionPane.PLAIN_MESSAGE);
+  }
+
+  public static void popup(String message) {
+    popup(message, "Sikuli");
+  }
+
   public static String input(String msg) {
     return JOptionPane.showInputDialog(msg);
   }
@@ -164,15 +174,6 @@ public class SikuliScript {
 
   public static int closeApp(String appName) {
     return App.close(appName);
-  }
-
-  public static void popup(String message, String title) {
-    JOptionPane.showMessageDialog(null, message,
-            title, JOptionPane.PLAIN_MESSAGE);
-  }
-
-  public static void popup(String message) {
-    popup(message, "Sikuli");
   }
 
   public static String run(String cmdline) {

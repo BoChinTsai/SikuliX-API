@@ -10,10 +10,10 @@ import org.sikuli.script.HotkeyManager;
 import java.util.*;
 import jxgrabkey.HotkeyConflictException;
 import jxgrabkey.JXGrabKey;
-import org.sikuli.setup.Debug;
+import org.sikuli.basics.Debug;
 import org.sikuli.script.HotkeyEvent;
 import org.sikuli.script.HotkeyListener;
-import org.sikuli.setup.FileManager;
+import org.sikuli.basics.FileManager;
 
 public class LinuxHotkeyManager extends HotkeyManager {
    static{

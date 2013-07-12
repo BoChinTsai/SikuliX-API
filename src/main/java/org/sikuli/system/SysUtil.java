@@ -5,8 +5,8 @@
 package org.sikuli.system;
 
 import java.lang.reflect.Constructor;
-import org.sikuli.setup.Debug;
-import org.sikuli.setup.Settings;
+import org.sikuli.basics.Debug;
+import org.sikuli.basics.Settings;
 
 /**
  *

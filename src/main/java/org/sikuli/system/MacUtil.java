@@ -10,8 +10,8 @@ import java.awt.Rectangle;
 import java.awt.Window;
 import javax.swing.JOptionPane;
 import org.sikuli.script.Region;
-import org.sikuli.setup.Debug;
-import org.sikuli.setup.FileManager;
+import org.sikuli.basics.Debug;
+import org.sikuli.basics.FileManager;
 
 public class MacUtil implements OSUtil {
 

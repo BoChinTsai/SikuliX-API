@@ -6,7 +6,7 @@
  */
 package org.sikuli.script;
 
-import org.sikuli.setup.Debug;
+import org.sikuli.basics.Debug;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.HelpFormatter;

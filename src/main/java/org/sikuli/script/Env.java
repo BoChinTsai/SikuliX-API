@@ -6,7 +6,7 @@
  */
 package org.sikuli.script;
 
-import org.sikuli.setup.Settings;
+import org.sikuli.basics.Settings;
 import java.awt.*;
 import org.sikuli.system.OSUtil;
 import org.sikuli.system.SysUtil;

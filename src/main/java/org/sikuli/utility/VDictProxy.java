@@ -6,14 +6,14 @@
  */
 package org.sikuli.utility;
 
-import org.sikuli.setup.FileManager;
+import org.sikuli.basics.FileManager;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Vector;
-import org.sikuli.setup.Settings;
+import org.sikuli.basics.Settings;
 
 public class VDictProxy<T> {
    private long _instance;
