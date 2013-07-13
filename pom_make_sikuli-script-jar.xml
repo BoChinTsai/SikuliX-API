@@ -125,7 +125,7 @@
         <configuration>
           <archive>
             <manifest>
-              <mainClass>org.sikuli.script.SikuliScript</mainClass>
+              <mainClass>org.sikuli.basics.SikuliScript</mainClass>
             </manifest>
           </archive> 
           <descriptorRefs>
