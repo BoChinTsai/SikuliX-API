@@ -63,26 +63,30 @@ public class ScreenHighlighter extends OverlayTransparentWindow implements Mouse
     _opened.remove(this);
     clean();
     try {
-      Thread.sleep((int) (Settings.WaitAfterHighlight > 0.3f ? Settings.WaitAfterHighlight*1000-300 : 300));
-    } catch (InterruptedException e) {}
+      Thread.sleep((int) (Settings.WaitAfterHighlight > 0.3f ? Settings.WaitAfterHighlight * 1000 - 300 : 300));
+    } catch (InterruptedException e) {
+    }
   }
 
   private void closeAfter(float secs) {
     try {
       Thread.sleep((int) secs * 1000 - 300);
-    } catch (InterruptedException e) {}
+    } catch (InterruptedException e) {
+    }
     close();
   }
 
   public static void closeAll() {
-    Debug.log(3, "close all ScreenHighlighter");
-    for (ScreenHighlighter s : _opened) {
-      if (s.isVisible()) {
-        s.setVisible(false);
-        s.clean();
+    if (_opened.size() > 0) {
+      Debug.log(3, "ScreenHighlighter: Removing all highlights");
+      for (ScreenHighlighter s : _opened) {
+        if (s.isVisible()) {
+          s.setVisible(false);
+          s.clean();
+        }
       }
+      _opened.clear();
     }
-    _opened.clear();
   }
 
   private void clean() {

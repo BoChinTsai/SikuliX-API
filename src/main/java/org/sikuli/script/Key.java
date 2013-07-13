@@ -444,20 +444,4 @@ public class Key {
       return KeyEvent.VK_CONTROL;
     }
   }
-
-  public static boolean addHotkey(String key, int modifiers, HotkeyListener listener) {
-    return HotkeyManager.getInstance().addHotkey(key, modifiers, listener);
-  }
-
-  public static boolean addHotkey(char key, int modifiers, HotkeyListener listener) {
-    return HotkeyManager.getInstance().addHotkey(key, modifiers, listener);
-  }
-
-  public static boolean removeHotkey(String key, int modifiers) {
-    return HotkeyManager.getInstance().removeHotkey(key, modifiers);
-  }
-
-  public static boolean removeHotkey(char key, int modifiers) {
-    return HotkeyManager.getInstance().removeHotkey(key, modifiers);
-  }
 }

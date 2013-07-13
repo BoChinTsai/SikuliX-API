@@ -27,7 +27,7 @@ import java.awt.Rectangle;
  *
  * @author RaiMan
  */
-public class Screen extends Region implements EventObserver, ScreenIF {
+public class Screen extends Region implements EventObserver, IScreen {
 
   protected static GraphicsEnvironment genv = null;
   protected static GraphicsDevice[] gdevs;
@@ -440,7 +440,7 @@ public class Screen extends Region implements EventObserver, ScreenIF {
   }
 
   protected void showTarget(Location loc, double secs) {
-    if (Settings.ShowActions) {
+    if (Settings.isShowActions()) {
       ScreenHighlighter overlay = new ScreenHighlighter(this);
       overlay.showTarget(loc, (float) secs);
     }

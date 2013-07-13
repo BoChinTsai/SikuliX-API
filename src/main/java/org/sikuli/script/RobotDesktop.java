@@ -6,6 +6,7 @@
  */
 package org.sikuli.script;
 
+import org.sikuli.basics.HotkeyManager;
 import org.sikuli.basics.Settings;
 import org.sikuli.basics.Debug;
 import java.awt.AWTException;
@@ -16,7 +17,7 @@ import java.awt.event.KeyEvent;
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 
-public class RobotDesktop extends Robot implements RobotIF {
+public class RobotDesktop extends Robot implements IRobot {
 
   final static int MAX_DELAY = 60000;
   private static int heldButtons = 0;
@@ -153,7 +154,7 @@ public class RobotDesktop extends Robot implements RobotIF {
       for (int i = 0; i < keys.length(); i++) {
         if (heldKeys.indexOf(keys.charAt(i)) == -1) {
           Debug.log(5, "press: " + keys.charAt(i));
-          typeChar(keys.charAt(i), RobotIF.KeyMode.PRESS_ONLY);
+          typeChar(keys.charAt(i), IRobot.KeyMode.PRESS_ONLY);
           heldKeys += keys.charAt(i);
         }
       }
@@ -177,7 +178,7 @@ public class RobotDesktop extends Robot implements RobotIF {
         int pos;
         if ((pos = heldKeys.indexOf(keys.charAt(i))) != -1) {
           Debug.log(5, "release: " + keys.charAt(i));
-          typeChar(keys.charAt(i), RobotIF.KeyMode.RELEASE_ONLY);
+          typeChar(keys.charAt(i), IRobot.KeyMode.RELEASE_ONLY);
           heldKeys = heldKeys.substring(0, pos)
                   + heldKeys.substring(pos + 1);
         }

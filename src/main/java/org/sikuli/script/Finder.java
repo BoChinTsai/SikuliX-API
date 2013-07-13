@@ -106,21 +106,21 @@ public class Finder implements Iterator<Match> {
 	 *
 	 * @param simg
 	 */
-	public void setScreenImage(ScreenImage simg) {
+	protected void setScreenImage(ScreenImage simg) {
     _findInput.setSource(OpenCV.convertBufferedImageToMat(simg.getImage()));
 	}
 
   /**
 	 * internal use: to be able to reuse the same Finder
 	 */
-	public void setRepeating() {
+	protected void setRepeating() {
     repeating = true;
   }
 
 	/**
 	 * internal use: repeat find with same Finder
 	 */
-	public void findRepeat() {
+	protected void findRepeat() {
 		_results = Vision.find(_findInput);
 		_cur_result_i = 0;
 	}
@@ -170,7 +170,7 @@ public class Finder implements Iterator<Match> {
 	/**
 	 * internal use: repeat find with same Finder
 	 */
-  public void findAllRepeat() {
+  protected void findAllRepeat() {
     Debug timing = new Debug();
     timing.startTiming("Finder.findAll");
     _results = Vision.find(_findInput);

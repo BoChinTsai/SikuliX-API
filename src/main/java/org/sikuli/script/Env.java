@@ -6,10 +6,14 @@
  */
 package org.sikuli.script;
 
+import org.sikuli.basics.OS;
+import org.sikuli.basics.HotkeyManager;
+import org.sikuli.basics.HotkeyListener;
 import org.sikuli.basics.Settings;
 import java.awt.*;
-import org.sikuli.system.OSUtil;
-import org.sikuli.system.SysUtil;
+import org.sikuli.basics.SikuliX;
+import org.sikuli.basics.OSUtil;
+import org.sikuli.basics.SysUtil;
 
 /**
  * features moved to other classes, details below with the methods
@@ -174,7 +178,7 @@ public class Env {
    */
   @Deprecated
   public static boolean addHotkey(String key, int modifiers, HotkeyListener listener) {
-    return Key.addHotkey(key, modifiers, listener);
+    return SikuliX.addHotkey(key, modifiers, listener);
   }
 
   /**
@@ -187,7 +191,7 @@ public class Env {
    */
   @Deprecated
   public static boolean addHotkey(char key, int modifiers, HotkeyListener listener) {
-    return Key.addHotkey(key, modifiers, listener);
+    return SikuliX.addHotkey(key, modifiers, listener);
   }
 
   /**
@@ -199,7 +203,7 @@ public class Env {
    */
   @Deprecated
   public static boolean removeHotkey(String key, int modifiers) {
-    return Key.removeHotkey(key, modifiers);
+    return SikuliX.removeHotkey(key, modifiers);
   }
 
   /**
@@ -211,7 +215,7 @@ public class Env {
    */
   @Deprecated
   public static boolean removeHotkey(char key, int modifiers) {
-    return Key.removeHotkey(key, modifiers);
+    return SikuliX.removeHotkey(key, modifiers);
   }
 
   public static void cleanUp() {
