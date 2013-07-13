@@ -6,6 +6,7 @@
  */
 package org.sikuli.script;
 
+import java.awt.Rectangle;
 import org.sikuli.basics.Settings;
 import org.sikuli.basics.Debug;
 import java.awt.Toolkit;
@@ -20,8 +21,8 @@ import java.io.Reader;
 import java.io.StringReader;
 import java.nio.ByteBuffer;
 import java.nio.CharBuffer;
-import org.sikuli.system.OSUtil;
-import org.sikuli.system.SysUtil;
+import org.sikuli.basics.OSUtil;
+import org.sikuli.basics.SysUtil;
 
 public class App {
 
@@ -32,6 +33,14 @@ public class App {
   static {
 //TODO Sikuli hangs if App is used before Screen
     new Screen();
+  }
+  
+  private static Region asRegion(Rectangle r) {
+    if (r != null) {
+      return Region.create(r);
+    } else {
+      return null;
+    }
   }
 
   public App(String appName) {
@@ -128,20 +137,20 @@ public class App {
 
   public Region window() {
     if (_pid != 0) {
-      return _osUtil.getWindow(_pid);
+      return asRegion(_osUtil.getWindow(_pid));
     }
-    return _osUtil.getWindow(_appName);
+    return asRegion(_osUtil.getWindow(_appName));
   }
 
   public Region window(int winNum) {
     if (_pid != 0) {
-      return _osUtil.getWindow(_pid, winNum);
+      return asRegion(_osUtil.getWindow(_pid, winNum));
     }
-    return _osUtil.getWindow(_appName, winNum);
+    return asRegion(_osUtil.getWindow(_appName, winNum));
   }
 
   public static Region focusedWindow() {
-    return _osUtil.getFocusedWindow();
+    return asRegion(_osUtil.getFocusedWindow());
   }
 
   public static String getClipboard() {
