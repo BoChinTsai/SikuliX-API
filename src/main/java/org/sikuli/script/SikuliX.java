@@ -5,13 +5,18 @@
 package org.sikuli.script;
 
 import org.sikuli.basics.Debug;
+import org.sikuli.basics.SikuliScript;
 
 /**
  *
  * @author rhocke
  */
 public class SikuliX {
-  private static final String me = "SikuliXFinalCleanUp: "; 
+  private static final String me = "SikuliXFinalCleanUp: ";
+  
+  public static void main(String[] args) {
+    SikuliScript.main(args);
+  }
   
   public static void endNormal(int n) {
     Debug.log(3, me + "endNormal: %d", n);

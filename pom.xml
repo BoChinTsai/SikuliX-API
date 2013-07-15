@@ -54,6 +54,13 @@
     </dependency>
 
     <dependency>
+      <groupId>org.sikuli</groupId>
+      <artifactId>SikuliX-Jython</artifactId>
+      <version>1.0.1</version>
+      <scope>runtime</scope>
+    </dependency>
+
+    <dependency>
       <groupId>junit</groupId>
       <artifactId>junit</artifactId>
       <version>4.4</version>
@@ -108,14 +115,14 @@
         </configuration>
       </plugin>
 
-      <!-- Plugin to create an executable jar 
+      <!-- Plugin to create an executable jar
       <plugin>
         <artifactId>maven-jar-plugin</artifactId>
         <version>2.4</version>
         <configuration>
           <archive>
             <manifest>
-              <mainClass>org.sikuli.script.SikuliScript</mainClass>
+              <mainClass>org.sikuli.basics.SikuliScript</mainClass>
             </manifest>
           </archive>
         </configuration>
