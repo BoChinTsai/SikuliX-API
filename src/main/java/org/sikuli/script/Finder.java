@@ -13,12 +13,12 @@ import org.sikuli.basics.Debug;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.util.Iterator;
-import org.sikuli.script.natives.FindInput;
-import org.sikuli.script.natives.FindResult;
-import org.sikuli.script.natives.FindResults;
-import org.sikuli.script.natives.OpenCV;
-import org.sikuli.script.natives.TARGET_TYPE;
-import org.sikuli.script.natives.Vision;
+import org.sikuli.basics.proxies.FindInput;
+import org.sikuli.basics.proxies.FindResult;
+import org.sikuli.basics.proxies.FindResults;
+import org.sikuli.basics.proxies.OpenCV;
+import org.sikuli.basics.proxies.TARGET_TYPE;
+import org.sikuli.basics.proxies.Vision;
 
 public class Finder implements Iterator<Match> {
 
