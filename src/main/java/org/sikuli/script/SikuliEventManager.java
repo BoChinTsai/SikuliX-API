@@ -10,12 +10,12 @@ import org.sikuli.basics.Settings;
 import org.sikuli.basics.Debug;
 import java.awt.AWTException;
 import java.util.*;
-import org.sikuli.script.natives.FindInput;
-import org.sikuli.script.natives.FindResult;
-import org.sikuli.script.natives.FindResults;
-import org.sikuli.script.natives.Mat;
-import org.sikuli.script.natives.OpenCV;
-import org.sikuli.script.natives.Vision;
+import org.sikuli.basics.proxies.FindInput;
+import org.sikuli.basics.proxies.FindResult;
+import org.sikuli.basics.proxies.FindResults;
+import org.sikuli.basics.proxies.Mat;
+import org.sikuli.basics.proxies.OpenCV;
+import org.sikuli.basics.proxies.Vision;
 
 public class SikuliEventManager {
 
@@ -56,6 +56,10 @@ public class SikuliEventManager {
     for (int n : _countc.keySet()) {
       _count.put(n, 0);      
     }
+  }
+  
+  public void setRegion(Region reg) {
+    _region = reg;
   }
 
   public int getCount(Object ptn) {
@@ -108,6 +112,7 @@ public class SikuliEventManager {
   private void checkPatterns(ScreenImage simg) {
     Finder finder = new Finder(simg, _region);
     String imgOK;
+    Debug.log(3, "observe: checkPatterns entry: sthgLeft: %s isObserving: %s", sthgLeft, _region.isObserving());
     for (Object ptn : _state.keySet()) {
       if (_state.get(ptn) != State.FIRST && 
           _state.get(ptn) != State.UNKNOWN &&
@@ -125,16 +130,20 @@ public class SikuliEventManager {
         continue;
       }
       if (_state.get(ptn) == State.REPEAT) {
+        Debug.log(3, "repeat: checking");
         if (_lastMatch.get(ptn).exists(ptn) != null) {
           if ((new Date()).getTime() > _wait.get(ptn)) {
             _state.put(ptn, State.APPEARED);
+            Debug.log(3, "repeat: vanish timeout");
             // time out
+          } else {
+            sthgLeft = true;
           }
-          sthgLeft = true;
-          continue; // still there
+          continue; // not vanished within given time or still there
         } else {
           _state.put(ptn, State.UNKNOWN);
           sthgLeft = true;
+          Debug.log(3, "repeat: has vanished");
           continue; // has vanished, repeat
         }
       }
@@ -180,6 +189,7 @@ public class SikuliEventManager {
         break;
       }
     }
+    Debug.log(3, "observe: checkPatterns exit: sthgLeft: %s isObserving: %s", sthgLeft, _region.isObserving());
   }
 
   public void repeat(SikuliEvent.Type type, Object pattern, Match match, long secs) {
@@ -195,6 +205,7 @@ public class SikuliEventManager {
       _wait.put(pattern, (new Date()).getTime() + 1000 * secs);
       Debug.log(2, "EventMgr: repeat: requested for APPEAR: " + 
               pattern.toString() + " at " + match.toStringShort() + " after " + secs + " seconds");
+      sthgLeft = true;
     }
   }
   
@@ -256,6 +267,7 @@ public class SikuliEventManager {
   }
 
   public boolean update(ScreenImage simg) {
+    Debug.log(3, "observe: update entry: sthgLeft: %s obs? %s", sthgLeft, _region.isObserving());
     boolean ret;
     ret = sthgLeft;
     if (sthgLeft) {
@@ -275,6 +287,7 @@ public class SikuliEventManager {
         ret = true;
       }
     }
+    Debug.log(3, "observe: update exit: ret: %s", ret);
     return ret;
   }
 }
