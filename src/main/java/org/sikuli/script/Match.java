@@ -88,7 +88,7 @@ public class Match extends Region implements Comparable {
     image = m.image;
     target = null;
     if (m.target != null) {
-      target = (Location) m.target.clone();
+      target = new Location(m.target);
     }
   }
 

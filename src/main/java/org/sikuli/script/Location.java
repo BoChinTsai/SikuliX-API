@@ -15,7 +15,10 @@ import java.awt.Point;
  * any screen (not checked as is done with region)
  *
  */
-public class Location extends Point {
+public class Location {
+  
+  public int x;
+  public int y;
 
   /**
    * to allow calculated x and y that might not be integers
@@ -23,8 +26,9 @@ public class Location extends Point {
    * @param y
    * truncated to the integer part
    */
-  public Location(float x, float y) {
-    super((int) x, (int) y);
+  public Location(float _x, float _y) {
+    x = (int) _x;
+    y = (int) _y;
   }
 
   /**
@@ -32,8 +36,9 @@ public class Location extends Point {
    * @param x
    * @param y
    */
-  public Location(int x, int y) {
-    super(x, y);
+  public Location(int _x, int _y) {
+    x = _x;
+    y = _y;
   }
 
   /**
@@ -41,7 +46,8 @@ public class Location extends Point {
    * @param loc
    */
   public Location(Location loc) {
-    super(loc.x, loc.y);
+    x = loc.x;
+    y = loc.y;
   }
 
   /**
@@ -49,10 +55,19 @@ public class Location extends Point {
    * @param point
    */
   public Location(Point point) {
-    super(point);
+    x = (int) point.x;
+    y = (int) point.y;
+  }
+  
+  public int getX() {
+    return x;
   }
 
-   /**
+  public int getY() {
+    return y;
+  }
+
+  /**
     * Returns null, if outside of any screen<br />
     * subsequent actions will crash
     *
@@ -136,8 +151,19 @@ public class Location extends Point {
    * @return the location itself modified
    */
   public Location moveFor(int dx, int dy) {
-    super.translate(dx, dy);
+    x += dx;
+    y += dy;
     return this;
+  }
+  
+  /**
+   * convenience: like awt point
+   * @param dx
+   * @param dy
+   * @return the location itself modified
+   */
+  public Location translate(int dx, int dy) {
+    return moveFor(dx, dy);
   }
 
   /**
@@ -149,8 +175,19 @@ public class Location extends Point {
    * @return the location itself modified
    */
   public Location moveTo(int X, int Y) {
-    super.move(X, Y);
+    x = X;
+    y = Y;
     return this;
+  }
+
+  /**
+   * convenience: like awt point
+   * @param X
+   * @param Y
+   * @return the location itself modified
+   */
+  public Location move(int X, int Y) {
+    return moveTo(X, Y);
   }
 
   /**
