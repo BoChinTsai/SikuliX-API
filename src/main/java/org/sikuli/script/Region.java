@@ -2278,10 +2278,17 @@ public class Region {
     RobotDesktop r = getScreen().getRobot();
     r.pressModifiers(modifiers);
     r.smoothMove(loc);
-    r.mouseDown(buttons);
-    r.mouseUp(buttons);
+    //TODO ClickDelay add to API ??
+    int pause = Settings.ClickDelay > 1 ? 1 : (int) (Settings.ClickDelay * 1000);
+    Settings.ClickDelay = 0.0;
     if (dblClick) {
       r.mouseDown(buttons);
+      r.mouseUp(buttons);
+      r.mouseDown(buttons);
+      r.mouseUp(buttons);
+    } else {
+      r.mouseDown(buttons);
+      r.delay(pause);
       r.mouseUp(buttons);
     }
     r.releaseModifiers(modifiers);
@@ -2702,12 +2709,15 @@ public class Region {
       }
       Debug.history(modText + "TYPE \"" + showText + "\"");
       RobotDesktop r = getScreen().getRobot();
+      //TODO TypeDelay add to API ??
+      int pause = 20 + (Settings.TypeDelay > 1 ? 1 : (int) (Settings.TypeDelay * 1000));
+      Settings.TypeDelay = 0.0;
       for (int i = 0; i < text.length(); i++) {
         r.pressModifiers(modifiers);
         //TODO allow symbolic keys as #NAME. (CUT, COPY, PASTE, (select) ALL, ...)
         r.typeChar(text.charAt(i), IRobot.KeyMode.PRESS_RELEASE);
         r.releaseModifiers(modifiers);
-        r.delay(20);
+        r.delay(pause);        
       }
       r.waitForIdle();
       return 1;
