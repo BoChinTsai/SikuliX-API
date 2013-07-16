@@ -6,6 +6,7 @@
  */
 package org.sikuli.script;
 
+import org.sikuli.basics.CommandArgs;
 import org.sikuli.basics.Debug;
 import org.sikuli.basics.SikuliScript;
 
@@ -14,7 +15,7 @@ import org.sikuli.basics.SikuliScript;
  * @author rhocke
  */
 public class SikuliX {
-  private static final String me = "SikuliXFinalCleanUp: ";
+  private static final String me = "SikuliXFinal: ";
   
   /**
    * can be used in IDE's to run scripts
@@ -26,19 +27,19 @@ public class SikuliX {
   
   public static void endNormal(int n) {
     Debug.log(3, me + "endNormal: %d", n);
-    cleanup(0);
+    cleanUp(0);
     System.exit(n);
   }
   
   public static void endWarning(int n) {
     Debug.log(3, me + "endWarning: %d", n);
-    cleanup(0);
+    cleanUp(0);
     System.exit(n);
   }
   
   public static void endError(int n) {
     Debug.log(3, me + "endError: %d", n);
-    cleanup(0);
+    cleanUp(0);
     System.exit(n);
   }
     
@@ -48,13 +49,16 @@ public class SikuliX {
             "! Sorry, but it makes no sense to continue!\n" +
             "If you do not have any idea about the error cause or solution, run again\n" +
             "with a Debug level of 3. You might paste the output to the Q&A board.", n);
-    cleanup(0);
+    cleanUp(0);
     System.exit(n);
   }
 
-  private static void cleanup(int n) {
-    Debug.log(3, me + "cleanup: %d", n);
+  public static void cleanUp(int n) {
+    Debug.log(3, me + "cleanUp: %d", n);
     ScreenHighlighter.closeAll();
     //TODO stop all background observers
+    if (CommandArgs.isIDE()) {
+      //TODO reset selected options to defaults
+    }
   } 
 }
