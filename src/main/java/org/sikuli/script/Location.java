@@ -9,6 +9,7 @@ package org.sikuli.script;
 import org.sikuli.basics.Debug;
 import java.awt.Color;
 import java.awt.Point;
+import java.awt.Rectangle;
 
 /**
  * A point like AWT.Point using global coordinates, hence modifications might move location out of
@@ -74,8 +75,12 @@ public class Location {
     * @return the screen, that contains the given point.<br />
     */
   public Screen getScreen() {
+    Rectangle r;
     for (int i = 0; i < Screen.getNumberScreens(); i++) {
-      if (Screen.getScreen(i).contains(this)) {
+      r = Screen.getScreen(i).getBounds();
+      r.width += 1;
+      r.height += 1;
+      if (r.contains(this.x, this.y)) {
         return Screen.getScreen(i);
       }
     }
