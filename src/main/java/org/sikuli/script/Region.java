@@ -129,28 +129,50 @@ public class Region {
   //<editor-fold defaultstate="collapsed" desc="Initialization">
   /**
    * Detects on which Screen the Region is present.
+   * The region is cropped to the intersection with the given screen or the screen with the largest intersection
    *
    * @param scr The Screen containing the Region
    */
   protected void initScreen(Screen scr) {
     // check given screen first
+    Rectangle rect, screenRect;
+    Screen screen, screenOn;
     if (scr != null) {
-      if (isRegionOnScreen(scr)) {
+      rect = regionOnScreen(scr);
+      if (rect != null) {
+        x = rect.x;
+        y = rect.y;
+        w = rect.width;
+        h = rect.height;
         this.scr = scr;
         return;
       }
-    } else {
-      // check all possible screens if no screen was given
-      for (int i = 0; i < Screen.getNumberScreens(); i++) {
-        final Screen curScreen = Screen.getScreen(i);
-        if (isRegionOnScreen(curScreen)) {
-          this.scr = curScreen;
-          return;
+    }
+    // check all possible screens if no screen was given or the region is not on given screen
+    // crop to the screen with the largest intersection
+    screenRect = new Rectangle(0,0,0,0);
+    screenOn = null;
+    for (int i = 0; i < Screen.getNumberScreens(); i++) {
+      screen = Screen.getScreen(i);
+      rect = regionOnScreen(screen);
+      if (rect != null) {
+        if (rect.width * rect.height > screenRect.width * screenRect.height) {
+          screenRect = rect;
+          screenOn = screen;
         }
       }
     }
-    // no screen found
-    Debug.error("Region(%d,%d,%d,%d) outside any screen - subsequent actions might not work as expected", x, y, w, h);
+    if (screenOn != null) {
+        x = screenRect.x;
+        y = screenRect.y;
+        w = screenRect.width;
+        h = screenRect.height;
+      this.scr = screenOn;
+    } else {
+      // no screen found
+      this.scr = null;
+      Debug.error("Region(%d,%d,%d,%d) outside any screen - subsequent actions might not work as expected", x, y, w, h);
+    }
   }
 
   /**
@@ -160,21 +182,17 @@ public class Region {
    * @return True, if the Region is on the Screen. False if the Region is not
    * inside the Screen
    */
-  protected boolean isRegionOnScreen(Screen screen) {
-//TODO Windows maximized/fullscreen windows (frame outside - screen inside window)
+  protected Rectangle regionOnScreen(Screen screen) {
     if (screen == null) {
-      return false;
+      return null;
     }
-
     // get intersection of Region and Screen
     Rectangle rect = screen.getRect().intersection(getRect());
-
     // no Intersection, Region is not on the Screen
     if (rect.isEmpty()) {
-      return false;
+      return null;
     }
-
-    return true;
+    return rect;
   }
   //</editor-fold>
 
@@ -219,6 +237,7 @@ public class Region {
    */
   public Region(int X, int Y, int W, int H) {
     this(X, Y, W, H, null);
+    Debug.log(3, "Region: init: (%d, %d, %d, %d)", X, Y, W, H);
   }
 
   /**
