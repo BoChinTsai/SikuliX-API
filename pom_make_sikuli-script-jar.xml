@@ -84,8 +84,20 @@
 
     <dependency>
       <groupId>org.sikuli</groupId>
+      <artifactId>SikuliX-Basics</artifactId>
+      <version>1.0.1</version>
+    </dependency>
+
+    <dependency>
+      <groupId>org.sikuli</groupId>
       <artifactId>SikuliX-Jython</artifactId>
       <version>1.0.1</version>
+    </dependency>
+
+    <dependency>
+       <groupId>org.python</groupId>
+       <artifactId>jython-standalone</artifactId>
+       <version>2.5.4-rc1</version>
     </dependency>
 
     <dependency>
