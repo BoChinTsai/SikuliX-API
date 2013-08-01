@@ -69,7 +69,7 @@ public class SikuliX {
     Pattern p = new Pattern(r.getScreen().capture(r));
     Finder f = new Finder(p.getImage());
     if (null != f.find(p)) {
-      SikuliScript.popup("Hallo from testSetup\nSikuli seems to be working fine!\n\nHave fun!");
+      SikuliScript.popup("Hallo from Java-API.testSetup\nSikuli seems to be working fine!\n\nHave fun!");
       return true;
     }
     return false;
