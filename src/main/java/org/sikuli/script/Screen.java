@@ -39,6 +39,7 @@ public class Screen extends Region implements EventObserver, IScreen {
   protected boolean waitPrompt;
   protected OverlayCapturePrompt prompt;
   protected ScreenImage lastScreenImage;
+  private static int waitForScreenshot = 300; 
 
   //<editor-fold defaultstate="collapsed" desc="Initialization">
   private static void initScreens() {
@@ -385,7 +386,7 @@ public class Screen extends Region implements EventObserver, IScreen {
       int count = 0;
       while (waitPrompt) {
         Thread.sleep(100);
-        if (count++ > 1000) {
+        if (count++ > waitForScreenshot) {
           return null;
         }
       }
