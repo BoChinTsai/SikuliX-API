@@ -78,8 +78,6 @@ public class Location {
     Rectangle r;
     for (int i = 0; i < Screen.getNumberScreens(); i++) {
       r = Screen.getScreen(i).getBounds();
-      r.width += 1;
-      r.height += 1;
       if (r.contains(this.x, this.y)) {
         return Screen.getScreen(i);
       }

@@ -42,9 +42,11 @@ public class RobotDesktop extends Robot implements IRobot {
 
   @Override
   public void smoothMove(Location src, Location dest, long ms) {
+    Debug.log(3, "RobotDesktop: smoothMove (%.1f): " + src.toString() + "---" + dest.toString(), Settings.MoveMouseDelay);
     if (ms == 0) {
-      Debug.log(2, "smoothMove: " + src.toString() + "---" + dest.toString());
-      mouseMove(dest.x, dest.y);
+      Screen s = dest.getScreen();
+      Location p = new Location(dest.x - s.x, dest.y - s.y);
+      s.getRobot().mouseMove(p.x, p.y);
       return;
     }
 
@@ -55,7 +57,9 @@ public class RobotDesktop extends Robot implements IRobot {
     while (aniX.running()) {
       float x = aniX.step();
       float y = aniY.step();
-      mouseMove((int) x, (int) y);
+      Screen s = (new Location(x, y)).getScreen();
+      Location p = new Location(dest.x - s.x, dest.y - s.y);
+      s.getRobot().mouseMove((int) p.x, (int) p.y);
       delay(50);
     }
   }
@@ -98,8 +102,10 @@ public class RobotDesktop extends Robot implements IRobot {
 
   @Override
   public ScreenImage captureScreen(Rectangle rect) {
+    Rectangle s = scr.getBounds();
+    rect.translate(-s.x, -s.y);
     BufferedImage img = createScreenCapture(rect);
-    Debug.log(6, "DesktoRobot.captureScreen img: " + img);
+    Debug.log(3, "DesktoRobot: captureScreen: on %d using %s", scr.getID(), rect);
     return new ScreenImage(rect, img);
   }
 

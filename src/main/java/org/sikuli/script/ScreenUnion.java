@@ -42,27 +42,10 @@ public class ScreenUnion extends Screen {
       return _bounds;
    }
 
-
   @Override
    public ScreenImage capture(Rectangle rect) {
-      Debug.log(5, "capture: " + rect);
-
-      BufferedImage ret = new BufferedImage( rect.width, rect.height, BufferedImage.TYPE_INT_RGB );
-      Graphics2D g2d = ret.createGraphics();
-      for (int i=0; i < Screen.getNumberScreens(); i++) {
-         Rectangle scrBound = Screen.getBounds(i);
-         if(scrBound.intersects(rect)){
-            Rectangle inter = scrBound.intersection(rect);
-            Debug.log(5, "scrBound: " + scrBound + ", inter: " +inter);
-            int ix = inter.x, iy = inter.y;
-            inter.x-=scrBound.x;
-            inter.y-=scrBound.y;
-            ScreenImage img = Screen.getScreen(i).getRobot().captureScreen(inter);
-            g2d.drawImage(img.getImage(), ix-rect.x, iy-rect.y, null);
-         }
-      }
-      g2d.dispose();
-      return new ScreenImage(rect, ret);
+      Debug.log(3, "ScreenUnion: capture: " + rect);
+      return Region.create(rect).getScreen().capture(rect);
    }
 
   @Override
