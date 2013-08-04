@@ -11,6 +11,7 @@ import org.sikuli.basics.Debug;
 import java.awt.AWTException;
 import java.awt.GraphicsDevice;
 import java.awt.GraphicsEnvironment;
+import java.awt.Point;
 import java.awt.Rectangle;
 
 /**
@@ -21,11 +22,7 @@ import java.awt.Rectangle;
  * (not possible to create new objects).
  * <br />A screen inherits from class Region, so it can be used as such in all aspects. If you need
  * the region of the screen more than once, you have to create new ones based on the screen.
- * <br />The so called primary screen here is the one with top left (0,0). It is not guaranteed,
- * that the primary screen has id 0, since the sequence of the screens and hence there id depends on
- * the system dependent monitor configuration.
- *
- * @author RaiMan
+ * <br />The so called primary screen is the one with top left (0,0) and has id 0.
  */
 public class Screen extends Region implements EventObserver, IScreen {
 
@@ -39,7 +36,7 @@ public class Screen extends Region implements EventObserver, IScreen {
   protected boolean waitPrompt;
   protected OverlayCapturePrompt prompt;
   protected ScreenImage lastScreenImage;
-  private static int waitForScreenshot = 300; 
+  private static int waitForScreenshot = 300;
 
   //<editor-fold defaultstate="collapsed" desc="Initialization">
   private static void initScreens() {
@@ -53,17 +50,33 @@ public class Screen extends Region implements EventObserver, IScreen {
     genv = GraphicsEnvironment.getLocalGraphicsEnvironment();
     gdevs = genv.getScreenDevices();
     screens = new Screen[gdevs.length];
-    for (int i = 0; i < gdevs.length; i++) {
-      screens[i] = new Screen(i, true);
-      screens[i].initScreen();
-    }
     primaryScreen = 0;
     for (int i = 0; i < getNumberScreens(); i++) {
-      if (getBounds(i).x == 0 && getBounds(i).y == 0) {
+      if (gdevs[i].getDefaultConfiguration().getBounds().contains(new Point(0, 0))) {
         primaryScreen = i;
         break;
       }
     }
+    if (primaryScreen > 0) {
+      GraphicsDevice gd0 = gdevs[primaryScreen];
+      for (int i = primaryScreen; i > 0; i--) {
+        gdevs[i] = gdevs[i-1];
+      }
+      gdevs[0] = gd0;
+    }
+    int is;
+    for (int i = 0; i < gdevs.length; i++) {
+      if (i == primaryScreen) {
+        is = 0;
+      } else if (i < primaryScreen) {
+        is = i + 1;
+      } else {
+        is = i;
+      }
+      screens[is] = new Screen(is, true);
+      screens[is].initScreen();
+    }
+    primaryScreen = 0;
     Debug.log(2, "Screen: initScreens: basic initialization (%d Screen(s) found)", getNumberScreens());
   }
 
@@ -176,7 +189,6 @@ public class Screen extends Region implements EventObserver, IScreen {
   }
 
   //</editor-fold>
-  
   //<editor-fold defaultstate="collapsed" desc="getters setters">
   protected boolean useFullscreen() {
     return false;
@@ -304,7 +316,6 @@ public class Screen extends Region implements EventObserver, IScreen {
   }
 
   //</editor-fold>
-  
   //<editor-fold defaultstate="collapsed" desc="Capture - SelectRegion">
   /**
    * create a ScreenImage with the physical bounds of this screen
