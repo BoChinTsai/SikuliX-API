@@ -6,8 +6,7 @@
   * Copyright 2010-2013, Sikuli.org
   * Released under the MIT License.
   *
-  * added Kelthuzad 2013
-  * modified RaiMan 2013
+  * RaiMan 2013
   -->
 
   <modelVersion>4.0.0</modelVersion>
@@ -99,13 +98,6 @@
        <artifactId>jython-standalone</artifactId>
        <version>2.5.4-rc1</version>
     </dependency>
-
-    <dependency>
-      <groupId>org.python</groupId>
-      <artifactId>jython-standalone</artifactId>
-      <version>2.5.4-rc1</version>
-      <scope>runtime</scope>
-   </dependency>
 
     <dependency>
       <groupId>junit</groupId>

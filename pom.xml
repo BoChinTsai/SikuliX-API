@@ -70,38 +70,6 @@
   </dependencies>
 
   <build>
-    <!-- Enable this plugin to include execute action (needed for eclipse)
-  		<pluginManagement>
-   			<plugins>
-    				<plugin>
-     					<groupId>org.eclipse.m2e</groupId>
-     					<artifactId>lifecycle-mapping</artifactId>
-     					<version>1.0.0</version>
-     					<configuration>
-      						<lifecycleMappingMetadata>
-       							<pluginExecutions>
-        								<pluginExecution>
-         									<pluginExecutionFilter>
-          										<groupId>org.codehaus.mojo</groupId>
-          										<artifactId>aspectj-maven-plugin</artifactId>
-          										<versionRange>[1.0,)</versionRange>
-          										<goals>
-           											<goal>test-compile</goal>
-           											<goal>compile</goal>
-          										</goals>
-         									</pluginExecutionFilter>
-         									<action>
-          										<execute />
-         									</action>
-        								</pluginExecution>
-       							</pluginExecutions>
-      						</lifecycleMappingMetadata>
-     					</configuration>
-    				</plugin>
-   			</plugins>
-  		</pluginManagement>
-    -->
-
     <finalName>sikulix-api</finalName>
 
     <plugins>
@@ -113,55 +81,6 @@
           <target>1.6</target>
         </configuration>
       </plugin>
-
-      <!-- Plugin to create an executable jar
-      <plugin>
-        <artifactId>maven-jar-plugin</artifactId>
-        <version>2.4</version>
-        <configuration>
-          <archive>
-            <manifest>
-              <mainClass>org.sikuli.basics.SikuliScript</mainClass>
-            </manifest>
-          </archive>
-        </configuration>
-      </plugin>
-      -->
-
-      <!-- Plugin to create an additional jar containing the source
-      <plugin>
-        <artifactId>maven-source-plugin</artifactId>
-        <version>2.2.1</version>
-        <executions>
-          <execution>
-            <id>attach-sources</id>
-            <phase>verify</phase>
-            <goals>
-              <goal>jar-no-fork</goal>
-            </goals>
-          </execution>
-        </executions>
-      </plugin>
-      -->
-
-      <!-- Plugin to run the jar using mvn exec:java -Dexec.args=" ... parms ... "
-      <plugin>
-        <groupId>org.codehaus.mojo</groupId>
-        <artifactId>exec-maven-plugin</artifactId>
-        <version>1.2.1</version>
-        <executions>
-          <execution>
-            <goals>
-              <goal>java</goal>
-            </goals>
-          </execution>
-        </executions>
-        <configuration>
-          <mainClass>org.sikuli.script.SikuliScript</mainClass>
-        </configuration>
-      </plugin>
-      -->
-
     </plugins>
   </build>
 </project>
