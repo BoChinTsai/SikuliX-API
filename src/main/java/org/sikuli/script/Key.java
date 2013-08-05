@@ -132,7 +132,7 @@ public class Key {
   /**
    * Convert Sikuli Key to Java virtual key code
    */
-  protected static int[] toJavaKeyCode(String key) {
+  public static int[] toJavaKeyCode(String key) {
     if (key.length() > 0) {
       return toJavaKeyCode(key.charAt(0));
     }
@@ -142,7 +142,7 @@ public class Key {
   /**
    * Convert Sikuli Key to Java virtual key code
    */
-  protected static int[] toJavaKeyCode(char key) {
+  public static int[] toJavaKeyCode(char key) {
     switch (key) {
 //Lowercase
       case 'a': return new int[]{KeyEvent.VK_A};
