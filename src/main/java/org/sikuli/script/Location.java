@@ -67,6 +67,30 @@ public class Location {
   public int getY() {
     return y;
   }
+  
+  /**
+   * sets the coordinates to the given values
+   * @param _x
+   * @param _y
+   * @return self/this
+   */
+  public Location setLocation(int _x, int _y) {
+    x = _x;
+    y = _y;
+    return this;
+  }
+
+  /**
+   * sets the coordinates to the given values
+   * @param _x
+   * @param _y
+   * @return self/this
+   */
+  public Location setLocation(float _x, float _y) {
+    x = (int) _x;
+    y = (int) _y;
+    return this;
+  }
 
   /**
     * Returns null, if outside of any screen<br />
