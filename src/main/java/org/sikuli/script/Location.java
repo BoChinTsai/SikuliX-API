@@ -290,7 +290,9 @@ public class Location {
    * @return new location
    */
   public Location copyTo(Screen screen) {
-    Location o = new Location(getScreen().getBounds().getLocation());
+    Screen s = getScreen();
+    s = (s == null ? Screen.getPrimaryScreen() : s);
+    Location o = new Location(s.getBounds().getLocation());
     Location n = new Location(screen.getBounds().getLocation());
     return new Location(n.x + x - o.x, n.y + y - o.y);
   }
@@ -300,6 +302,8 @@ public class Location {
    */
   @Override
   public String toString() {
-    return "L(" + x + "," + y + ")@" + getScreen().toStringShort();
+    Screen s = getScreen();    
+    return "L(" + x + "," + y + ")" + 
+            ((s == null) ? "" : "@" + s.toStringShort());
   }
 }
