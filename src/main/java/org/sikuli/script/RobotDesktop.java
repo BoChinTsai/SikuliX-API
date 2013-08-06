@@ -42,7 +42,7 @@ public class RobotDesktop extends Robot implements IRobot {
 
   @Override
   public void smoothMove(Location src, Location dest, long ms) {
-    Debug.log(3, "RobotDesktop: smoothMove (%.1f): " + src.toString() + "---" + dest.toString(), Settings.MoveMouseDelay);
+    Debug.log(4, "RobotDesktop: smoothMove (%.1f): " + src.toString() + "---" + dest.toString(), Settings.MoveMouseDelay);
     if (ms == 0) {
       Screen s = dest.getScreen();
       Location p = new Location(dest.x - s.x, dest.y - s.y);
@@ -58,8 +58,8 @@ public class RobotDesktop extends Robot implements IRobot {
       float x = aniX.step();
       float y = aniY.step();
       Screen s = (new Location(x, y)).getScreen();
-      Location p = new Location(dest.x - s.x, dest.y - s.y);
-      s.getRobot().mouseMove((int) p.x, (int) p.y);
+      Location p = new Location(x - s.x, y - s.y);
+      s.getRobot().mouseMove(p.x, p.y);
       delay(50);
     }
   }
