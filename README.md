@@ -1,5 +1,8 @@
-Sikuli API 1.0.1 <br />Service Update end July 2013
+Sikuli API 1.0.1 <br />Service Update per August 12th, 2013
 ===========
+<hr /><hr />
+[**Preview for Mac and Windows available**](http://www.sikuli.org/download.html)
+<hr /><hr />
 
 **Download of current versions (1.0.0)** visit the official [**download page on Launchpad**](https://launchpad.net/sikuli/+download).<br />
 
