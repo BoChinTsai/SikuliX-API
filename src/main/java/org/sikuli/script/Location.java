@@ -306,4 +306,8 @@ public class Location {
     return "L(" + x + "," + y + ")" + 
             ((s == null) ? "" : "@" + s.toStringShort());
   }
+  
+  public String toStringShort() {
+    return "L(" + x + "," + y + ")";
+  }
 }
