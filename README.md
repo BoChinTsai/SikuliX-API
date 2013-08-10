@@ -1,25 +1,20 @@
 Sikuli API 1.0.1 <br />Service Update per August 12th, 2013
 ===========
+**MANDATORY ;-) --->>>** [Read the Release Notes carefully to avoid problems from the beginning](https://github.com/RaiMan/SikuliX-API/wiki/Release-Notes-IDE)
 <hr /><hr />
 [**Preview for Mac and Windows available**](http://www.sikuli.org/download.html)
 <hr /><hr />
 
-**Download of current versions (1.0.0)** visit the official [**download page on Launchpad**](https://launchpad.net/sikuli/+download).<br />
+Sikuli API is targeted at people who want to develop, run and debug programs in Java, other Java based languages or Java aware scripting languages (for Jython we have [Sikuli IDE](https://github.com/RaiMan/SikuliX-IDE) ).
 
-Sikuli's Java API supporting visual testing and automation (currently using JNI/C++ to integrate with OpenCV and Tesseract)
-
-**MANDATORY ;-)** [Have a look at major improvements and new features](https://github.com/RaiMan/SikuliX-API/wiki/Release-Notes-API)
+Same goes for people who want to develop, run and debug scripts using Sikuli IDE supported scripting languages in other IDE's like Eclipse, Netbeans, 
+<br /><br />... [some quickstart info ...](https://github.com/RaiMan/SikuliX-API/wiki/Usage-in-Java-programming)
+<br /><br />
+The downloadable packages of Sikuli API contain everything needed to develop, test, run and debug with any suitable IDE (e.g. Eclipse, Netbeans, ...) or however you like ;-).
 <br /><br />
 Hava a look at the Java docs: 
 [click to view Online](https://dl.dropboxusercontent.com/u/42895525/SikuliX/SikuliX-API-JavaDocs/index.html)
  or [click to download as zipfile](https://dl.dropboxusercontent.com/u/42895525/SikuliX/SikuliX-API-JavaDocs.zip)
-
-
-Sikuli API is targeted at people who want to develop, run and debug programs in Java, other Java based languages or Java aware scripting languages (for Jython we have [Sikuli IDE](https://github.com/RaiMan/SikuliX-IDE) ).
-
-Same goes for people who want to develop, run and debug scripts using Sikuli IDE supported scripting languages in other IDE's like Eclipse, Netbeans, ... [some quickstart info ...](https://github.com/RaiMan/SikuliX-API/wiki/Usage-in-Java-programming)
-<br /><br />
-The downloadable packages of Sikuli API contain everything needed to develop, test, run and debug with any suitable IDE (e.g. Eclipse, Netbeans, ...) or however you like ;-).
 <br /><br />
 This repo is **fully Maven**, so a fork of this repo can be directly used as project in NetBeans/Eclipse/... or with mvn on commandline<br /> 
 It produces a lightweight **sikulix-api.jar**, that only contains the Sikuli Java API and is intended for use in pure Java or in Java aware scripting and testing environments while developing in IDEs using Maven (depends on and needs [Sikuli Basics](https://github.com/RaiMan/SikuliX-Basics) )<br /><br />
