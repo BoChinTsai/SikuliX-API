@@ -27,7 +27,6 @@ At runtime in pure Java or in Java aware scripting and testing environments as w
 To run Sikuli scripts from commandline in any of the supported scripting languages you need the **sikuli-script.jar** (currently only Jython supported).It contains [Sikuli Basics](https://github.com/RaiMan/SikuliX-Basics), [Sikuli Jython](https://github.com/RaiMan/SikuliX-Jython) and a complete Jython 2.5.4.<br />
 It can be produced using <br />*mvn -f pom_make_sikuli-script-jar.xml clean package assembly:single* <br />having the mentioned dependencies in your local repo.<br />
 
-[... click for more info](https://github.com/RaiMan/SikuliX-API/wiki/Maven-support)<br /><br />
 If new to Sikuli, you might aternatively be interested in the pure Java implementation, which is to some extent feature compatible, but not API compatible: [Sikuli Java API](http://code.google.com/p/sikuli-api).
 <br /><br />
 **Roadmap**
