@@ -1,6 +1,6 @@
 Sikuli API 1.0.1 <br />Service Update per August 12th, 2013
 ===========
-**MANDATORY ;-) --->>>** [Read the Release Notes carefully to avoid problems from the beginning](https://github.com/RaiMan/SikuliX-API/wiki/Release-Notes-IDE)
+**MANDATORY ;-) --->>>** [Read the Release Notes carefully to avoid problems from the beginning](https://github.com/RaiMan/SikuliX-API/wiki/Release-Notes-API)
 <hr /><hr />
 [**Preview for Mac and Windows available**](http://www.sikuli.org/download.html)
 <hr /><hr />
