@@ -2,6 +2,8 @@ Sikuli API 1.0.1 <br />Service Update per August 12th, 2013
 ===========
 **MANDATORY ;-) --->>>** [Read the Release Notes carefully to avoid problems from the beginning](https://github.com/RaiMan/SikuliX-API/wiki/Release-Notes-API)
 
+[to download setup-sikuli.jar version 1.0.1 start here](http://www.sikuli.org/download.html)
+
 Sikuli API is targeted at people who want to develop, run and debug programs in Java, other Java based languages or Java aware scripting languages (for Jython we have [Sikuli IDE](https://github.com/RaiMan/SikuliX-IDE) ).
 
 Same goes for people who want to develop, run and debug scripts using Sikuli IDE supported scripting languages in other IDE's like Eclipse, Netbeans, 
