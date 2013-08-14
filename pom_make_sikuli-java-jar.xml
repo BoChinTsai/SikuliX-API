@@ -13,7 +13,7 @@
 
   <groupId>org.sikuli</groupId>
   <artifactId>SikuliX-API</artifactId>
-  <version>1.0.1</version>
+  <version>1.1.0</version>
 
   <name>SikuliX-API</name>
   <url>http://www.sikuli.org</url>
@@ -84,7 +84,7 @@
     <dependency>
       <groupId>org.sikuli</groupId>
       <artifactId>SikuliX-Basics</artifactId>
-      <version>1.0.1</version>
+      <version>1.1.0</version>
     </dependency>
 
     <dependency>
@@ -110,16 +110,10 @@
         </configuration>
       </plugin>
 
-      <!-- Plugin to create an additional jar containing all stuff (sikuli-script.jar)-->
       <plugin>
         <artifactId>maven-assembly-plugin</artifactId>
         <version>2.4</version>
         <configuration>
-<!--          <archive>
-            <manifest>
-              <mainClass>org.sikuli.script.SikuliScript</mainClass>
-            </manifest>
-          </archive> -->
           <descriptorRefs>
             <descriptorRef>jar-with-dependencies</descriptorRef>
           </descriptorRefs>
@@ -135,7 +129,6 @@
           </execution>
         </executions>
       </plugin>
-
     </plugins>
   </build>
 </project>
