@@ -13,7 +13,7 @@
 
   <groupId>org.sikuli</groupId>
   <artifactId>SikuliX-API</artifactId>
-  <version>1.1.0</version>
+  <version>1.0.1</version>
 
   <name>SikuliX-API</name>
   <url>http://www.sikuli.org</url>
@@ -84,13 +84,13 @@
     <dependency>
       <groupId>org.sikuli</groupId>
       <artifactId>SikuliX-Basics</artifactId>
-      <version>1.1.0</version>
+      <version>1.0.1</version>
     </dependency>
 
     <dependency>
       <groupId>org.sikuli</groupId>
       <artifactId>SikuliX-Jython</artifactId>
-      <version>1.1.0</version>
+      <version>1.0.1</version>
     </dependency>
 
     <dependency>
@@ -135,7 +135,7 @@
           <descriptorRefs>
             <descriptorRef>jar-with-dependencies</descriptorRef>
           </descriptorRefs>
-          <finalName>sikuli-jython</finalName>
+          <finalName>sikuli-script</finalName>
         </configuration>
         <executions>
           <execution>
