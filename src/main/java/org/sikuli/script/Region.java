@@ -1104,7 +1104,7 @@ public class Region {
    * @return the absolute file name
    */
   public String getLastScreenImageFile() throws IOException {
-    return getLastScreenImageFile(Settings.BundlePath, null);
+    return getLastScreenImageFile(ImageLocator.getBundlePath(), null);
   }
 
   /**
@@ -1114,7 +1114,7 @@ public class Region {
    * @return the absolute file name
    */
   public String getLastScreenImageFile(String name) throws IOException {
-    return getScreen().lastScreenImage.getFile(Settings.BundlePath, name);
+    return getScreen().lastScreenImage.getFile(ImageLocator.getBundlePath(), name);
   }
 
   /**
