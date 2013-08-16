@@ -53,8 +53,8 @@ public class SikuliEventManager {
       _state.put(ptn, State.FIRST);
       _count.put(ptn, 0);
     }
-    for (int n : _countc.keySet()) {
-      _count.put(n, 0);      
+    for (int n : _changeOb.keySet()) {
+      _countc.put(n, 0);      
     }
   }
   
