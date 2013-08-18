@@ -6,6 +6,8 @@
  */
 package org.sikuli.script;
 
+import java.util.ArrayList;
+import java.util.List;
 import org.sikuli.basics.CommandArgs;
 import org.sikuli.basics.Debug;
 import org.sikuli.basics.SikuliScript;
@@ -17,7 +19,28 @@ import org.sikuli.basics.SikuliScript;
 public class SikuliX {
 
   private static final String me = "SikuliXFinal: ";
+  private static List<Region> runningObservers = new ArrayList<Region>();
 
+  public static void addRunningObserver(Region r) {
+    Debug.log(3, me + "add observer: now running %d observer(s)", runningObservers.size());
+    runningObservers.add(r);
+  }
+
+  public static void removeRunningObserver(Region r) {
+    Debug.log(3, me + "remove observer: now running %d observer(s)", runningObservers.size());
+    runningObservers.remove(r);
+  }
+  
+  public static void stopRunningObservers() {
+    if (runningObservers.size() > 0) {
+      Debug.log(3, me + "stopping %d running observer(s)", runningObservers.size());
+      for (Region r : runningObservers) {
+        r.stopObserver();
+      }
+      runningObservers.clear();
+    }
+  }
+  
   /**
    * can be used in IDE's to run scripts
    *
@@ -58,7 +81,7 @@ public class SikuliX {
   public static void cleanUp(int n) {
     Debug.log(3, me + "cleanUp: %d", n);
     ScreenHighlighter.closeAll();
-    //TODO stop all background observers
+    stopRunningObservers();
     if (CommandArgs.isIDE()) {
       //TODO reset selected options to defaults
     }

@@ -2040,12 +2040,18 @@ public class Region {
       Debug.error("Region: observe: Nothing to observe (Region might be invalid): " + this.toStringShort());
       return;
     }
+    if (observing) {
+      Debug.error("Region: observe: already running for this region. Only one allowed!");
+      return;
+    }
     Debug.log(2, "Region: observe: starting in " + this.toStringShort() + " for " + secs + " seconds");
     int MaxTimePerScan = (int) (1000.0 / observeScanRate);
     long begin_t = (new Date()).getTime();
-    observing = true;
+    long stop_t = begin_t + (long) (secs * 1000);
     evtMgr.initialize();
-    while (observing && begin_t + secs * 1000 > (new Date()).getTime()) {
+    observing = true;
+    SikuliX.addRunningObserver(this);
+    while (observing && stop_t > (new Date()).getTime()) {
       long before_find = (new Date()).getTime();
       ScreenImage simg = getScreen().capture(x, y, w, h);
       if (!evtMgr.update(simg)) {
@@ -2070,6 +2076,7 @@ public class Region {
     } else {
       Debug.log(2, "Region: observe: observing has ended for " + this.toStringShort());
     }
+    SikuliX.removeRunningObserver(this);
   }
 
   public void observeInBackground(double secs) {
@@ -2078,17 +2085,16 @@ public class Region {
       return;
     }
     Debug.log(3, "entering observeInBackground for %f secs", secs);
-    ObserverThread o = new ObserverThread(secs);
-    o.run();
+    Thread observeThread = new Thread(new ObserverThread(secs));
+    observeThread.start();
+    Debug.log(3, "observeInBackground now running");
   }
 
   private class ObserverThread implements Runnable {
-    private double time;
-    
+    private double time;    
     ObserverThread(double time) {
       this.time = time;
     }
-    
     @Override
     public void run() {
       observe(time);
