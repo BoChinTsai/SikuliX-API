@@ -22,13 +22,13 @@ public class SikuliX {
   private static List<Region> runningObservers = new ArrayList<Region>();
 
   public static void addRunningObserver(Region r) {
-    Debug.log(3, me + "add observer: now running %d observer(s)", runningObservers.size());
     runningObservers.add(r);
+    Debug.log(3, me + "add observer: now running %d observer(s)", runningObservers.size());
   }
 
   public static void removeRunningObserver(Region r) {
-    Debug.log(3, me + "remove observer: now running %d observer(s)", runningObservers.size());
     runningObservers.remove(r);
+    Debug.log(3, me + "remove observer: now running %d observer(s)", runningObservers.size());
   }
   
   public static void stopRunningObservers() {
