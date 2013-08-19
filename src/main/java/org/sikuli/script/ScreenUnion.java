@@ -7,50 +7,58 @@
 package org.sikuli.script;
 
 import org.sikuli.basics.Debug;
-import java.awt.Graphics2D;
 import java.awt.Rectangle;
-import java.awt.image.BufferedImage;
 
 public class ScreenUnion extends Screen {
-   private Rectangle _bounds;
 
-   public ScreenUnion(){
-      super();
-   }
+  private Rectangle _bounds;
 
-   public int getIdFromPoint(int x, int y){
-      Debug.log(5, "union bound: " + getBounds() );
-      Debug.log(5, "x, y: " + x + "," + y);
-      x += getBounds().x;
-      y += getBounds().y;
-      Debug.log(5, "new x, y: " + x + "," + y);
-      for(int i=0;i<getNumberScreens();i++)
-         if(Screen.getBounds(i).contains(x, y)){
-            return i;
-         }
-      return 0;
-   }
+  public ScreenUnion() {
+    super(true);
+    Rectangle r = getBounds();
+    x = r.x;
+    y = r.y;
+    w = r.width;
+    h = r.height;
+  }
 
-  @Override
-   public Rectangle getBounds(){
-      if(_bounds == null){
-         _bounds = new Rectangle();
-         for (int i=0; i < Screen.getNumberScreens(); i++) {
-            _bounds = _bounds.union(Screen.getBounds(i));
-         }
+  public int getIdFromPoint(int x, int y) {
+    Rectangle sr = getBounds();
+    int _x = x + getBounds().x;
+    int _y = y + getBounds().y;
+    for (int i = 0; i < getNumberScreens(); i++) {
+      if (Screen.getScreen(i).contains(new Location(_x, _y))) {
+        Debug.log(3, "ScreenUnion: getIdFromPoint: " +
+                     "(%d, %d) as (%d, %d) in (%d, %d, %d, %d) on %d",
+                       x, y, _x, _y, sr.x, sr.y, sr.width, sr.height, i);
+        return i;
       }
-      return _bounds;
-   }
+    }
+    Debug.log(3, "ScreenUnion: getIdFromPoint: " +
+                 "(%d, %d) as (%d, %d) in (%d, %d, %d, %d) on ???",
+                   x, y, _x, _y, sr.x, sr.y, sr.width, sr.height);
+    return 0;
+  }
+  
+  @Override
+  public Rectangle getBounds() {
+    if (_bounds == null) {
+      _bounds = new Rectangle();
+      for (int i = 0; i < Screen.getNumberScreens(); i++) {
+        _bounds = _bounds.union(Screen.getBounds(i));
+      }
+    }
+    return _bounds;
+  }
 
   @Override
-   public ScreenImage capture(Rectangle rect) {
-      Debug.log(3, "ScreenUnion: capture: " + rect);
-      return Region.create(rect).getScreen().capture(rect);
-   }
+  public ScreenImage capture(Rectangle rect) {
+    Debug.log(3, "ScreenUnion: capture: " + rect);
+    return Region.create(rect).getScreen().capture(rect);
+  }
 
   @Override
-   public boolean useFullscreen(){
-      return false;
-   }
-
+  public boolean useFullscreen() {
+    return false;
+  }
 }

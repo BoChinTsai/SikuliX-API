@@ -138,13 +138,18 @@ public class Region {
     Rectangle rect, screenRect;
     Screen screen, screenOn;
     if (scr != null) {
-      rect = regionOnScreen(scr);
-      if (rect != null) {
-        x = rect.x;
-        y = rect.y;
-        w = rect.width;
-        h = rect.height;
-        this.scr = scr;
+      if (scr.getID() > -1) {
+        rect = regionOnScreen(scr);
+        if (rect != null) {
+          x = rect.x;
+          y = rect.y;
+          w = rect.width;
+          h = rect.height;
+          this.scr = scr;
+          return;
+        }
+      } else {
+        // is ScreenUnion
         return;
       }
     }
@@ -644,7 +649,7 @@ public class Region {
    * @param is the containing screen object
    */
   protected void setScreen(Screen is) {
-    initScreen(scr);
+    initScreen(is);
   }
 
   /**
@@ -655,7 +660,7 @@ public class Region {
   protected void setScreen(int id) {
     setScreen(Screen.getScreen(id));
   }
-
+  
   /**
    * synonym for showMonitors
    */

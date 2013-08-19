@@ -223,8 +223,8 @@ public class Match extends Region implements Comparable {
     } else {
       starget = String.format("Center:%d,%d", c.x, c.y);
     }
-    return String.format("M[%d,%d %dx%d]@%s S:%.2f %s", x, y, w, h,
-              (getScreen()== null ? "Screen null" : getScreen().toStringShort()),
+    return String.format("M[%d,%d %dx%d]@S(%s) S:%.2f %s", x, y, w, h,
+              (getScreen()== null ? "?" : getScreen().toStringShort()),
               simScore, starget);
   }
 

@@ -28,14 +28,14 @@ public class Screen extends Region implements EventObserver, IScreen {
 
   protected static GraphicsEnvironment genv = null;
   protected static GraphicsDevice[] gdevs;
-  protected RobotDesktop robot;
+  protected RobotDesktop robot = null;
   protected static Screen[] screens;
   protected static int primaryScreen = -1;
-  protected int curID = 0;
-  protected GraphicsDevice curGD;
+  protected int curID = -1;
+  protected GraphicsDevice curGD = null;
   protected boolean waitPrompt;
   protected OverlayCapturePrompt prompt;
-  protected ScreenImage lastScreenImage;
+  protected ScreenImage lastScreenImage = null;
   private static int waitForScreenshot = 300;
 
   //<editor-fold defaultstate="collapsed" desc="Initialization">
@@ -77,7 +77,12 @@ public class Screen extends Region implements EventObserver, IScreen {
       screens[is].initScreen();
     }
     primaryScreen = 0;
-    Debug.log(2, "Screen: initScreens: basic initialization (%d Screen(s) found)", getNumberScreens());
+    Debug.log(2, "Screen: initScreens: basic initialization (%d Screen(s) found)", gdevs.length);
+    Debug.log(3, "*** monitor configuration (primary: %d) ***", primaryScreen);
+    for (int i = 0; i < gdevs.length; i++) {
+      Debug.log(3, "Screen %d: %s", i, screens[i].toStringShort());
+    }
+    Debug.log(3, "*** end monitor configuration ***");
   }
 
   // hack to get an additional internal constructor for the initialization
@@ -101,8 +106,17 @@ public class Screen extends Region implements EventObserver, IScreen {
     }
 
     curID = id;
-    curGD = gdevs[curID];
     initScreen();
+  }
+  
+  public Screen(boolean isScreenUnion) {
+    super();
+    initScreens();
+  }
+  
+  public void initAsScreenUnion() {
+    curID = -1;
+    curGD = null;
   }
 
   /**
@@ -113,7 +127,6 @@ public class Screen extends Region implements EventObserver, IScreen {
     super();
     initScreens();
     curID = getPrimaryId();
-    curGD = gdevs[curID];
     initScreen();
   }
 
