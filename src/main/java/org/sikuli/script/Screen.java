@@ -32,6 +32,7 @@ public class Screen extends Region implements EventObserver, IScreen {
   protected static Screen[] screens;
   protected static int primaryScreen = -1;
   protected int curID = -1;
+  protected int oldID = 0;
   protected GraphicsDevice curGD = null;
   protected boolean waitPrompt;
   protected OverlayCapturePrompt prompt;
@@ -114,9 +115,13 @@ public class Screen extends Region implements EventObserver, IScreen {
     initScreens();
   }
   
-  public void initAsScreenUnion() {
+  public void setAsScreenUnion() {
+    oldID = curID;
     curID = -1;
-    curGD = null;
+  }
+
+  public void setAsScreen() {
+    curID = oldID;
   }
 
   /**
