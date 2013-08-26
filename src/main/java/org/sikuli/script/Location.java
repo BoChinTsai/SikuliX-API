@@ -68,6 +68,10 @@ public class Location {
     return y;
   }
   
+  public Point getPoint() {
+    return new Point(x,y);
+  }
+  
   /**
    * sets the coordinates to the given values
    * @param _x
