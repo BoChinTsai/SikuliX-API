@@ -1,5 +1,7 @@
 Sikuli API 1.1.0 developement branch
 ===
+**planned release date December 15th** - betas will be available before
+<hr />
 **Sikuli API 1.0.1 <br />Service Update per August 12th, 2013**
 <hr />
 **MANDATORY ;-) --->>>** [Read the Release Notes carefully to avoid problems from the beginning](https://github.com/RaiMan/SikuliX-API/wiki/Release-Notes-API)
