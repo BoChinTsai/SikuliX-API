@@ -30,9 +30,9 @@ It can be produced using <br />*mvn -f pom_make_sikuli-script-jar.xml clean pack
 **If new to Sikuli**, you might aternatively be interested in the pure Java implementation, which is to some extent feature compatible, but not API compatible: [Sikuli Java API](http://code.google.com/p/sikuli-api).
 <br /><br />
 **Roadmap**
- - **2013 September:** start developement Sikuli API 1.1
+ - **2013 September:** start developement SikuliX 1.1
 <br /><br />
- - **2013 December 15:** release of Sikuli API 1.1
+ - **2013 December 15:** release of SikuliX 1.1
   - new features tbd.
 <br /><br />
  - **2014:** new versions in May and December
