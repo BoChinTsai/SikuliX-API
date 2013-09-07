@@ -30,20 +30,12 @@ It can be produced using <br />*mvn -f pom_make_sikuli-script-jar.xml clean pack
 **If new to Sikuli**, you might aternatively be interested in the pure Java implementation, which is to some extent feature compatible, but not API compatible: [Sikuli Java API](http://code.google.com/p/sikuli-api).
 <br /><br />
 **Roadmap**
- - **2013 August 12:** release of service update Sikuli API 1.0.1
-  - bug fixes and smaller enhancements 
+ - **2013 September:** start developement Sikuli API 1.1
 <br /><br />
- - **2013 August:** open a developement branch for Sikuli API 1.1
-  - isolate the script running feature (already in 1.0.1) to allow more scripting languages (e.g. JRuby)
-  - bug fixes and more enhancements tbd.
-<br /><br />
- - **2013 November 29:** release of Sikuli API 1.1
-  - merge branch develop into branch master
-  - open a developement branch for Sikuli API 1.2
-  - use existing Java wrappers for OpenCV (javacv) and Tesseract (Tes4J) alternatively
+ - **2013 December 15:** release of Sikuli API 1.1
   - new features tbd.
 <br /><br />
- - **2014:** new versions in May and November
+ - **2014:** new versions in May and December
 
 **History**
  - this is based on the developement at MIT (Tsung-Hsiang Chang (Sean aka vgod) and Tom Yeh) which was discontinued end 2011 (https://github.com/sikuli/sikuli) with a latest version called Sikuli X-1.0r930.
