@@ -105,7 +105,7 @@ class FindFailedDialog extends JDialog implements ActionListener {
 			Pattern pat = (Pattern) target;
 			targetTyp = "pattern";
 			target = (PatternString) pat.toString();
-			image = pat.getImage();
+			image = pat.getBImage();
 		} else if (target instanceof String) {
 			image = ImageLocator.getImage((String) target);
 			if (image != null) {
