@@ -22,7 +22,7 @@ public class Match extends Region implements Comparable {
 
   private double simScore;
   private Location target = null;
-  private String image = null;
+  private Image image = null;
   private String ocrText = null;
 
   /**
@@ -142,8 +142,8 @@ public class Match extends Region implements Comparable {
    * internal use: set the image filename after finding with success
    * @param imageFileName
    */
-  protected void setImage(String imageFileName) {
-    image = imageFileName;
+  protected void setImage(Image img) {
+    image = img;
     if (Settings.Highlight) {
       highlight(Settings.DefaultHighlightTime);
     }
@@ -157,7 +157,7 @@ public class Match extends Region implements Comparable {
     if (image == null) {
       return null;
     } else {
-      return ImageLocator.getImage(image);
+      return image.getImage();
     }
   }
 
@@ -166,7 +166,7 @@ public class Match extends Region implements Comparable {
    * @return filename
    */
   public String getImageFilename() {
-    return image;
+    return image.getFilename();
   }
 
   /**
