@@ -119,13 +119,22 @@ public class SikuliEventManager {
           _state.get(ptn) != State.REPEAT) {
         continue;
       }
-      if (ptn.getClass().isInstance("")) {
+      imgOK = null;
+      if (ptn instanceof String) {
         imgOK = finder.find((String) ptn);
-      } else {
+        Image img = Image.createImage((String) ptn);
+        if (img.isValid()) {
+          imgOK = finder.find(img);
+        } else if (img.isText()){
+          imgOK = finder.findText((String) ptn);
+        } 
+      } else if (ptn instanceof Pattern) {
         imgOK = finder.find((Pattern) ptn);
+      } else if (ptn instanceof Image) {
+        imgOK = finder.find((Image) ptn);
       }
       if (null == imgOK) {
-        Debug.error("EventMgr: checkPatterns: ImageFile not found", ptn);
+        Debug.error("EventMgr: checkPatterns: Image not valid", ptn);
         _state.put(ptn, State.MISSING);
         continue;
       }

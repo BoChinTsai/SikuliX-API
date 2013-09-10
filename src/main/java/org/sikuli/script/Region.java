@@ -25,7 +25,15 @@ import org.sikuli.basics.Settings;
  * @author RaiMan
  */
 public class Region {
+  
+  private static String me = "Region";
+  private static String mem = "";
+  private static int lvl = 3;
 
+  private static void log(int level, String message, Object... args) {
+    Debug.logx(level, "", me + ": " + message, args);
+  }
+  
   /**
    * The Screen containing the Region
    */
@@ -1534,17 +1542,13 @@ public class Region {
    * @param target The Pattern or String
    * @return The Name of the File
    */
-  private <PatternOrString> String getImageFilename(PatternOrString target) {
-    String imageFileName = null;
+  private <PatternOrString> Image getImage(PatternOrString target) {
     if (target instanceof Pattern) {
-      imageFileName = ((Pattern) target).getFilename();
+      return ((Pattern) target).getImage();
     } else if (target instanceof String) {
-      imageFileName = (String) target;
-    }
-    try {
-      return ImageLocator.locate(imageFileName);
-    } catch (IOException ex) {
-      return "*** not known ***";
+      return Image.getImageFromCache((String) target);
+    } else {
+      return null;
     }
   }
 
@@ -1596,7 +1600,7 @@ public class Region {
         throw new FindFailed(e.getMessage());
       }
       if (lastMatch != null) {
-        lastMatch.setImage(getImageFilename(target));
+        lastMatch.setImage(getImage(target));
         return lastMatch;
       }
       if (!handleFindFailed(target)) {
@@ -1664,21 +1668,15 @@ public class Region {
         rf = new RepeatableFind(target);
         rf.repeat(timeout);
         lastMatch = rf.getMatch();
-        if (lastMatch != null) {
-          lastMatch.setImage(rf._imagefilename);
-        }
       } catch (Exception e) {
         throw new FindFailed(e.getMessage());
       }
-
       if (lastMatch != null) {
-        lastMatch.setImage(rf._imagefilename);
+        lastMatch.setImage(rf._image);
         Debug.log(2, "" + target + " has appeared.");
         break;
       }
-
       Debug.log(2, "" + target + " has not appeared.");
-
       if (!handleFindFailed(target)) {
         return null;
       }
@@ -1709,7 +1707,7 @@ public class Region {
       RepeatableFind rf = new RepeatableFind(target);
       if (rf.repeat(timeout)) {
         lastMatch = rf.getMatch();
-        lastMatch.setImage(getImageFilename(target));
+        lastMatch.setImage(getImage(target));
         return lastMatch;
       }
     } catch (Exception ex) {
@@ -1809,24 +1807,30 @@ public class Region {
       f.findRepeat();
     } else {
       f = new Finder(simg, this);
-      String text;
+      Image img = null;
       if (ptn instanceof String) {
-        text = f.find((String) ptn);
-        if (null == text) {
-          throw new IOException("ImageFile " + ptn + " not found on disk");
-        } else if ((((String) ptn) + "???").equals(text)) {
-          throw new IOException("Text search currently switched off");
+        img = Image.createImage((String) ptn);
+        if (img.isValid()) {
+          f.find(img);
+        } else if (img.isText()){
+          f.findText((String) ptn);
+        } else {
+          throw new IOException("Region: doFind: Image not loadable: " + (String) ptn);
+        }
+      } else if (ptn instanceof Pattern) { 
+        if (((Pattern) ptn).isValid()) {
+          img = ((Pattern) ptn).getImage();
+          f.find((Pattern) ptn);
+        } else {
+          throw new IOException("Region: doFind: Image not loadable: " + (String) ptn);
         }
       } else {
-        text = ((Pattern) ptn).getFilename();
-        if (null == f.find((Pattern) ptn)) {
-          throw new IOException("ImageFile " + text
-                  + " not found on disk");
-        }
+        log(-1, "doFind: invalid parameter: %s", ptn);
+        SikuliX.endFatal(1);
       }
       if (repeating != null) {
         repeating._finder = f;
-        repeating._imagefilename = text;
+        repeating._image = img;
       }
     }
     if (f.hasNext()) {
@@ -1909,7 +1913,7 @@ public class Region {
     Object _target;
     Match _match = null;
     Finder _finder = null;
-    String _imagefilename = null;
+    Image _image = null;
 
     public <PatternOrString> RepeatableFind(PatternOrString target) {
       _target = target;

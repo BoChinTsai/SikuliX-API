@@ -125,6 +125,10 @@ public class Finder implements Iterator<Match> {
 		_cur_result_i = 0;
 	}
 
+  public String find(String imageOrText) {
+    return find(imageOrText, Settings.MinSimilarity);
+  }
+
   /**
    *
    * @param imageOrText
@@ -150,23 +154,36 @@ public class Finder implements Iterator<Match> {
    * @param aPtn
    */
   public String find(Pattern aPtn) {
-//TODO Pattern with BufferedImage
-    _pattern = (Pattern) aPtn;
-    String img = aPtn.getFilename();
-    if (img == null) {
+    if (aPtn.isValid()) {
+      _pattern = aPtn;
+      _findInput.setTarget(aPtn.getImage().getMat());
+      _findInput.setSimilarity(aPtn.getSimilar());
+      _results = Vision.find(_findInput);
+      _cur_result_i = 0;
+      return aPtn.getFilename();
+    } else {
       return null;
     }
-		_findInput.setTarget(TARGET_TYPE.IMAGE, img);
-    _findInput.setSimilarity(aPtn.getSimilar());
+  }
+  
+  public String find(Image img) {
+    if (img.isValid()) {
+      _findInput.setTarget(img.getMat());
+      _findInput.setSimilarity(Settings.MinSimilarity);
+      _results = Vision.find(_findInput);
+      _cur_result_i = 0;
+      return img.getFilename();
+    } else {
+      return null;
+    }
+  }
+  
+  public String findText(String text) {
+    _findInput.setTarget(TARGET_TYPE.TEXT, text);
     _results = Vision.find(_findInput);
     _cur_result_i = 0;
-    return img;
+    return text;
   }
-
-  public String find(String imageOrText) {
-    return find(imageOrText, Settings.MinSimilarity);
-  }
-
 	/**
 	 * internal use: repeat find with same Finder
 	 */
