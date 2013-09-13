@@ -235,8 +235,8 @@ public class Region {
   public Region(int X, int Y, int W, int H, Screen parentScreen) {
     this.x = X;
     this.y = Y;
-    this.w = W;
-    this.h = H;
+    this.w = W > 1 ? W : 1;
+    this.h = H > 1 ? H : 1;
     initScreen(parentScreen);
   }
 
@@ -441,19 +441,19 @@ public class Region {
    * @return the new region
    */
   public static Region grow(Location loc, int w, int h) {
-    int X = loc.x - w / 2;
-    int Y = loc.y - h / 2;
+    int X = loc.x - (int) w / 2;
+    int Y = loc.y - (int) h / 2;
     return Region.create(X, Y, w, h);
   }
 
   /**
-   * create a minimal symetric region at given point as center with size 3x3
+   * create a minimal region at given point with size 1 x 1
    *
-   * @param loc the center point
+   * @param loc the point
    * @return the new region
    */
   public static Region grow(Location loc) {
-    return grow(loc, 3, 3);
+    return Region.create(loc.x, loc.y, 1, 1);
   }
 
   //</editor-fold>
@@ -638,6 +638,24 @@ public class Region {
   public Screen getScreen() {
     return scr;
   }
+  
+  // to avoid NPE for points outside any screen
+  private RobotDesktop getRobotForPoint(String action, Location loc) {
+    if (getScreen() == null) {
+      Debug.error("Point %s outside any screen not useable for %s", loc, action);
+      return null;
+    }
+    getScreen().showTarget(loc);
+    return getScreen().getRobot();    
+  } 
+
+  // to avoid NPE for Regions being outside any screen
+  private RobotDesktop getRobotForRegion() {
+    if (getScreen() == null) {
+      return Screen.getPrimaryScreen().getRobot();
+    }
+    return getScreen().getRobot();    
+  } 
 
   /**
    *
@@ -738,7 +756,7 @@ public class Region {
    * @return top right corner Location
    */
   public Location getTopRight() {
-    return new Location(x + w, y);
+    return new Location(x + w - 1, y);
   }
 
   /**
@@ -760,7 +778,7 @@ public class Region {
    * @return bottom left corner Location
    */
   public Location getBottomLeft() {
-    return new Location(x, y + h);
+    return new Location(x, y + h - 1);
   }
 
   /**
@@ -783,7 +801,7 @@ public class Region {
    * @return bottom right corner Location
    */
   public Location getBottomRight() {
-    return new Location(x + w, y + h);
+    return new Location(x + w - 1, y + h - 1);
   }
 
   /**
@@ -840,6 +858,7 @@ public class Region {
    */
   public void setX(int X) {
     x = X;
+    initScreen(null);
   }
 
   /**
@@ -848,6 +867,7 @@ public class Region {
    */
   public void setY(int Y) {
     y = Y;
+    initScreen(null);
   }
 
   /**
@@ -855,7 +875,8 @@ public class Region {
    * @param W new width
    */
   public void setW(int W) {
-    w = W;
+    w = W > 1 ? W : 1;
+    initScreen(null);
   }
 
   /**
@@ -863,7 +884,8 @@ public class Region {
    * @param H new height
    */
   public void setH(int H) {
-    h = H;
+    h = H > 1 ? H : 1;
+    initScreen(null);
   }
 
   // ************************************************
@@ -874,8 +896,8 @@ public class Region {
    * @return the region itself
    */
   public Region setSize(int W, int H) {
-    w = W;
-    h = H;
+    w = W > 1 ? W : 1;
+    h = H > 1 ? H : 1;
     initScreen(null);
     return this;
   }
@@ -913,8 +935,8 @@ public class Region {
   public Region setRect(int X, int Y, int W, int H) {
     x = X;
     y = Y;
-    w = W;
-    h = H;
+    w = W > 1 ? W : 1;
+    h = H > 1 ? H : 1;
     initScreen(getScreen());
     return this;
   }
@@ -947,8 +969,8 @@ public class Region {
   public void setROI(int X, int Y, int W, int H) {
     x = X;
     y = Y;
-    w = W;
-    h = H;
+    w = W > 1 ? W : 1;
+    h = H > 1 ? H : 1;
     initScreen(getScreen());
   }
 
@@ -1042,7 +1064,13 @@ public class Region {
     x = x - l;
     y = y - t;
     w = w + l + r;
+    if (w < 1) {
+      w = 1;
+    }
     h = h + t + b;
+    if (h < 1) {
+      h = 1;
+    }
     initScreen(getScreen());
     return this;
   }
@@ -1898,9 +1926,9 @@ public class Region {
 
         long after_find = (new Date()).getTime();
         if (after_find - before_find < MaxTimePerScan) {
-          getScreen().getRobot().delay((int) (MaxTimePerScan - (after_find - before_find)));
+          getRobotForRegion().delay((int) (MaxTimePerScan - (after_find - before_find)));
         } else {
-          getScreen().getRobot().delay(10);
+          getRobotForRegion().delay(10);
         }
       } while (begin_t + timeout * 1000 > (new Date()).getTime());
 
@@ -2308,8 +2336,10 @@ public class Region {
       return 0;
     }
     Debug.history(getClickMsg(loc, buttons, modifiers, dblClick));
-    getScreen().showTarget(loc);
-    RobotDesktop r = getScreen().getRobot();
+    RobotDesktop r = getRobotForPoint("click", loc);
+    if (r == null) {
+      return 0;
+    }
     r.pressModifiers(modifiers);
     r.smoothMove(loc);
     //TODO ClickDelay add to API ??
@@ -2379,12 +2409,17 @@ public class Region {
     Location loc1 = getLocationFromTarget(t1);
     Location loc2 = getLocationFromTarget(t2);
     if (loc1 != null && loc2 != null) {
-      getScreen().showTarget(loc1);
-      RobotDesktop r = getScreen().getRobot();
+      RobotDesktop r = getRobotForPoint("drag", loc1);
+      if (r == null) {
+        return 0;
+      }
       r.smoothMove(loc1);
       r.mouseDown(InputEvent.BUTTON1_MASK);
       r.delay((int) (Settings.DelayAfterDrag * 1000));
-      getScreen().showTarget(loc2);
+      r = getRobotForPoint("drop", loc2);
+      if (r == null) {
+        return 0;
+      }
       r.smoothMove(loc2);
       r.delay((int) (Settings.DelayBeforeDrop * 1000));
       r.mouseUp(InputEvent.BUTTON1_MASK);
@@ -2405,8 +2440,10 @@ public class Region {
           throws FindFailed {
     Location loc = getLocationFromTarget(target);
     if (loc != null) {
-      RobotDesktop r = getScreen().getRobot();
-      getScreen().showTarget(loc);
+      RobotDesktop r = getRobotForPoint("drag", loc);
+      if (r == null) {
+        return 0;
+      }
       r.smoothMove(loc);
       r.mouseDown(InputEvent.BUTTON1_MASK);
       r.delay((int) (Settings.DelayAfterDrag * 1000));
@@ -2428,8 +2465,10 @@ public class Region {
           throws FindFailed {
     Location loc = getLocationFromTarget(target);
     if (loc != null) {
-      getScreen().showTarget(loc);
-      RobotDesktop r = getScreen().getRobot();
+      RobotDesktop r = getRobotForPoint("drop", loc);
+      if (r == null) {
+        return 0;
+      }
       r.smoothMove(loc);
       r.delay((int) (Settings.DelayBeforeDrop * 1000));
       r.mouseUp(InputEvent.BUTTON1_MASK);
@@ -2449,7 +2488,7 @@ public class Region {
    * @param buttons
    */
   public void mouseDown(int buttons) {
-    getScreen().getRobot().mouseDown(buttons);
+    getRobotForRegion().mouseDown(buttons);
   }
 
   /**
@@ -2466,7 +2505,7 @@ public class Region {
    * @param buttons
    */
   public void mouseUp(int buttons) {
-    getScreen().getRobot().mouseUp(buttons);
+    getRobotForRegion().mouseUp(buttons);
   }
 
   /**
@@ -2500,8 +2539,10 @@ public class Region {
           throws FindFailed {
     Location loc = getLocationFromTarget(target);
     if (loc != null) {
-      getScreen().showTarget(loc);
-      RobotDesktop r = getScreen().getRobot();
+      RobotDesktop r = getRobotForPoint("mousMove", loc);
+      if (r == null) {
+        return 0;
+      }
       r.smoothMove(loc);
       r.waitForIdle();
       return 1;
@@ -2519,7 +2560,7 @@ public class Region {
    */
   public int wheel(int direction, int steps) {
     for (int i = 0; i < steps; i++) {
-      RobotDesktop r = getScreen().getRobot();
+      RobotDesktop r = getRobotForRegion();
       r.mouseWheel(direction);
       r.delay(50);
     }
@@ -2563,7 +2604,7 @@ public class Region {
    * @param keycode
    */
   public void keyDown(int keycode) {
-    getScreen().getRobot().keyDown(keycode);
+    getRobotForRegion().keyDown(keycode);
   }
 
   /**
@@ -2575,14 +2616,14 @@ public class Region {
    * @param keys
    */
   public void keyDown(String keys) {
-    getScreen().getRobot().keyDown(keys);
+    getRobotForRegion().keyDown(keys);
   }
 
   /**
    * release all currently pressed keys
    */
   public void keyUp() {
-    getScreen().getRobot().keyUp();
+    getRobotForRegion().keyUp();
   }
 
   /**
@@ -2591,7 +2632,7 @@ public class Region {
    * @param keycode
    */
   public void keyUp(int keycode) {
-    getScreen().getRobot().keyUp(keycode);
+    getRobotForRegion().keyUp(keycode);
   }
 
   /**
@@ -2600,7 +2641,7 @@ public class Region {
    * @param keys
    */
   public void keyUp(String keys) {
-    getScreen().getRobot().keyUp(keys);
+    getRobotForRegion().keyUp(keys);
   }
 
   /**
@@ -2742,7 +2783,7 @@ public class Region {
         }
       }
       Debug.history(modText + "TYPE \"" + showText + "\"");
-      RobotDesktop r = getScreen().getRobot();
+      RobotDesktop r = getRobotForRegion();
       //TODO TypeDelay add to API ??
       int pause = 20 + (Settings.TypeDelay > 1 ? 1 : (int) (Settings.TypeDelay * 1000));
       Settings.TypeDelay = 0.0;
@@ -2791,7 +2832,7 @@ public class Region {
     if (text != null) {
       App.setClipboard(text);
       int mod = Key.getHotkeyModifier();
-      RobotDesktop r = getScreen().getRobot();
+      RobotDesktop r = getRobotForRegion();
       r.keyDown(mod);
       r.keyDown(KeyEvent.VK_V);
       r.keyUp(KeyEvent.VK_V);
