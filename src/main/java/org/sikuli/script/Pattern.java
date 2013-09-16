@@ -8,6 +8,7 @@ package org.sikuli.script;
 
 import org.sikuli.basics.Settings;
 import java.awt.image.BufferedImage;
+import java.net.URL;
 
 /**
  * to define a more complex search target<br />
@@ -58,6 +59,15 @@ public class Pattern {
 	public Pattern(String imgpath) {
     image = Image.createImage(imgpath);
   }
+
+  /**
+     * Pattern from a Java resource (Object.class.getResource)
+     *
+     */
+
+	public Pattern(URL url) {
+	    this(url.getFile());
+	}
 
   /**
 	 * A Pattern from a BufferedImage
