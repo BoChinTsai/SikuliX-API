@@ -368,7 +368,7 @@ public class Screen extends Region implements EventObserver, IScreen {
    */
   @Override
   public ScreenImage capture(Rectangle rect) {
-    Debug.log(3, "Screen.capture: " + rect);
+    Debug.log(3, "Screen.capture: (%d,%d) %dx%d", rect.x, rect.y, rect.width, rect.height);
     ScreenImage simg = robot.captureScreen(rect);
     lastScreenImage = simg;
     return simg;
