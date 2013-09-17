@@ -6,6 +6,7 @@
  */
 package org.sikuli.script;
 
+import org.sikuli.basics.Image;
 import org.sikuli.basics.Settings;
 import java.awt.image.BufferedImage;
 import java.net.URL;
@@ -57,7 +58,7 @@ public class Pattern {
 	 * @param imgpath
 	 */
 	public Pattern(String imgpath) {
-    image = Image.createImage(imgpath);
+      image = Image.createImage(imgpath);
   }
 
   /**
@@ -66,7 +67,7 @@ public class Pattern {
      */
 
 	public Pattern(URL url) {
-	    this(url.getFile());
+      image = Image.createImage(url);
 	}
 
   /**
@@ -94,6 +95,59 @@ public class Pattern {
    */
   public boolean isValid() {
     return image.isValid();
+  }
+
+  /**
+   * set a new image for this pattern
+   * 
+   * @param fileName
+   * @return the Pattern itself
+   */
+	public Pattern setFilename(String fileName) {
+      image = new Image(fileName);
+    return this;
+  }
+
+  /**
+   * set a new image for this pattern
+   * 
+   * @param fileURL
+   * @return the Pattern itself
+   */
+	public Pattern setFilename(URL fileURL) {
+      image = new Image(fileURL);
+    return this;
+  }
+
+  /**
+   * set a new image for this pattern
+   * 
+   * @param fileURL
+   * @return the Pattern itself
+   */
+	public Pattern setFilename(Image img) {
+    image = img;
+    return this;
+  }
+
+  /**
+	 * the current image's absolute filepath
+   * <br />will return null, if image is in jar or in web
+   * <br />use getFileURL in this case
+	 *
+	 * @return might be null
+	 */
+	public String getFilename() {
+    return image.getFilename();
+  }
+
+  /**
+	 * the current image's URL
+	 *
+	 * @return might be null
+	 */
+	public URL getFileURL() {
+    return image.getURL();
   }
 
 	/**
@@ -159,36 +213,7 @@ public class Pattern {
   }
 
   /**
-	 * set the Patterns image based on file name
-	 *
-	 * @param imgURL_
-	 * @return the Pattern object itself
-	 */
-	public Pattern setFilename(String imgURL) {
-    image = new Image(imgURL);
-    return this;
-  }
-
-  /**
-	 * the current image's absolute filepath
-	 *
-	 * @return might be null
-	 */
-	public String getFilename() {
-    return image.getFilename();
-  }
-
-  /**
-	 * check for a valid image file
-	 *
-	 * @return path or null
-	 */
-	public String checkFile() {
-    return image.getFilename();
-  }
-
-  /**
-	 * return the buffered image 
+   * ONLY FOR INTERNAL USE! Might vanish without notice!
 	 *
 	 * @return might be null
 	 */
@@ -197,7 +222,7 @@ public class Pattern {
   }
 
 	/**
-	 * sets the Pattern's buffered image
+   * ONLY FOR INTERNAL USE! Might vanish without notice!
 	 *
 	 * @param bimg
 	 * @return the Pattern object itself
@@ -238,13 +263,15 @@ public class Pattern {
   /**
    * get the seconds to wait, after this pattern is acted on
    */
-  public int setTimeAfter() {
+  public int getTimeAfter() {
     return waitAfter;
   }
 
   @Override
   public String toString() {
-    String ret = "P(" + image.getName() + ")";
+    String ret = "P(" + image.getName() 
+            + (isValid() ? "" : " -- not valid!")
+            + ")";
     ret += " S: " + similarity;
     if (offset.x != 0 || offset.y != 0) {
       ret += " T: " + offset.x + "," + offset.y;

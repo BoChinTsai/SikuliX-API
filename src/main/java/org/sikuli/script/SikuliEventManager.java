@@ -6,6 +6,7 @@
  */
 package org.sikuli.script;
 
+import org.sikuli.basics.Image;
 import org.sikuli.basics.Settings;
 import org.sikuli.basics.Debug;
 import java.awt.AWTException;

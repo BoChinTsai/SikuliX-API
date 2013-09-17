@@ -6,6 +6,7 @@
  */
 package org.sikuli.script;
 
+import org.sikuli.basics.Image;
 import org.sikuli.basics.ImageLocator;
 import java.awt.MouseInfo;
 import java.awt.Point;
@@ -1565,16 +1566,18 @@ public class Region {
   }
 
   /**
-   * Returns the filename of the given Pattern or String
+   * Returns the image of the given Pattern or String
    *
    * @param target The Pattern or String
    * @return The Name of the File
    */
-  private <PatternOrString> Image getImage(PatternOrString target) {
+  private <PSI> Image getImage(PSI target) {
     if (target instanceof Pattern) {
       return ((Pattern) target).getImage();
     } else if (target instanceof String) {
       return Image.getImageFromCache((String) target);
+    } else if (target instanceof String) {
+      return (Image) target;
     } else {
       return null;
     }
@@ -1587,7 +1590,7 @@ public class Region {
    * @return
    * @throws FindFailed
    */
-  private <PatternOrString> boolean handleFindFailed(PatternOrString target) throws FindFailed {
+  private <PSI> boolean handleFindFailed(PSI target) throws FindFailed {
     FindFailedResponse response;
     if (findFailedResponse == FindFailedResponse.PROMPT) {
       FindFailedDialog fd = new FindFailedDialog(target);
@@ -1617,7 +1620,7 @@ public class Region {
    * @return If found, the element. null otherwise
    * @throws FindFailed if the Find operation failed
    */
-  public <PatternOrString> Match find(PatternOrString target) throws FindFailed {
+  public <PSI> Match find(PSI target) throws FindFailed {
     if (autoWaitTimeout > 0) {
       return wait(target, autoWaitTimeout);
     }
@@ -1629,6 +1632,7 @@ public class Region {
       }
       if (lastMatch != null) {
         lastMatch.setImage(getImage(target));
+        getImage(target).setLastSeen(lastMatch.getRect());
         return lastMatch;
       }
       if (!handleFindFailed(target)) {
@@ -1638,7 +1642,7 @@ public class Region {
   }
 
   /**
-   * Iterator<Match> findAll( Pattern/String/PatternClass ) finds the given
+   * Iterator<Match> findAll( Pattern/String/Image ) finds the given
    * pattern on the screen and returns the best match. If AutoWaitTimeout is
    * set, this is equivalent to wait().
    *
@@ -1646,7 +1650,7 @@ public class Region {
    * @return All elements matching
    * @throws FindFailed if the Find operation failed
    */
-  public <PatternOrString> Iterator<Match> findAll(PatternOrString target) throws FindFailed {
+  public <PSI> Iterator<Match> findAll(PSI target) throws FindFailed {
     while (true) {
       try {
         if (autoWaitTimeout > 0) {
@@ -1669,18 +1673,18 @@ public class Region {
   }
 
   /**
-   * Waits for the PatternOrString to appear
+   * Waits for the Pattern, String or Image to appear
    *
    * @param target The target to search for
    * @return The found Match
    * @throws FindFailed
    */
-  public <PatternOrString> Match wait(PatternOrString target) throws FindFailed {
+  public <PSI> Match wait(PSI target) throws FindFailed {
     return wait(target, autoWaitTimeout);
   }
 
   /**
-   * Match wait(Pattern/String/PatternClass target, timeout-sec) waits until
+   * Match wait(Pattern/String/Image target, timeout-sec) waits until
    * target appears or timeout (in second) is passed
    *
    * @param target A search criteria
@@ -1688,7 +1692,7 @@ public class Region {
    * @return All elements matching
    * @throws FindFailed if the Find operation failed
    */
-  public <PatternOrString> Match wait(PatternOrString target, double timeout) throws FindFailed {
+  public <PSI> Match wait(PSI target, double timeout) throws FindFailed {
     RepeatableFind rf;
     while (true) {
       try {
@@ -1701,6 +1705,7 @@ public class Region {
       }
       if (lastMatch != null) {
         lastMatch.setImage(rf._image);
+        rf._image.setLastSeen(lastMatch.getRect());
         Debug.log(2, "" + target + " has appeared.");
         break;
       }
@@ -1709,7 +1714,6 @@ public class Region {
         return null;
       }
     }
-
     return lastMatch;
   }
 
@@ -1719,28 +1723,28 @@ public class Region {
    * @param target Pattern or String
    * @return the match (null if not found or image file missing)
    */
-  public <PatternOrString> Match exists(PatternOrString target) {
+  public <PSI> Match exists(PSI target) {
     return exists(target, autoWaitTimeout);
   }
 
   /**
-   * Check if target exists with a specified timeout
+   * Check if target exists with a specified timeout<br />
+   * timout = 0: returns immediately after first search
    *
    * @param target Pattern or String
    * @param timeout Timeout in seconds
    * @return the match (null if not found or image file missing)
    */
-  public <PatternOrString> Match exists(PatternOrString target, double timeout) {
+  public <PSI> Match exists(PSI target, double timeout) {
     try {
       RepeatableFind rf = new RepeatableFind(target);
       if (rf.repeat(timeout)) {
         lastMatch = rf.getMatch();
         lastMatch.setImage(getImage(target));
+        getImage(target).setLastSeen(lastMatch.getRect());
         return lastMatch;
       }
-    } catch (Exception ex) {
-      Debug.error("Region.exists: seems that imagefile could not be found on disk", target);
-    }
+    } catch (Exception ex) {  }
     return null;
   }
 
@@ -1784,48 +1788,43 @@ public class Region {
   }
 
   /**
-   * boolean waitVanish(Pattern/String/PatternClass target, timeout-sec) waits
+   * boolean waitVanish(Pattern/String/Image target, timeout-sec) waits
    * until target vanishes or timeout (in second) is passed
    *
    * @return true if the target vanishes, otherwise returns false.
    */
-  public <PatternOrString> boolean waitVanish(PatternOrString target) {
+  public <PSI> boolean waitVanish(PSI target) {
     return waitVanish(target, autoWaitTimeout);
   }
 
   /**
-   * boolean waitVanish(Pattern/String/PatternClass target, timeout-sec) waits
+   * boolean waitVanish(Pattern/String/Image target, timeout-sec) waits
    * until target vanishes or timeout (in second) is passed
    *
    * @return true if target vanishes, false otherwise and if imagefile is
    * missing.
    */
-  public <PatternOrString> boolean waitVanish(PatternOrString target, double timeout) {
+  public <PSI> boolean waitVanish(PSI target, double timeout) {
     try {
       Debug.log(2, "waiting for " + target + " to vanish");
       RepeatableVanish r = new RepeatableVanish(target);
       if (r.repeat(timeout)) {
-        // target has vanished before timeout
         Debug.log(2, "" + target + " has vanished");
         return true;
       }
-      // target has not vanished before timeout
       Debug.log(2, "" + target + " has not vanished before timeout");
       return false;
-
-    } catch (Exception e) {
-      Debug.error("Region.waitVanish: seems that imagefile could not be found on disk", target);
-    }
+    } catch (Exception e) { }
     return false;
   }
   //</editor-fold>
 
   //<editor-fold defaultstate="collapsed" desc="find internal methods">
   /**
-   * Match findNow( Pattern/String/PatternClass ) finds the given pattern on the
+   * Match findNow( Pattern/String/Image ) finds the given pattern on the
    * screen and returns the best match without waiting.
    */
-  private <PatternOrString> Match doFind(PatternOrString ptn, RepeatableFind repeating) throws IOException {
+  private <PSI> Match doFind(PSI ptn, RepeatableFind repeating) throws IOException {
     Finder f;
     ScreenImage simg = getScreen().capture(x, y, w, h);
     if (repeating != null && repeating._finder != null) {
@@ -1852,6 +1851,13 @@ public class Region {
         } else {
           throw new IOException("Region: doFind: Image not loadable: " + (String) ptn);
         }
+      } else if (ptn instanceof Image) { 
+        if (((Image) ptn).isValid()) {
+          img = ((Image) ptn);
+          f.find((Image) ptn);
+        } else {
+          throw new IOException("Region: doFind: Image not loadable: " + (String) ptn);
+        }
       } else {
         log(-1, "doFind: invalid parameter: %s", ptn);
         SikuliX.endFatal(1);
@@ -1868,10 +1874,10 @@ public class Region {
   }
 
   /**
-   * Match findAllNow( Pattern/String/PatternClass ) finds the given pattern on
-   * the screen and returns the best match without waiting.
+   * Match findAllNow( Pattern/String/Image ) finds all the given pattern on
+   * the screen and returns the best matches without waiting.
    */
-  private <PatternOrString> Iterator<Match> doFindAll(PatternOrString ptn, RepeatableFindAll repeating) throws IOException {
+  private <PSI> Iterator<Match> doFindAll(PSI ptn, RepeatableFindAll repeating) throws IOException {
     Finder f;
     ScreenImage simg = getScreen().capture(x, y, w, h);
     if (repeating != null && repeating._finder != null) {
@@ -1881,15 +1887,37 @@ public class Region {
       f.findAllRepeat();
     } else {
       f = new Finder(simg, this);
+      Image img = null;
       if (ptn instanceof String) {
-        if (null == f.findAll((String) ptn)) {
-          throw new IOException();
+        img = Image.createImage((String) ptn);
+        if (img.isValid()) {
+          f.findAll(img);
+        } else if (img.isText()){
+          f.findAllText((String) ptn);
+        } else {
+          throw new IOException("Region: doFind: Image not loadable: " + (String) ptn);
+        }
+      } else if (ptn instanceof Pattern) { 
+        if (((Pattern) ptn).isValid()) {
+          img = ((Pattern) ptn).getImage();
+          f.findAll((Pattern) ptn);
+        } else {
+          throw new IOException("Region: doFind: Image not loadable: " + (String) ptn);
+        }
+      } else if (ptn instanceof Image) { 
+        if (((Image) ptn).isValid()) {
+          img = ((Image) ptn);
+          f.findAll((Image) ptn);
+        } else {
+          throw new IOException("Region: doFind: Image not loadable: " + (String) ptn);
         }
       } else {
-        if (null == f.findAll((Pattern) ptn)) {
-          throw new IOException("ImageFile " + ((Pattern) ptn).getFilename()
-                  + " not found on disk");
-        }
+        log(-1, "doFind: invalid parameter: %s", ptn);
+        SikuliX.endFatal(1);
+      }
+      if (repeating != null) {
+        repeating._finder = f;
+        repeating._image = img;
       }
     }
     if (f.hasNext()) {
@@ -1943,7 +1971,7 @@ public class Region {
     Finder _finder = null;
     Image _image = null;
 
-    public <PatternOrString> RepeatableFind(PatternOrString target) {
+    public <PSI> RepeatableFind(PSI target) {
       _target = target;
     }
 
@@ -1956,7 +1984,7 @@ public class Region {
 
     @Override
     public void run() throws IOException {
-      _match = doFind(_target, this);
+      _match = doFind(_target, this); 
     }
 
     @Override
@@ -1967,7 +1995,7 @@ public class Region {
 
   private class RepeatableVanish extends RepeatableFind {
 
-    public <PatternOrString> RepeatableVanish(PatternOrString target) {
+    public <PSI> RepeatableVanish(PSI target) {
       super(target);
     }
 
@@ -1982,8 +2010,9 @@ public class Region {
     Object _target;
     Iterator<Match> _matches = null;
     Finder _finder = null;
+    Image _image = null;
 
-    public <PatternOrString> RepeatableFindAll(PatternOrString target) {
+    public <PSI> RepeatableFindAll(PSI target) {
       _target = target;
     }
 
@@ -2051,11 +2080,11 @@ public class Region {
     return observing;
   }
   
-  public <PatternOrString> void onAppear(PatternOrString target, Object observer) {
+  public <PSI> void onAppear(PSI target, Object observer) {
     getEventManager().addAppearObserver(target, (SikuliEventObserver) observer);
   }
 
-  public <PatternOrString> void onVanish(PatternOrString target, Object observer) {
+  public <PSI> void onVanish(PSI target, Object observer) {
     getEventManager().addVanishObserver(target, (SikuliEventObserver) observer);
   }
 

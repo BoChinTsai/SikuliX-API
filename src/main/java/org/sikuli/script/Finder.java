@@ -6,7 +6,7 @@
  */
 package org.sikuli.script;
 
-import org.sikuli.basics.ImageLocator;
+import org.sikuli.basics.Image;
 import org.sikuli.basics.Settings;
 import org.sikuli.basics.FileManager;
 import org.sikuli.basics.Debug;
@@ -52,7 +52,7 @@ public class Finder implements Iterator<Match> {
    * @param region search Region within image - topleft = (0,0)
    */
   public Finder(String imageFilename, Region region) throws IOException  {
-    String fname = ImageLocator.locate(imageFilename);
+    String fname = new Image(imageFilename).getFilename();
     _findInput.setSource(fname);
     _region = region;
   }
@@ -184,7 +184,8 @@ public class Finder implements Iterator<Match> {
     _cur_result_i = 0;
     return text;
   }
-	/**
+
+  /**
 	 * internal use: repeat find with same Finder
 	 */
   protected void findAllRepeat() {
@@ -194,6 +195,10 @@ public class Finder implements Iterator<Match> {
     _cur_result_i = 0;
     timing.endTiming("Finder.findAll");
 	}
+
+  public String findAll(String imageOrText) {
+    return findAll(imageOrText, Settings.MinSimilarity);
+  }
 
   /**
    *
@@ -227,52 +232,75 @@ public class Finder implements Iterator<Match> {
    * @param aPtn
    */
   public String findAll(Pattern aPtn)  {
-    _pattern = (Pattern) aPtn;
-    String img = aPtn.getFilename();
-    if (img == null) {
+    if (aPtn.isValid()) {
+      _pattern = aPtn;
+      _findInput.setTarget(aPtn.getImage().getMat());
+      _findInput.setSimilarity(aPtn.getSimilar());
+      _findInput.setFindAll(true);
+      Debug timing = new Debug();
+      timing.startTiming("Finder.findAll");
+      _results = Vision.find(_findInput);
+      _cur_result_i = 0;
+      timing.endTiming("Finder.findAll");
+      return aPtn.getFilename();
+    } else {
       return null;
     }
-		_findInput.setTarget(TARGET_TYPE.IMAGE, img);
-    _findInput.setSimilarity(aPtn.getSimilar());
+  }
+
+  public String findAll(Image img)  {
+    if (img.isValid()) {
+      _findInput.setTarget(img.getMat());
+      _findInput.setSimilarity(Settings.MinSimilarity);
+      _findInput.setFindAll(true);
+      Debug timing = new Debug();
+      timing.startTiming("Finder.findAll");
+      _results = Vision.find(_findInput);
+      _cur_result_i = 0;
+      timing.endTiming("Finder.findAll");
+      return img.getFilename();
+    } else {
+      return null;
+    }
+  }
+
+  public String findAllText(String text) {
+    _findInput.setTarget(TARGET_TYPE.TEXT, text);
     _findInput.setFindAll(true);
     Debug timing = new Debug();
     timing.startTiming("Finder.findAll");
     _results = Vision.find(_findInput);
     _cur_result_i = 0;
     timing.endTiming("Finder.findAll");
-    return aPtn.getFilename();
+    return text;
   }
 
-  public String findAll(String imageOrText) {
-    return findAll(imageOrText, Settings.MinSimilarity);
-  }
-
-	private String setTargetSmartly(FindInput fin, String target) {
-		if (isImageFile(target)) {
-			try {
-				//assume it's a file first
-				String filename = ImageLocator.locate(target);
-				fin.setTarget(TARGET_TYPE.IMAGE, filename);
-				return filename;
-			} catch (IOException e) {
-				if (!repeating) {
-					Debug.error(target
-									+ " looks like a file, but not on disk. Assume it's text.");
-				}
-			}
-		}
-		if (!Settings.OcrTextSearch) {
-			Debug.error("Region.find(text): text search is currently switched off");
-			return target + "???";
-		} else {
-			fin.setTarget(TARGET_TYPE.TEXT, target);
-			if (TextRecognizer.getInstance() == null) {
-  			Debug.error("Region.find(text): text search is now switched off");
-    		return target + "???";
+  private String setTargetSmartly(FindInput fin, String target) {
+    if (isImageFile(target)) {
+      //assume it's a file first
+      String filename = new Image(target).getFilename();
+      if (filename != null) {
+        fin.setTarget(TARGET_TYPE.IMAGE, filename);
+        return filename;
+      } else {
+        if (!repeating) {
+          Debug.error(target
+                  + " looks like a file, but not on disk. Assume it's text.");
+        }
       }
-			return target;
-		}
-	}
+    }
+    if (!Settings.OcrTextSearch) {
+      Debug.error("Region.find(text): text search is currently switched off");
+      return target + "???";
+    } else {
+      fin.setTarget(TARGET_TYPE.TEXT, target);
+      if (TextRecognizer.getInstance() == null) {
+        Debug.error("Region.find(text): text search is now switched off");
+        return target + "???";
+      }
+      return target;
+    }
+  }
 
 	private static boolean isImageFile(String fname) {
 		int dot = fname.lastIndexOf('.');
