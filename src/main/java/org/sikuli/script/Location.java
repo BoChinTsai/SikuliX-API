@@ -20,6 +20,7 @@ public class Location {
   
   public int x;
   public int y;
+  private Screen remoteScreen = null;
 
   /**
    * to allow calculated x and y that might not be integers
@@ -49,6 +50,9 @@ public class Location {
   public Location(Location loc) {
     x = loc.x;
     y = loc.y;
+    if (loc.isOther()) {
+      remoteScreen = loc.getScreen();
+    }
   }
 
   /**
@@ -104,6 +108,9 @@ public class Location {
     */
   public Screen getScreen() {
     Rectangle r;
+    if (remoteScreen != null) {
+      return remoteScreen;
+    }
     for (int i = 0; i < Screen.getNumberScreens(); i++) {
       r = Screen.getScreen(i).getBounds();
       if (r.contains(this.x, this.y)) {
@@ -112,6 +119,22 @@ public class Location {
     }
     Debug.error("Location: outside any screen (%s, %s) - subsequent actions might not work as expected", x, y);
     return null;
+  }
+  
+  public Location setRemoteScreen(Screen scr) {
+    remoteScreen = scr;
+    return this;
+  }
+  
+  public boolean isOther() {
+    return (remoteScreen != null);
+  }
+  
+  private Location setOtherScreen(Location loc) {
+    if (loc.isOther()) {
+      setRemoteScreen(loc.getScreen());
+    }
+    return this;
   }
 
 // TODO Location.getColor() implement more support and make it useable
@@ -135,7 +158,7 @@ public class Location {
    * @return relative offset
    */
   public Location getOffset(Location loc) {
-    return (new Location(loc.x - x, loc.y - y));
+    return new Location(loc.x - x, loc.y - y);
   }
 
   /**
@@ -234,6 +257,17 @@ public class Location {
   }
 
   /**
+   * creates a point at the given offset, might be negative <br />might create a point outside of
+   * any screen, not checked
+   *
+   * @param loc
+   * @return new location
+   */
+  public Location offset(Location loc) {
+    return new Location(x + loc.x, y + loc.y);
+  }
+
+/**
    * creates a point at the given offset to the left, might be negative <br />might create a point
    * outside of any screen, not checked
    *
@@ -241,7 +275,7 @@ public class Location {
    * @return new location
    */
   public Location left(int dx) {
-    return new Location(x - dx, y);
+    return new Location(x - dx, y).setOtherScreen(this);
   }
 
   /**
@@ -252,7 +286,7 @@ public class Location {
    * @return new location
    */
   public Location right(int dx) {
-    return new Location(x + dx, y);
+    return new Location(x + dx, y).setOtherScreen(this);
   }
 
   /**
@@ -263,7 +297,7 @@ public class Location {
    * @return new location
    */
   public Location above(int dy) {
-    return new Location(x, y - dy);
+    return new Location(x, y - dy).setOtherScreen(this);
   }
 
   /**
@@ -274,7 +308,7 @@ public class Location {
    * @return new location
    */
   public Location below(int dy) {
-    return new Location(x, y + dy);
+    return new Location(x, y + dy).setOtherScreen(this);
   }
 
   /**

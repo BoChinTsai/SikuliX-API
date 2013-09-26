@@ -39,6 +39,8 @@ public class Region {
    * The Screen containing the Region
    */
   private Screen scr;
+  private boolean isRemoteScreen = false;;
+  
   /**
    * The ScreenHighlighter for this Region
    */
@@ -147,6 +149,19 @@ public class Region {
     Rectangle rect, screenRect;
     Screen screen, screenOn;
     if (scr != null) {
+      if (scr.isRemote()) {
+        if (x < 0) {
+          w = w + x;
+          x = 0;
+        }
+        if (y < 0) {
+          h = h + y;
+          y = 0;
+        }
+        this.scr = scr;
+        this.isRemoteScreen = true;
+        return;
+      }
       if (scr.getID() > -1) {
         rect = regionOnScreen(scr);
         if (rect != null) {
@@ -189,6 +204,28 @@ public class Region {
     }
   }
 
+  private Location addRemote(Location loc) {
+    if (!isRemote()) {
+      return loc;
+    }
+    return loc.setRemoteScreen(scr);
+  }
+
+  private Region addRemote(Region reg) {
+    if (!isRemote()) {
+      return reg;
+    }
+    return reg.setScreen(scr);
+  }
+
+  public boolean isRemote() {
+    return isRemoteScreen;
+  }
+
+  public void setRemoteScreen() {
+    isRemoteScreen = true;
+  }
+  
   /**
    * Checks if the Screen contains the Region.
    *
@@ -321,7 +358,7 @@ public class Region {
    * @return
    */
   public static Region create(Location loc, int w, int h) {
-    return Region.create(loc.x, loc.y, w, h, null);
+    return Region.create(loc.x, loc.y, w, h, loc.getScreen());
   }
   /**
    * Flag for the {@link #create(Location, int, int, int, int)} method. Sets the
@@ -378,7 +415,7 @@ public class Region {
         Y = loc.y - h;
       }
     }
-    return Region.create(X, Y, W, H);
+    return Region.create(X, Y, W, H, loc.getScreen());
   }
 
   /**
@@ -426,7 +463,7 @@ public class Region {
    * @return
    */
   public static Region create(Region r) {
-    Region reg = Region.create(r.x, r.y, r.w, r.h, null);
+    Region reg = Region.create(r.x, r.y, r.w, r.h, r.getScreen());
     reg.autoWaitTimeout = r.autoWaitTimeout;
     reg.findFailedResponse = r.findFailedResponse;
     reg.throwException = r.throwException;
@@ -444,7 +481,7 @@ public class Region {
   public static Region grow(Location loc, int w, int h) {
     int X = loc.x - (int) w / 2;
     int Y = loc.y - (int) h / 2;
-    return Region.create(X, Y, w, h);
+    return Region.create(X, Y, w, h, loc.getScreen());
   }
 
   /**
@@ -454,7 +491,7 @@ public class Region {
    * @return the new region
    */
   public static Region grow(Location loc) {
-    return Region.create(loc.x, loc.y, 1, 1);
+    return Region.create(loc.x, loc.y, 1, 1, loc.getScreen());
   }
 
   //</editor-fold>
@@ -498,7 +535,7 @@ public class Region {
   public Region copyTo(Screen screen) {
     Location o = new Location(getScreen().getBounds().getLocation());
     Location n = new Location(screen.getBounds().getLocation());
-    return Region.create(n.x + x - o.x, n.y + y - o.y, w, h);
+    return Region.create(n.x + x - o.x, n.y + y - o.y, w, h, screen);
   }
 
   /**
@@ -641,17 +678,19 @@ public class Region {
   }
   
   // to avoid NPE for points outside any screen
-  private RobotDesktop getRobotForPoint(String action, Location loc) {
+  private IRobot getRobotForPoint(String action, Location loc) {
     if (getScreen() == null) {
       Debug.error("Point %s outside any screen not useable for %s", loc, action);
       return null;
     }
-    getScreen().showTarget(loc);
+    if (!getScreen().isRemote()) {
+      getScreen().showTarget(loc);
+    }
     return getScreen().getRobot();    
   } 
 
   // to avoid NPE for Regions being outside any screen
-  private RobotDesktop getRobotForRegion() {
+  private IRobot getRobotForRegion() {
     if (getScreen() == null) {
       return Screen.getPrimaryScreen().getRobot();
     }
@@ -673,10 +712,11 @@ public class Region {
   /**
    * Sets a new Screen for this region.
    *
-   * @param is the containing screen object
+   * @param scr the containing screen object
    */
-  protected void setScreen(Screen is) {
-    initScreen(is);
+  protected Region setScreen(Screen scr) {
+    initScreen(scr);
+    return this;
   }
 
   /**
@@ -684,8 +724,8 @@ public class Region {
    *
    * @param id the containing screen object's id
    */
-  protected void setScreen(int id) {
-    setScreen(Screen.getScreen(id));
+  protected Region setScreen(int id) {
+    return setScreen(Screen.getScreen(id));
   }
   
   /**
@@ -708,9 +748,9 @@ public class Region {
    * @return the center pixel location of the region
    */
   public Location getCenter() {
-    return new Location(x + w / 2, y + h / 2);
+    return addRemote(new Location(x + w / 2, y + h / 2));
   }
-
+  
   /**
    * convenience method
    *
@@ -739,7 +779,7 @@ public class Region {
    * @return top left corner Location
    */
   public Location getTopLeft() {
-    return new Location(x, y);
+    return addRemote(new Location(x, y));
   }
 
   /**
@@ -757,7 +797,7 @@ public class Region {
    * @return top right corner Location
    */
   public Location getTopRight() {
-    return new Location(x + w - 1, y);
+    return addRemote(new Location(x + w - 1, y));
   }
 
   /**
@@ -779,7 +819,7 @@ public class Region {
    * @return bottom left corner Location
    */
   public Location getBottomLeft() {
-    return new Location(x, y + h - 1);
+    return addRemote(new Location(x, y + h - 1));
   }
 
   /**
@@ -802,7 +842,7 @@ public class Region {
    * @return bottom right corner Location
    */
   public Location getBottomRight() {
-    return new Location(x + w - 1, y + h - 1);
+    return addRemote(new Location(x + w - 1, y + h - 1));
   }
 
   /**
@@ -859,7 +899,7 @@ public class Region {
    */
   public void setX(int X) {
     x = X;
-    initScreen(null);
+    initScreen(scr);
   }
 
   /**
@@ -868,7 +908,7 @@ public class Region {
    */
   public void setY(int Y) {
     y = Y;
-    initScreen(null);
+    initScreen(scr);
   }
 
   /**
@@ -877,7 +917,7 @@ public class Region {
    */
   public void setW(int W) {
     w = W > 1 ? W : 1;
-    initScreen(null);
+    initScreen(scr);
   }
 
   /**
@@ -886,7 +926,7 @@ public class Region {
    */
   public void setH(int H) {
     h = H > 1 ? H : 1;
-    initScreen(null);
+    initScreen(scr);
   }
 
   // ************************************************
@@ -899,7 +939,7 @@ public class Region {
   public Region setSize(int W, int H) {
     w = W > 1 ? W : 1;
     h = H > 1 ? H : 1;
-    initScreen(null);
+    initScreen(scr);
     return this;
   }
 
@@ -919,8 +959,7 @@ public class Region {
    * @return the region itself
    */
   public Region setRect(Rectangle r) {
-    setRect(r.x, r.y, r.width, r.height);
-    return this;
+    return setRect(r.x, r.y, r.width, r.height);
   }
 
   /**
@@ -950,8 +989,7 @@ public class Region {
    * @return the region itself
    */
   public Region setRect(Region r) {
-    setRect(r.x, r.y, r.w, r.h);
-    return this;
+    return setRect(r.x, r.y, r.w, r.h);
   }
 
   // ****************************************************
@@ -1035,7 +1073,7 @@ public class Region {
   public Region setLocation(Location loc) {
     x = loc.x;
     y = loc.y;
-    initScreen(getScreen());
+    initScreen(scr);
     return this;
   }
 
@@ -1189,7 +1227,7 @@ public class Region {
    * @return the new region
    */
   public Region offset(Location loc) {
-    return Region.create(x + loc.x, y + loc.y, w, h);
+    return Region.create(x + loc.x, y + loc.y, w, h, scr);
   }
 
   /**
@@ -1200,7 +1238,7 @@ public class Region {
    * @return the new region
    */
   public Region offset(int _x, int _y) {
-    return Region.create(x + _x, y + _y, w, h);
+    return Region.create(x + _x, y + _y, w, h, scr);
   }
 
   /**
@@ -1265,7 +1303,7 @@ public class Region {
     int _y = y - b;
     int _w = w + l + r;
     int _h = h + t + b;
-    return Region.create(_x, _y, _w, _h);
+    return Region.create(_x, _y, _w, _h, scr);
   }
 
   /**
@@ -1282,7 +1320,7 @@ public class Region {
    * @return point with given offset horizontally to middle point on right edge
    */
   public Location rightAt(int offset) {
-    return new Location(x + w + offset, y + h / 2);
+    return addRemote(new Location(x + w + offset, y + h / 2));
   }
 
   /**
@@ -1309,7 +1347,7 @@ public class Region {
     int _y = y;
     int _w = width;
     int _h = h;
-    return Region.create(_x, _y, _w, _h);
+    return Region.create(_x, _y, _w, _h, scr);
   }
 
   /**
@@ -1326,7 +1364,7 @@ public class Region {
    * @return point with given offset horizontally to middle point on left edge
    */
   public Location leftAt(int offset) {
-    return new Location(x + offset, y + h / 2);
+    return addRemote(new Location(x + offset, y + h / 2));
   }
 
   /**
@@ -1354,7 +1392,7 @@ public class Region {
     int _y = y;
     int _w = x - _x;
     int _h = h;
-    return Region.create(_x, _y, _w, _h);
+    return Region.create(_x, _y, _w, _h, scr);
   }
 
   /**
@@ -1372,7 +1410,7 @@ public class Region {
    * @return point with given offset vertically to middle point on top edge
    */
   public Location aboveAt(int offset) {
-    return new Location(x + w / 2, y + offset);
+    return addRemote(new Location(x + w / 2, y + offset));
   }
 
   /**
@@ -1400,7 +1438,7 @@ public class Region {
     int _y = y - height < bounds.y ? bounds.y : y - height;
     int _w = w;
     int _h = y - _y;
-    return Region.create(_x, _y, _w, _h);
+    return Region.create(_x, _y, _w, _h, scr);
   }
 
   /**
@@ -1418,7 +1456,7 @@ public class Region {
    * @return point with given offset vertically to middle point on bottom edge
    */
   public Location belowAt(int offset) {
-    return new Location(x + w / 2, y + h - offset);
+    return addRemote(new Location(x + w / 2, y + h - offset));
   }
 
   /**
@@ -1445,7 +1483,7 @@ public class Region {
     int _y = y + h;
     int _w = w;
     int _h = height;
-    return Region.create(_x, _y, _w, _h);
+    return Region.create(_x, _y, _w, _h, scr);
   }
 
   /**
@@ -1456,7 +1494,7 @@ public class Region {
    */
   public Region union(Region ur) {
     Rectangle r = getRect().union(ur.getRect());
-    return Region.create(r.x, r.y, r.width, r.height);
+    return Region.create(r.x, r.y, r.width, r.height, scr);
   }
 
   /**
@@ -1467,7 +1505,7 @@ public class Region {
    */
   public Region intersection(Region ir) {
     Rectangle r = getRect().intersection(ir.getRect());
-    return Region.create(r.x, r.y, r.width, r.height);
+    return Region.create(r.x, r.y, r.width, r.height, scr);
   }
   //</editor-fold>
 
@@ -1498,7 +1536,10 @@ public class Region {
    *
    * @param toEnable set overlay enabled or disabled
    */
-  private void highlight(boolean toEnable) {
+  private Region highlight(boolean toEnable) {
+    if (isRemote()) {
+      return this;
+    }
     Debug.history("toggle highlight " + toString() + ": " + toEnable);
     if (toEnable) {
       overlay = new ScreenHighlighter(getScreen());
@@ -1509,6 +1550,7 @@ public class Region {
         overlay = null;
       }
     }
+    return this;
   }
 
   /**
@@ -1519,6 +1561,9 @@ public class Region {
    * @return the region itself
    */
   public Region highlight(float secs) {
+    if (isRemote()) {
+      return this;
+    }
     if (secs < 0.1) {
       return highlight((int) secs);
     }
@@ -1537,6 +1582,9 @@ public class Region {
    * @return
    */
   public Region highlight(int secs) {
+    if (isRemote()) {
+      return this;
+    }
     if (secs > 0) {
       return highlight((float) secs);
     }
@@ -1575,7 +1623,7 @@ public class Region {
     if (target instanceof Pattern) {
       return ((Pattern) target).getImage();
     } else if (target instanceof String) {
-      return Image.getImageFromCache((String) target);
+      return Image.get((String) target);
     } else if (target instanceof String) {
       return (Image) target;
     } else {
@@ -1706,7 +1754,7 @@ public class Region {
       if (lastMatch != null) {
         lastMatch.setImage(rf._image);
         rf._image.setLastSeen(lastMatch.getRect());
-        Debug.log(2, "" + target + " has appeared.");
+        log(lvl, "find: %s has appeared \nat %s", target, lastMatch);
         break;
       }
       Debug.log(2, "" + target + " has not appeared.");
@@ -1836,7 +1884,7 @@ public class Region {
       f = new Finder(simg, this);
       Image img = null;
       if (ptn instanceof String) {
-        img = Image.createImage((String) ptn);
+        img = Image.create((String) ptn);
         if (img.isValid()) {
           f.find(img);
         } else if (img.isText()){
@@ -1889,7 +1937,7 @@ public class Region {
       f = new Finder(simg, this);
       Image img = null;
       if (ptn instanceof String) {
-        img = Image.createImage((String) ptn);
+        img = Image.create((String) ptn);
         if (img.isValid()) {
           f.findAll(img);
         } else if (img.isText()){
@@ -2034,35 +2082,35 @@ public class Region {
 
   //<editor-fold defaultstate="collapsed" desc="Find internal -- obsolete??">
   private <PatternStringRegionMatch> Region getRegionFromTarget(PatternStringRegionMatch target) throws FindFailed {
-    if (target instanceof Pattern || target instanceof String) {
+    if (target instanceof Pattern || target instanceof String || target instanceof Image) {
       Match m = find(target);
       if (m != null) {
-        return m;
+        return m.setScreen(scr);
       }
       return null;
     }
     if (target instanceof Region) {
-      return (Region) target;
+      return ((Region) target).setScreen(scr);
     }
     return null;
   }
-
+  
   private <PatternStringRegionMatchLocation> Location getLocationFromTarget(PatternStringRegionMatchLocation target) throws FindFailed {
-    if (target instanceof Pattern || target instanceof String) {
+    if (target instanceof Pattern || target instanceof String || target instanceof Image) {
       Match m = find(target);
       if (m != null) {
-        return m.getTarget();
+        return m.getTarget().setRemoteScreen(scr);
       }
       return null;
     }
     if (target instanceof Match) {
-      return ((Match) target).getTarget();
+      return ((Match) target).getTarget().setRemoteScreen(scr);
     }
     if (target instanceof Region) {
-      return ((Region) target).getCenter();
+      return ((Region) target).getCenter().setRemoteScreen(scr);
     }
     if (target instanceof Location) {
-      return (Location) target;
+      return ((Location) target).setRemoteScreen(scr);
     }
     return null;
   }
@@ -2365,12 +2413,13 @@ public class Region {
       return 0;
     }
     Debug.history(getClickMsg(loc, buttons, modifiers, dblClick));
-    RobotDesktop r = getRobotForPoint("click", loc);
+    IRobot r = getRobotForPoint("click", loc);
     if (r == null) {
       return 0;
     }
-    r.pressModifiers(modifiers);
     r.smoothMove(loc);
+    r.clickStarts();
+    r.pressModifiers(modifiers);
     //TODO ClickDelay add to API ??
     int pause = Settings.ClickDelay > 1 ? 1 : (int) (Settings.ClickDelay * 1000);
     Settings.ClickDelay = 0.0;
@@ -2385,6 +2434,7 @@ public class Region {
       r.mouseUp(buttons);
     }
     r.releaseModifiers(modifiers);
+    r.clickEnds();
     r.waitForIdle();
     return 1;
   }
@@ -2407,6 +2457,14 @@ public class Region {
     }
     msg += " on " + loc;
     return msg;
+  }
+  
+  /**
+   * time in milliseconds to delay between button down/up at next click only (max 1000)
+   * @param millisecs
+   */
+  public void delayClick(int millisecs) {
+    Settings.ClickDelay = millisecs;
   }
   //</editor-fold>
 
@@ -2438,7 +2496,7 @@ public class Region {
     Location loc1 = getLocationFromTarget(t1);
     Location loc2 = getLocationFromTarget(t2);
     if (loc1 != null && loc2 != null) {
-      RobotDesktop r = getRobotForPoint("drag", loc1);
+      IRobot r = getRobotForPoint("drag", loc1);
       if (r == null) {
         return 0;
       }
@@ -2469,7 +2527,7 @@ public class Region {
           throws FindFailed {
     Location loc = getLocationFromTarget(target);
     if (loc != null) {
-      RobotDesktop r = getRobotForPoint("drag", loc);
+      IRobot r = getRobotForPoint("drag", loc);
       if (r == null) {
         return 0;
       }
@@ -2494,7 +2552,7 @@ public class Region {
           throws FindFailed {
     Location loc = getLocationFromTarget(target);
     if (loc != null) {
-      RobotDesktop r = getRobotForPoint("drop", loc);
+      IRobot r = getRobotForPoint("drop", loc);
       if (r == null) {
         return 0;
       }
@@ -2568,7 +2626,7 @@ public class Region {
           throws FindFailed {
     Location loc = getLocationFromTarget(target);
     if (loc != null) {
-      RobotDesktop r = getRobotForPoint("mousMove", loc);
+      IRobot r = getRobotForPoint("mouseMove", loc);
       if (r == null) {
         return 0;
       }
@@ -2589,7 +2647,7 @@ public class Region {
    */
   public int wheel(int direction, int steps) {
     for (int i = 0; i < steps; i++) {
-      RobotDesktop r = getRobotForRegion();
+      IRobot r = getRobotForRegion();
       r.mouseWheel(direction);
       r.delay(50);
     }
@@ -2671,6 +2729,92 @@ public class Region {
    */
   public void keyUp(String keys) {
     getRobotForRegion().keyUp(keys);
+  }
+  
+  public int write(String text) {
+    log(lvl, "write: " + text);
+    char c;
+    String token, tokenSave;
+    int k;
+    IRobot robot = getRobotForRegion();
+    int pause = 20 + (Settings.TypeDelay > 1 ? 1000 : (int) (Settings.TypeDelay * 1000));
+    Settings.TypeDelay = 0.0;
+    robot.typeStarts();
+    for (int i = 0; i < text.length(); i++) {
+      c = text.charAt(i);
+      token = null;
+      boolean isModifier = false;
+      if (c == '#') {
+        if (text.charAt(i + 1) == '#') {
+          log(3, "write at: %d: %s", i, c);
+          i += 1;
+          continue;
+        }
+        if (text.charAt(i + 2) == '+' || text.charAt(i + 2) == '-') {
+          token = text.substring(i, i + 3);
+          isModifier = true;
+        } else if (-1 < (k = text.indexOf('.', i))) {
+          if (k > -1) {
+            token = text.substring(i, k + 1);
+            if (token.length() > Key.keyMaxLength || token.substring(1).contains("#")) {
+              token = null;
+            }            
+          }
+        }
+      }
+      if (token == null) {
+        log(3, "%d: %s", i, c);
+      } else {
+        Integer key;
+        int repeat = 0;            
+        if (token.startsWith("W")) {
+          if (token.length() > 3) {
+            i += token.length() - 1;
+            int t = 0;
+            try {
+              t = Integer.parseInt(token.substring(1, token.length() - 1));
+            } catch (NumberFormatException ex) {
+            }
+            robot.delay(t);
+            continue;
+          }
+        }
+        tokenSave = token;
+        token = token.substring(0, 2) + ".";
+        if (Key.isRepeatable(token)) {
+          try {
+            repeat = Integer.parseInt(tokenSave.substring(2, tokenSave.length() - 1));
+          } catch (NumberFormatException ex) {
+            token = tokenSave;
+          }
+        }
+        if (null != (key = Key.toJavaKeyCodeFromText(token))) {
+          if (repeat > 0) {
+            log(3, "write: %d: Token: %s Repeating: %d", i, token, repeat);  
+          } else {
+            log(3, "write: %d: Token: %s", i, tokenSave);
+          }
+          i += tokenSave.length() - 1;
+          if (isModifier) {
+            if (tokenSave.endsWith("+")) {
+              robot.keyDown(key);
+            }
+            else {
+              robot.keyUp(key);
+            }
+          } else {
+            for (int n = 0; n < repeat; n++) {
+              robot.typeKey(key);
+            }
+          }
+          continue;
+        }
+      }
+      robot.typeChar(c, IRobot.KeyMode.PRESS_RELEASE);        
+    }
+    robot.typeEnds();
+    robot.waitForIdle();
+    return 0;
   }
 
   /**
@@ -2812,10 +2956,11 @@ public class Region {
         }
       }
       Debug.history(modText + "TYPE \"" + showText + "\"");
-      RobotDesktop r = getRobotForRegion();
-      //TODO TypeDelay add to API ??
-      int pause = 20 + (Settings.TypeDelay > 1 ? 1 : (int) (Settings.TypeDelay * 1000));
+      log(lvl, modText + "TYPE \"" + showText + "\"");
+      IRobot r = getRobotForRegion();
+      int pause = 20 + (Settings.TypeDelay > 1 ? 1000 : (int) (Settings.TypeDelay * 1000));
       Settings.TypeDelay = 0.0;
+      r.typeStarts();
       for (int i = 0; i < text.length(); i++) {
         r.pressModifiers(modifiers);
         //TODO allow symbolic keys as #NAME. (CUT, COPY, PASTE, (select) ALL, ...)
@@ -2823,11 +2968,20 @@ public class Region {
         r.releaseModifiers(modifiers);
         r.delay(pause);        
       }
+      r.typeEnds();
       r.waitForIdle();
       return 1;
     }
 
     return 0;
+  }
+  
+  /**
+   * time in milliseconds to delay between each character at next type only (max 1000)
+   * @param millisecs
+   */
+  public void delayType(int millisecs) {
+    Settings.TypeDelay = millisecs;
   }
 
   /**
@@ -2861,7 +3015,7 @@ public class Region {
     if (text != null) {
       App.setClipboard(text);
       int mod = Key.getHotkeyModifier();
-      RobotDesktop r = getRobotForRegion();
+      IRobot r = getRobotForRegion();
       r.keyDown(mod);
       r.keyDown(KeyEvent.VK_V);
       r.keyUp(KeyEvent.VK_V);
