@@ -8,6 +8,11 @@ package org.sikuli.script;
 
 import java.awt.Toolkit;
 import java.awt.event.KeyEvent;
+import java.net.URL;
+import java.util.HashMap;
+import java.util.Map;
+import org.sikuli.basics.Debug;
+import org.sikuli.basics.Image;
 import org.sikuli.basics.Settings;
 
 public class Key {
@@ -127,8 +132,72 @@ public class Key {
   public static final char C_DECIMAL = '\ue040'; // VK_DECIMAL
   public static final String CONTEXT = "\ue041";
   public static final char C_CONTEXT = '\ue041'; // VK_CONTEXT_MENU
+  public static final String NEXT = "\ue043";
+  public static final char C_NEXT = '\ue043'; // VK_CONTEXT_MENU
+  
+  public static final char cMax = '\ue050';
+  public static final char cMin = '\ue000';
+  public static int keyMaxLength;
 //</editor-fold>
 
+  private static Map<String, Integer> keyTexts = new HashMap<String, Integer>();
+
+  static {
+    String sKey;
+    keyMaxLength = 0;
+    for (char c = cMin; c < cMax; c++) {
+      sKey = toJavaKeyCodeText(c);
+      if (!sKey.equals(""+c)) {
+        keyTexts.put(sKey, toJavaKeyCode(c)[0]);
+        keyMaxLength = sKey.length() > keyMaxLength ? sKey.length() : keyMaxLength;
+      }
+    }
+    keyTexts.put("#ENTER.", toJavaKeyCode('\n')[0]);
+    keyTexts.put("#N.", toJavaKeyCode('\n')[0]);    
+    keyTexts.put("#BACK.", toJavaKeyCode('\b')[0]);
+    keyTexts.put("#B.", toJavaKeyCode('\b')[0]);
+    keyTexts.put("#TAB.", toJavaKeyCode('\t')[0]);
+    keyTexts.put("#T.", toJavaKeyCode('\t')[0]);
+    keyTexts.put("#X.", toJavaKeyCode(C_NEXT)[0]);
+    keyTexts.put("#ESC.", toJavaKeyCode(C_ESC)[0]);    
+    keyTexts.put("#U.", toJavaKeyCode(C_UP)[0]);    
+    keyTexts.put("#D.", toJavaKeyCode(C_DOWN)[0]);    
+    keyTexts.put("#L.", toJavaKeyCode(C_LEFT)[0]);    
+    keyTexts.put("#R.", toJavaKeyCode(C_RIGHT)[0]);    
+    keyTexts.put("#S.", toJavaKeyCode(C_SHIFT)[0]);    
+    keyTexts.put("#S+", toJavaKeyCode(C_SHIFT)[0]);    
+    keyTexts.put("#S-", toJavaKeyCode(C_SHIFT)[0]);    
+    keyTexts.put("#A.", toJavaKeyCode(C_ALT)[0]);    
+    keyTexts.put("#A+", toJavaKeyCode(C_ALT)[0]);    
+    keyTexts.put("#A-", toJavaKeyCode(C_ALT)[0]);    
+    keyTexts.put("#C.", toJavaKeyCode(C_CTRL)[0]);    
+    keyTexts.put("#C+", toJavaKeyCode(C_CTRL)[0]);    
+    keyTexts.put("#C-", toJavaKeyCode(C_CTRL)[0]);    
+    keyTexts.put("#M.", toJavaKeyCode(C_META)[0]);    
+    keyTexts.put("#M+", toJavaKeyCode(C_META)[0]);    
+    keyTexts.put("#M-", toJavaKeyCode(C_META)[0]); 
+    if (Debug.getDebugLevel() > 3) {
+      for (String k : keyTexts.keySet()) {
+        Debug.log(4, "Key: %s is: %s", k, KeyEvent.getKeyText(keyTexts.get(k)));
+      }
+    }
+  }
+  
+  public static boolean isRepeatable(String token) {
+    int key = toJavaKeyCodeFromText(token);
+    switch (key) {
+      case Key.C_UP: return true;
+      case Key.C_RIGHT: return true;
+      case Key.C_DOWN: return true;
+      case Key.C_LEFT: return true;
+      case Key.C_NEXT: return true;
+      case '\t': return true;
+      case '\n': return true;
+      case '\b': return true;
+    }
+    return false;
+  }
+  
   /**
    * Convert Sikuli Key to Java virtual key code
    */
@@ -314,6 +383,8 @@ public class Key {
       case Key.C_DECIMAL:   return new int[]{KeyEvent.VK_DECIMAL};
       case Key.C_CONTEXT:   return new int[]{KeyEvent.VK_CONTEXT_MENU};
       case Key.C_WIN:   return new int[]{KeyEvent.VK_WINDOWS};
+// tab in GUI
+      case Key.C_NEXT:   return new int[]{-KeyEvent.VK_TAB};
 
       default:
         throw new IllegalArgumentException("Cannot convert character " + key);
@@ -330,6 +401,7 @@ public class Key {
 //RETURN, BACKSPACE, TAB
       case '\b': return "#BACK.";
       case '\t': return "#TAB.";
+      case C_NEXT: return "#TAB.";
       case '\r': return "#ENTER.";
       case '\n': return "#ENTER.";
 //Cursor movement
@@ -337,8 +409,8 @@ public class Key {
       case Key.C_RIGHT: return "#RIGHT.";
       case Key.C_DOWN: return "#DOWN.";
       case Key.C_LEFT: return "#LEFT.";
-      case Key.C_PAGE_UP: return "#P_UP.";
-      case Key.C_PAGE_DOWN: return "#P_DOWN.";
+      case Key.C_PAGE_UP: return "#P-UP.";
+      case Key.C_PAGE_DOWN: return "#P-DOWN.";
       case Key.C_END: return "#END.";
       case Key.C_HOME: return "#HOME.";
       case Key.C_DELETE: return "#DEL";
@@ -367,6 +439,7 @@ public class Key {
 //Windows special
       case Key.C_PAUSE: return "#PAUSE.";
       case Key.C_PRINTSCREEN: return "#PRINTSCREEN.";
+      case Key.C_WIN:   return "#WIN.";
 //Num pad
       case Key.C_NUM0: return "#NUM0.";
       case Key.C_NUM1: return "#NUM1.";
@@ -386,13 +459,21 @@ public class Key {
       case Key.C_DIVIDE: return "#NDIV.";
       case Key.C_DECIMAL: return "#NDEC.";
       case Key.C_CONTEXT: return "#NCON.";
-      case Key.C_WIN:   return "#WIN.";
+//KeyModifiers        
+      case Key.C_SHIFT: return "#SHIFT.";
+      case Key.C_CTRL:  return "#CTRL.";
+      case Key.C_ALT:   return "#ALT.";
+      case Key.C_META:  return "#META.";
 
       default:
         return "" + key;
     }
   }
-
+  
+  public static int toJavaKeyCodeFromText(String key) {
+    return keyTexts.get(key);
+  }
+  
   protected static int convertModifiers(String mod) {
     int modNew = 0;
     char key;
