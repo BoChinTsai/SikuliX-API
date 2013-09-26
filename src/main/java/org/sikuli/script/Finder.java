@@ -52,7 +52,7 @@ public class Finder implements Iterator<Match> {
    * @param region search Region within image - topleft = (0,0)
    */
   public Finder(String imageFilename, Region region) throws IOException  {
-    String fname = new Image(imageFilename).getFilename();
+    String fname = Image.create(imageFilename).getFilename();
     _findInput.setSource(fname);
     _region = region;
   }
@@ -278,7 +278,7 @@ public class Finder implements Iterator<Match> {
   private String setTargetSmartly(FindInput fin, String target) {
     if (isImageFile(target)) {
       //assume it's a file first
-      String filename = new Image(target).getFilename();
+      String filename = Image.create(target).getFilename();
       if (filename != null) {
         fin.setTarget(TARGET_TYPE.IMAGE, filename);
         return filename;

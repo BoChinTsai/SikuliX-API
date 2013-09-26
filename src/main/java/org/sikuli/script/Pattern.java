@@ -58,7 +58,7 @@ public class Pattern {
 	 * @param imgpath
 	 */
 	public Pattern(String imgpath) {
-      image = Image.createImage(imgpath);
+      image = Image.create(imgpath);
   }
 
   /**
@@ -67,7 +67,7 @@ public class Pattern {
      */
 
 	public Pattern(URL url) {
-      image = Image.createImage(url);
+      image = Image.create(url);
 	}
 
   /**
@@ -104,7 +104,7 @@ public class Pattern {
    * @return the Pattern itself
    */
 	public Pattern setFilename(String fileName) {
-      image = new Image(fileName);
+      image = Image.create(fileName);
     return this;
   }
 
@@ -115,7 +115,7 @@ public class Pattern {
    * @return the Pattern itself
    */
 	public Pattern setFilename(URL fileURL) {
-      image = new Image(fileURL);
+      image = Image.create(fileURL);
     return this;
   }
 

@@ -123,7 +123,7 @@ public class SikuliEventManager {
       imgOK = null;
       if (ptn instanceof String) {
         imgOK = finder.find((String) ptn);
-        Image img = Image.createImage((String) ptn);
+        Image img = Image.create((String) ptn);
         if (img.isValid()) {
           imgOK = finder.find(img);
         } else if (img.isText()){
