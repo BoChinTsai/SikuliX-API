@@ -28,16 +28,16 @@ public class Screen extends Region implements EventObserver, IScreen {
 
   protected static GraphicsEnvironment genv = null;
   protected static GraphicsDevice[] gdevs;
-  protected RobotDesktop robot = null;
   protected static Screen[] screens;
   protected static int primaryScreen = -1;
+  private static int waitForScreenshot = 300;
+  protected IRobot robot = null;
   protected int curID = -1;
   protected int oldID = 0;
   protected GraphicsDevice curGD = null;
   protected boolean waitPrompt;
   protected OverlayCapturePrompt prompt;
   protected ScreenImage lastScreenImage = null;
-  private static int waitForScreenshot = 300;
 
   //<editor-fold defaultstate="collapsed" desc="Initialization">
   private static void initScreens() {
@@ -171,7 +171,7 @@ public class Screen extends Region implements EventObserver, IScreen {
    * {@inheritDoc}
    */
   @Override
-  protected void setScreen(Screen s) {
+  protected Region setScreen(Screen s) {
     throw new UnsupportedOperationException("The setScreen() method cannot be called from a Screen object.");
   }
 
@@ -272,7 +272,7 @@ public class Screen extends Region implements EventObserver, IScreen {
    * @param id
    * @return the AWT.Robot of the given screen, if id invalid the primary screen
    */
-  public static RobotDesktop getRobot(int id) {
+  public static IRobot getRobot(int id) {
     return getScreen(id).getRobot();
   }
 
@@ -298,7 +298,7 @@ public class Screen extends Region implements EventObserver, IScreen {
    * @return The Robot for this Screen
    */
   @Override
-  public RobotDesktop getRobot() {
+  public IRobot getRobot() {
     return robot;
   }
 
@@ -320,7 +320,7 @@ public class Screen extends Region implements EventObserver, IScreen {
   public Region newRegion(Location loc, int width, int height) {
     return Region.create(loc.copyTo(this), width, height);
   }
-
+  
   /**
    * creates a location on the current screen with the given point. The coordinate is translated to
    * the current screen from its relative position on the screen it would have been created

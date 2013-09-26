@@ -21,9 +21,14 @@ public interface IRobot {
    void pressModifiers(int modifiers);
    void releaseModifiers(int modifiers);
    void typeChar(char character, KeyMode mode);
+   void typeKey(int key);
+   void typeStarts();
+   void typeEnds();
    void mouseMove(int x, int y);
    void mouseDown(int buttons);
    void mouseUp(int buttons);
+   void clickStarts();
+   void clickEnds();   
    void smoothMove(Location dest);
    void smoothMove(Location src, Location dest, long ms);
    void mouseWheel(int wheelAmt);
@@ -37,6 +42,6 @@ public interface IRobot {
    /**
     *  Return the underlying device object (if any).
     */
-   Screen getScreen();
+   IScreen getScreen();
 }
 

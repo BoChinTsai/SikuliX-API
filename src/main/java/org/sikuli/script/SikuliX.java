@@ -6,6 +6,8 @@
  */
 package org.sikuli.script;
 
+import java.net.InetAddress;
+import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.List;
 import org.sikuli.basics.CommandArgs;
@@ -97,4 +99,33 @@ public class SikuliX {
     }
     return false;
   }
+  
+  public static int getPort(String p) {
+    int port;
+    int pDefault = 50000;
+    if (p != null) {
+      try {
+        port = Integer.parseInt(p);
+      } catch (NumberFormatException ex) {
+        return -1;
+      }
+    } else {
+      return pDefault;
+    }
+    if (port < 1024) {
+      port += pDefault;
+    }
+    return port;
+  }
+
+  public static String getAddress(String arg) {
+    try {
+      if (arg == null) {
+        return InetAddress.getLocalHost().getHostAddress();
+      }
+      return InetAddress.getByName(arg).getHostAddress();
+    } catch (UnknownHostException ex) {
+      return null;
+    }
+  }  
 }

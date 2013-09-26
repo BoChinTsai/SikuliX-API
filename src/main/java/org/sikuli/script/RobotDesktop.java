@@ -16,6 +16,8 @@ import java.awt.Robot;
 import java.awt.event.KeyEvent;
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class RobotDesktop extends Robot implements IRobot {
 
@@ -34,10 +36,10 @@ public class RobotDesktop extends Robot implements IRobot {
     super(screen.getGraphicsDevice());
     scr = screen;
   }
-
+  
   @Override
   public void smoothMove(Location dest) {
-    smoothMove(Screen.atMouse(), dest, (long) (Settings.MoveMouseDelay * 1000L));
+    smoothMove(Region.atMouse(), dest, (long) (Settings.MoveMouseDelay * 1000L));
   }
 
   @Override
@@ -87,6 +89,14 @@ public class RobotDesktop extends Robot implements IRobot {
     }
     waitForIdle();
   }
+  
+  @Override
+  public void clickStarts() {
+  }  
+
+  @Override
+  public void clickEnds() {    
+  }  
 
   @Override
   public void delay(int ms) {
@@ -236,11 +246,44 @@ public class RobotDesktop extends Robot implements IRobot {
             Key.toJavaKeyCode(character)[0]);
     doType(mode, Key.toJavaKeyCode(character));
   }
-
+  
+  @Override
+  public void typeKey(int key) {
+    if (Settings.isMac()) {
+      if (key == Key.toJavaKeyCodeFromText("#N.")) {
+        doType(KeyMode.PRESS_ONLY, Key.toJavaKeyCodeFromText("#C."));
+        doType(KeyMode.PRESS_RELEASE, key);
+        doType(KeyMode.RELEASE_ONLY, Key.toJavaKeyCodeFromText("#C."));
+      } else if (key == Key.toJavaKeyCodeFromText("#T.")) {
+        doType(KeyMode.PRESS_ONLY, Key.toJavaKeyCodeFromText("#C."));
+        doType(KeyMode.PRESS_ONLY, Key.toJavaKeyCodeFromText("#A."));
+        doType(KeyMode.PRESS_RELEASE, key);
+        doType(KeyMode.RELEASE_ONLY, Key.toJavaKeyCodeFromText("#A."));
+        doType(KeyMode.RELEASE_ONLY, Key.toJavaKeyCodeFromText("#C."));
+      } else if (key == Key.toJavaKeyCodeFromText("#X.")) {
+        key = Key.toJavaKeyCodeFromText("#T.");
+        doType(KeyMode.PRESS_ONLY, Key.toJavaKeyCodeFromText("#A."));
+        doType(KeyMode.PRESS_RELEASE, key);
+        doType(KeyMode.RELEASE_ONLY, Key.toJavaKeyCodeFromText("#A."));
+      }
+    } else {
+      doType(KeyMode.PRESS_RELEASE, key);
+    }
+    Debug.log(3, "Robot: doType: %s ( %d )", KeyEvent.getKeyText(key), key);
+  }
+  
+  @Override
+  public void typeStarts() { }
+    
+  @Override
+  public void typeEnds() { 
+  }
+    
   @Override
   public void cleanup() {
     HotkeyManager.getInstance().cleanUp();
     keyUp();
+    mouseUp(0);
   }
 
 
