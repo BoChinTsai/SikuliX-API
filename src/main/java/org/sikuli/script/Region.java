@@ -39,7 +39,7 @@ public class Region {
    * The Screen containing the Region
    */
   private Screen scr;
-  private boolean isRemoteScreen = false;;
+  private boolean otherScreen = false;;
   
   /**
    * The ScreenHighlighter for this Region
@@ -149,7 +149,7 @@ public class Region {
     Rectangle rect, screenRect;
     Screen screen, screenOn;
     if (scr != null) {
-      if (scr.isRemote()) {
+      if (scr.isOtherScreen()) {
         if (x < 0) {
           w = w + x;
           x = 0;
@@ -159,7 +159,7 @@ public class Region {
           y = 0;
         }
         this.scr = scr;
-        this.isRemoteScreen = true;
+        this.otherScreen = true;
         return;
       }
       if (scr.getID() > -1) {
@@ -205,25 +205,25 @@ public class Region {
   }
 
   private Location addRemote(Location loc) {
-    if (!isRemote()) {
+    if (!isOtherScreen()) {
       return loc;
     }
-    return loc.setRemoteScreen(scr);
+    return loc.setOtherScreen(scr);
   }
 
   private Region addRemote(Region reg) {
-    if (!isRemote()) {
+    if (!isOtherScreen()) {
       return reg;
     }
     return reg.setScreen(scr);
   }
 
-  public boolean isRemote() {
-    return isRemoteScreen;
+  public boolean isOtherScreen() {
+    return otherScreen;
   }
 
-  public void setRemoteScreen() {
-    isRemoteScreen = true;
+  public void setOtherScreen() {
+    otherScreen = true;
   }
   
   /**
@@ -683,7 +683,7 @@ public class Region {
       Debug.error("Point %s outside any screen not useable for %s", loc, action);
       return null;
     }
-    if (!getScreen().isRemote()) {
+    if (!getScreen().isOtherScreen()) {
       getScreen().showTarget(loc);
     }
     return getScreen().getRobot();    
@@ -1537,7 +1537,7 @@ public class Region {
    * @param toEnable set overlay enabled or disabled
    */
   private Region highlight(boolean toEnable) {
-    if (isRemote()) {
+    if (isOtherScreen()) {
       return this;
     }
     Debug.history("toggle highlight " + toString() + ": " + toEnable);
@@ -1561,7 +1561,7 @@ public class Region {
    * @return the region itself
    */
   public Region highlight(float secs) {
-    if (isRemote()) {
+    if (isOtherScreen()) {
       return this;
     }
     if (secs < 0.1) {
@@ -1582,7 +1582,7 @@ public class Region {
    * @return
    */
   public Region highlight(int secs) {
-    if (isRemote()) {
+    if (isOtherScreen()) {
       return this;
     }
     if (secs > 0) {
@@ -2099,18 +2099,18 @@ public class Region {
     if (target instanceof Pattern || target instanceof String || target instanceof Image) {
       Match m = find(target);
       if (m != null) {
-        return m.getTarget().setRemoteScreen(scr);
+        return m.getTarget().setOtherScreen(scr);
       }
       return null;
     }
     if (target instanceof Match) {
-      return ((Match) target).getTarget().setRemoteScreen(scr);
+      return ((Match) target).getTarget().setOtherScreen(scr);
     }
     if (target instanceof Region) {
-      return ((Region) target).getCenter().setRemoteScreen(scr);
+      return ((Region) target).getCenter().setOtherScreen(scr);
     }
     if (target instanceof Location) {
-      return ((Location) target).setRemoteScreen(scr);
+      return ((Location) target).setOtherScreen(scr);
     }
     return null;
   }

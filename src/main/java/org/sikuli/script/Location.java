@@ -20,7 +20,7 @@ public class Location {
   
   public int x;
   public int y;
-  private Screen remoteScreen = null;
+  private Screen otherScreen = null;
 
   /**
    * to allow calculated x and y that might not be integers
@@ -50,8 +50,8 @@ public class Location {
   public Location(Location loc) {
     x = loc.x;
     y = loc.y;
-    if (loc.isOther()) {
-      remoteScreen = loc.getScreen();
+    if (loc.isOtherScreen()) {
+      otherScreen = loc.getScreen();
     }
   }
 
@@ -108,8 +108,8 @@ public class Location {
     */
   public Screen getScreen() {
     Rectangle r;
-    if (remoteScreen != null) {
-      return remoteScreen;
+    if (otherScreen != null) {
+      return otherScreen;
     }
     for (int i = 0; i < Screen.getNumberScreens(); i++) {
       r = Screen.getScreen(i).getBounds();
@@ -121,18 +121,18 @@ public class Location {
     return null;
   }
   
-  public Location setRemoteScreen(Screen scr) {
-    remoteScreen = scr;
+  public Location setOtherScreen(Screen scr) {
+    otherScreen = scr;
     return this;
   }
   
-  public boolean isOther() {
-    return (remoteScreen != null);
+  public boolean isOtherScreen() {
+    return (otherScreen != null);
   }
   
   private Location setOtherScreen(Location loc) {
-    if (loc.isOther()) {
-      setRemoteScreen(loc.getScreen());
+    if (loc.isOtherScreen()) {
+      setOtherScreen(loc.getScreen());
     }
     return this;
   }

@@ -35,7 +35,7 @@ public class ScreenRemote extends Screen implements IScreen{
   private void init(String adr, String p) {
     socketValid = true;
     rrobot = null;
-    setRemoteScreen();
+    setOtherScreen();
     String ip = SikuliX.getAddress(adr);
     int port = SikuliX.getPort(p);
     if (ip == null || port < 0) {
@@ -154,11 +154,11 @@ public class ScreenRemote extends Screen implements IScreen{
   
   @Override
   public Location newLocation(Location loc) {
-    return loc.setRemoteScreen(this);
+    return loc.setOtherScreen(this);
   }
 
   public Location newLocation(int x, int y) {
-    return new Location(x, y).setRemoteScreen(this);
+    return new Location(x, y).setOtherScreen(this);
   }
   
   @Override
@@ -181,7 +181,7 @@ public class ScreenRemote extends Screen implements IScreen{
   public Location mousePointer() {
     Location loc = rrobot.mousePointer();
     if (loc != null) {
-      return loc.setRemoteScreen(this);
+      return loc.setOtherScreen(this);
     } else {
       return null;
     }
