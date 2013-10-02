@@ -16,8 +16,6 @@ import java.awt.Robot;
 import java.awt.event.KeyEvent;
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 public class RobotDesktop extends Robot implements IRobot {
 
@@ -245,31 +243,34 @@ public class RobotDesktop extends Robot implements IRobot {
             KeyEvent.getKeyText(Key.toJavaKeyCode(character)[0]).toString(), 
             Key.toJavaKeyCode(character)[0]);
     doType(mode, Key.toJavaKeyCode(character));
+    waitForIdle();
   }
   
   @Override
   public void typeKey(int key) {
+    Debug.log(3, "Robot: doType: %s ( %d )", KeyEvent.getKeyText(key), key);
     if (Settings.isMac()) {
       if (key == Key.toJavaKeyCodeFromText("#N.")) {
         doType(KeyMode.PRESS_ONLY, Key.toJavaKeyCodeFromText("#C."));
         doType(KeyMode.PRESS_RELEASE, key);
         doType(KeyMode.RELEASE_ONLY, Key.toJavaKeyCodeFromText("#C."));
+        return;
       } else if (key == Key.toJavaKeyCodeFromText("#T.")) {
         doType(KeyMode.PRESS_ONLY, Key.toJavaKeyCodeFromText("#C."));
         doType(KeyMode.PRESS_ONLY, Key.toJavaKeyCodeFromText("#A."));
         doType(KeyMode.PRESS_RELEASE, key);
         doType(KeyMode.RELEASE_ONLY, Key.toJavaKeyCodeFromText("#A."));
         doType(KeyMode.RELEASE_ONLY, Key.toJavaKeyCodeFromText("#C."));
+        return;
       } else if (key == Key.toJavaKeyCodeFromText("#X.")) {
         key = Key.toJavaKeyCodeFromText("#T.");
         doType(KeyMode.PRESS_ONLY, Key.toJavaKeyCodeFromText("#A."));
         doType(KeyMode.PRESS_RELEASE, key);
         doType(KeyMode.RELEASE_ONLY, Key.toJavaKeyCodeFromText("#A."));
-      }
-    } else {
-      doType(KeyMode.PRESS_RELEASE, key);
+        return;
+      } 
     }
-    Debug.log(3, "Robot: doType: %s ( %d )", KeyEvent.getKeyText(key), key);
+    doType(KeyMode.PRESS_RELEASE, key);
   }
   
   @Override
