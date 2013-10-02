@@ -12,6 +12,7 @@ import java.util.ArrayList;
 import java.util.List;
 import org.sikuli.basics.CommandArgs;
 import org.sikuli.basics.Debug;
+import org.sikuli.basics.Settings;
 import org.sikuli.basics.SikuliScript;
 
 /**
@@ -49,7 +50,18 @@ public class SikuliX {
    * @param args
    */
   public static void main(String[] args) {
-    SikuliScript.main(args);
+    if (args.length == 1 && "KeyBoardSetup".equals(args[0])) {
+      try {
+        Settings.InfoLogs = false;
+        Settings.ActionLogs = false;
+        Key.keyBoardSetup();
+      } catch (Exception ex) {
+        Debug.error("KeyBoardSetup: " + ex.getMessage());
+      }
+      System.exit(0);
+    } else {
+      SikuliScript.main(args);
+    }
   }
 
   public static void endNormal(int n) {
