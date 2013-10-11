@@ -6,6 +6,7 @@ import java.io.ObjectInputStream;
 import java.io.OutputStreamWriter;
 import java.net.Socket;
 import org.sikuli.basics.Debug;
+import org.sikuli.basics.FileManager;
 
 public class ScreenRemote extends Screen implements IScreen{
 
@@ -36,8 +37,8 @@ public class ScreenRemote extends Screen implements IScreen{
     socketValid = true;
     rrobot = null;
     setOtherScreen();
-    String ip = SikuliX.getAddress(adr);
-    int port = SikuliX.getPort(p);
+    String ip = FileManager.getAddress(adr);
+    int port = FileManager.getPort(p);
     if (ip == null || port < 0) {
       log(-1, "fatal: not valid: " + adr + " / " + p);
       System.exit(1);
