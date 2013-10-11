@@ -12,6 +12,7 @@ import java.util.ArrayList;
 import java.util.List;
 import org.sikuli.basics.CommandArgs;
 import org.sikuli.basics.Debug;
+import org.sikuli.basics.Image;
 import org.sikuli.basics.Settings;
 import org.sikuli.basics.SikuliScript;
 
@@ -103,41 +104,13 @@ public class SikuliX {
 
   public static boolean testSetup() {
     Region r = Region.create(0, 0, 100, 100);
-    Pattern p = new Pattern(r.getScreen().capture(r));
-    Finder f = new Finder(p.getBImage());
-    if (null != f.find(p)) {
+    Image img = new Image(r.getScreen().capture(r).getImage());
+    Pattern p = new Pattern(img);
+    Finder f = new Finder(img);
+    if (null != f.find(p) && f.hasNext()) {
       SikuliScript.popup("Hallo from Java-API.testSetup\nSikuli seems to be working fine!\n\nHave fun!");
       return true;
     }
     return false;
   }
-  
-  public static int getPort(String p) {
-    int port;
-    int pDefault = 50000;
-    if (p != null) {
-      try {
-        port = Integer.parseInt(p);
-      } catch (NumberFormatException ex) {
-        return -1;
-      }
-    } else {
-      return pDefault;
-    }
-    if (port < 1024) {
-      port += pDefault;
-    }
-    return port;
-  }
-
-  public static String getAddress(String arg) {
-    try {
-      if (arg == null) {
-        return InetAddress.getLocalHost().getHostAddress();
-      }
-      return InetAddress.getByName(arg).getHostAddress();
-    } catch (UnknownHostException ex) {
-      return null;
-    }
-  }  
 }
