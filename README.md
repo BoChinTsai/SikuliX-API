@@ -17,14 +17,7 @@ Hava a look at the Java docs:
 <br /><br />
 This repo is **fully Maven**, so a fork of this repo can be directly used as project in NetBeans/Eclipse/... or with mvn on commandline.<br />
 [A more detailed info on usage, contents and production of standalone runnable packages](https://github.com/RaiMan/SikuliX-API/wiki/Maven-support)
-
-It produces a lightweight **sikulix-api.jar**, that only contains the Sikuli Java API and is intended for use in pure Java or in Java aware scripting and testing environments while developing in IDEs using Maven (depends on and needs [Sikuli Basics](https://github.com/RaiMan/SikuliX-Basics) )
-
-At runtime in pure Java or in Java aware scripting and testing environments as well when using standalone Jython you need the **sikuli-java.jar** in class path (contains [Sikuli Basics](https://github.com/RaiMan/SikuliX-Basics)). <br />It can be produced using <br />*mvn -f pom_make_sikulix-java-jar.xml clean package assembly:single* <br />having a valid [Sikuli Basics](https://github.com/RaiMan/SikuliX-Basics) in your local repo.
-
-To run Sikuli scripts from commandline in any of the supported scripting languages you need the **sikuli-script.jar** (currently only Jython supported).It contains [Sikuli Basics](https://github.com/RaiMan/SikuliX-Basics), [Sikuli Jython](https://github.com/RaiMan/SikuliX-Jython) and a complete Jython 2.5.4.<br />
-It can be produced using <br />*mvn -f pom_make_sikuli-script-jar.xml clean package assembly:single* <br />having the mentioned dependencies in your local repo.<br />
-
+<br /><br />
 **If new to Sikuli**, you might aternatively be interested in the pure Java implementation, which is to some extent feature compatible, but not API compatible: [Sikuli Java API](http://code.google.com/p/sikuli-api).
 <br /><br />
 **Roadmap**
