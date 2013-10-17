@@ -20,9 +20,9 @@ This repo is **fully Maven**, so a fork of this repo can be directly used as pro
 [A more detailed info on usage, contents and production of standalone runnable packages](https://github.com/RaiMan/SikuliX-API/wiki/Maven-support)
 <br /><br />
 **Roadmap**
-  - **2013 December 15:** release of Sikuli API 1.1
+ - **2013 December 15:** release of Sikuli API 1.1
   - new features tbd.
-<br /><br />
+<br />
  - **2014:** new versions in June and December
 
 **History**
