@@ -18,28 +18,14 @@ Hava a look at the Java docs:
 This repo is **fully Maven**, so a fork of this repo can be directly used as project in NetBeans/Eclipse/... or with mvn on commandline.<br />
 [A more detailed info on usage, contents and production of standalone runnable packages](https://github.com/RaiMan/SikuliX-API/wiki/Maven-support)
 <br /><br />
-**If new to Sikuli**, you might aternatively be interested in the pure Java implementation, which is to some extent feature compatible, but not API compatible: [Sikuli Java API](http://code.google.com/p/sikuli-api).
-<br /><br />
 **Roadmap**
- - **2013 August 12:** release of service update Sikuli API 1.0.1
-  - bug fixes and smaller enhancements 
-<br /><br />
- - **2013 August:** open a developement branch for Sikuli API 1.1
-  - isolate the script running feature (already in 1.0.1) to allow more scripting languages (e.g. JRuby)
-  - bug fixes and more enhancements tbd.
-<br /><br />
- - **2013 November 29:** release of Sikuli API 1.1
-  - merge branch develop into branch master
-  - open a developement branch for Sikuli API 1.2
-  - use existing Java wrappers for OpenCV (javacv) and Tesseract (Tes4J) alternatively
+  - **2013 December 15:** release of Sikuli API 1.1
   - new features tbd.
 <br /><br />
- - **2014:** new versions in May and November
+ - **2014:** new versions in June and December
 
 **History**
  - this is based on the developement at MIT (Tsung-Hsiang Chang (Sean aka vgod) and Tom Yeh) which was discontinued end 2011 (https://github.com/sikuli/sikuli) with a latest version called Sikuli X-1.0r930.
- - and the [follow up repo](https://github.com/RaiMan/Sikuli12.11), where I prepared the creation of a final version 1.0
- - in April 2013 I decided, to divide Sikuli into the 2 packages [Sikuli IDE](https://github.com/RaiMan/SikuliX-IDE) and Sikuli API (this repo), to better support future contributions.
 
 **Support**
  - until otherwise noted: [questions, requests and bugs can still be posted here](https://answers.launchpad.net/sikuli)
