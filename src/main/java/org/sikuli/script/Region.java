@@ -1986,7 +1986,7 @@ public class Region {
     // throws Exception if any unexpected error occurs
     boolean repeat(double timeout) throws Exception {
       int MaxTimePerScan = (int) (1000.0 / waitScanRate);
-      int timeoutMilli = (int) timeout * 1000;
+      int timeoutMilli = (int) (timeout * 1000);
       long begin_t = (new Date()).getTime();
       do {
         long before_find = (new Date()).getTime();
