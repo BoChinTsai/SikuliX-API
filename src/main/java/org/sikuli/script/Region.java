@@ -1985,21 +1985,18 @@ public class Region {
     // return FALSE if otherwise
     // throws Exception if any unexpected error occurs
     boolean repeat(double timeout) throws Exception {
-
       int MaxTimePerScan = (int) (1000.0 / waitScanRate);
-      int MaxTimePerScanSecs = MaxTimePerScan / 1000;
+      int timeoutMilli = (int) timeout * 1000;
       long begin_t = (new Date()).getTime();
       do {
         long before_find = (new Date()).getTime();
-
         run();
         if (ifSuccessful()) {
           return true;
-        } else if (timeout < MaxTimePerScanSecs) {
+        } else if (timeoutMilli < MaxTimePerScan) {
           // instant return on first search failed if timeout very small or 0
           return false;
         }
-
         long after_find = (new Date()).getTime();
         if (after_find - before_find < MaxTimePerScan) {
           getRobotForRegion().delay((int) (MaxTimePerScan - (after_find - before_find)));
@@ -2007,7 +2004,6 @@ public class Region {
           getRobotForRegion().delay(10);
         }
       } while (begin_t + timeout * 1000 > (new Date()).getTime());
-
       return false;
     }
   }
