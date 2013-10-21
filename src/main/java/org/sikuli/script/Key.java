@@ -16,8 +16,6 @@ import javax.swing.ImageIcon;
 import javax.swing.JFrame;
 import static javax.swing.WindowConstants.DISPOSE_ON_CLOSE;
 import org.sikuli.basics.Debug;
-import org.sikuli.basics.Image;
-import org.sikuli.basics.ImagePath;
 import org.sikuli.basics.KeyBoardSetupWindow;
 import org.sikuli.basics.Settings;
 

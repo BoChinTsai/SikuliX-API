@@ -6,8 +6,6 @@
  */
 package org.sikuli.script;
 
-import org.sikuli.basics.Image;
-import org.sikuli.basics.ImageLocator;
 import java.awt.MouseInfo;
 import java.awt.Point;
 import java.awt.Rectangle;

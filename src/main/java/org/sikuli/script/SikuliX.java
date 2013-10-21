@@ -12,7 +12,6 @@ import java.util.ArrayList;
 import java.util.List;
 import org.sikuli.basics.CommandArgs;
 import org.sikuli.basics.Debug;
-import org.sikuli.basics.Image;
 import org.sikuli.basics.Settings;
 import org.sikuli.basics.SikuliScript;
 
