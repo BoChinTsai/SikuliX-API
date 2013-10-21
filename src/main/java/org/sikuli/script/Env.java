@@ -10,9 +10,9 @@ import java.awt.*;
 import org.sikuli.basics.HotkeyListener;
 import org.sikuli.basics.HotkeyManager;
 import org.sikuli.basics.OS;
-import org.sikuli.basics.OSUtil;
+import org.sikuli.natives.OSUtil;
 import org.sikuli.basics.Settings;
-import org.sikuli.basics.SysUtil;
+import org.sikuli.natives.SysUtil;
 
 /**
  * features moved to other classes, details below with the methods

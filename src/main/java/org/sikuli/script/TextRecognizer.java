@@ -13,11 +13,11 @@ import java.awt.image.*;
 import java.io.*;
 import java.util.LinkedList;
 import java.util.List;
-import org.sikuli.basics.proxies.Mat;
-import org.sikuli.basics.proxies.OCRWord;
-import org.sikuli.basics.proxies.OCRWords;
-import org.sikuli.basics.proxies.OpenCV;
-import org.sikuli.basics.proxies.Vision;
+import org.sikuli.natives.Mat;
+import org.sikuli.natives.OCRWord;
+import org.sikuli.natives.OCRWords;
+import org.sikuli.natives.OpenCV;
+import org.sikuli.natives.Vision;
 
 // Singleton
 public class TextRecognizer {

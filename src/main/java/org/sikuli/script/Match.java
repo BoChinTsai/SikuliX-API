@@ -6,11 +6,9 @@
  */
 package org.sikuli.script;
 
-import org.sikuli.basics.Image;
-import org.sikuli.basics.ImageLocator;
 import org.sikuli.basics.Settings;
 import java.awt.image.BufferedImage;
-import org.sikuli.basics.proxies.FindResult;
+import org.sikuli.natives.FindResult;
 
 /**
  * holds the result of a find operation, is itself the region on the screen,

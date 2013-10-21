@@ -11,8 +11,7 @@ import org.sikuli.basics.Debug;
 import java.awt.*;
 import java.awt.event.*;
 import java.awt.image.*;
-import java.util.Date;
-import org.sikuli.basics.SysUtil;
+import org.sikuli.natives.SysUtil;
 
 public class OverlayCapturePrompt extends OverlayTransparentWindow implements EventSubject {
 

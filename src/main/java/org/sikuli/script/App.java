@@ -21,8 +21,8 @@ import java.io.Reader;
 import java.io.StringReader;
 import java.nio.ByteBuffer;
 import java.nio.CharBuffer;
-import org.sikuli.basics.OSUtil;
-import org.sikuli.basics.SysUtil;
+import org.sikuli.natives.OSUtil;
+import org.sikuli.natives.SysUtil;
 
 public class App {
 

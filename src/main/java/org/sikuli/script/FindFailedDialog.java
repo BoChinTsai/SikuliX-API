@@ -6,7 +6,6 @@
  */
 package org.sikuli.script;
 
-import org.sikuli.basics.ImageLocator;
 import java.awt.BorderLayout;
 import java.awt.Component;
 import java.awt.Image;

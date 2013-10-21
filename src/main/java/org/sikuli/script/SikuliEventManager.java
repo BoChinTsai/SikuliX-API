@@ -6,17 +6,16 @@
  */
 package org.sikuli.script;
 
-import org.sikuli.basics.Image;
 import org.sikuli.basics.Settings;
 import org.sikuli.basics.Debug;
 import java.awt.AWTException;
 import java.util.*;
-import org.sikuli.basics.proxies.FindInput;
-import org.sikuli.basics.proxies.FindResult;
-import org.sikuli.basics.proxies.FindResults;
-import org.sikuli.basics.proxies.Mat;
-import org.sikuli.basics.proxies.OpenCV;
-import org.sikuli.basics.proxies.Vision;
+import org.sikuli.natives.FindInput;
+import org.sikuli.natives.FindResult;
+import org.sikuli.natives.FindResults;
+import org.sikuli.natives.Mat;
+import org.sikuli.natives.OpenCV;
+import org.sikuli.natives.Vision;
 
 public class SikuliEventManager {
 
