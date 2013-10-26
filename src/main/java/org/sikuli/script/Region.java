@@ -1172,7 +1172,7 @@ public class Region {
    * @return
    */
   public ScreenImage getLastScreenImage() {
-    return getScreen().lastScreenImage;
+    return getScreen().getLastScreenImageFromScreen();
   }
 
   /**
@@ -1192,7 +1192,7 @@ public class Region {
    * @return the absolute file name
    */
   public String getLastScreenImageFile(String name) throws IOException {
-    return getScreen().lastScreenImage.getFile(ImageLocator.getBundlePath(), name);
+    return getScreen().getLastScreenImageFromScreen().getFile(ImageLocator.getBundlePath(), name);
   }
 
   /**
@@ -1202,7 +1202,7 @@ public class Region {
    * @return the absolute file name
    */
   public String getLastScreenImageFile(String path, String name) throws IOException {
-    return getScreen().lastScreenImage.getFile(path, name);
+    return getScreen().getLastScreenImageFromScreen().getFile(path, name);
   }
 
   //</editor-fold>

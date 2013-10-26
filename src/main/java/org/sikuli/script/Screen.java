@@ -37,7 +37,7 @@ public class Screen extends Region implements EventObserver, IScreen {
   protected GraphicsDevice curGD = null;
   protected boolean waitPrompt;
   protected OverlayCapturePrompt prompt;
-  protected ScreenImage lastScreenImage = null;
+  private ScreenImage lastScreenImage = null;
 
   //<editor-fold defaultstate="collapsed" desc="Initialization">
   private static void initScreens() {
@@ -321,6 +321,9 @@ public class Screen extends Region implements EventObserver, IScreen {
     return Region.create(loc.copyTo(this), width, height);
   }
   
+  protected ScreenImage getLastScreenImageFromScreen() {
+    return lastScreenImage;
+  }
   /**
    * creates a location on the current screen with the given point. The coordinate is translated to
    * the current screen from its relative position on the screen it would have been created
