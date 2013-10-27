@@ -96,7 +96,10 @@ public class Region {
   /**
    * The last found {@link Match}es in the Region
    */
-  private Iterator<Match> lastMatches;
+  private Iterator<Match> lastMatches = null;
+  
+  private long lastSearchTime;
+  private long lastFindTime;
 
   /**
    * {@inheritDoc}
@@ -1670,6 +1673,7 @@ public class Region {
     if (autoWaitTimeout > 0) {
       return wait(target, autoWaitTimeout);
     }
+    lastMatch = null;
     while (true) {
       try {
         lastMatch = doFind(target, null);
@@ -1697,6 +1701,7 @@ public class Region {
    * @throws FindFailed if the Find operation failed
    */
   public <PSI> Iterator<Match> findAll(PSI target) throws FindFailed {
+    lastMatches = null;
     while (true) {
       try {
         if (autoWaitTimeout > 0) {
@@ -1740,6 +1745,7 @@ public class Region {
    */
   public <PSI> Match wait(PSI target, double timeout) throws FindFailed {
     RepeatableFind rf;
+    lastMatch = null;
     while (true) {
       try {
         Debug.log(2, "waiting for " + target + " to appear");
@@ -1782,6 +1788,7 @@ public class Region {
    * @return the match (null if not found or image file missing)
    */
   public <PSI> Match exists(PSI target, double timeout) {
+    lastMatch = null;
     try {
       RepeatableFind rf = new RepeatableFind(target);
       if (rf.repeat(timeout)) {
@@ -1867,25 +1874,34 @@ public class Region {
 
   //<editor-fold defaultstate="collapsed" desc="find internal methods">
   /**
-   * Match findNow( Pattern/String/Image ) finds the given pattern on the
+   * Match doFind( Pattern/String/Image ) finds the given pattern on the
    * screen and returns the best match without waiting.
    */
   private <PSI> Match doFind(PSI ptn, RepeatableFind repeating) throws IOException {
-    Finder f;
-    ScreenImage simg = getScreen().capture(x, y, w, h);
+    Finder f = null;
+    Match m = null;
+    lastFindTime = (new Date()).getTime();
+    ScreenImage simg;
     if (repeating != null && repeating._finder != null) {
+      simg = getScreen().capture(x, y, w, h);
       f = repeating._finder;
       f.setScreenImage(simg);
       f.setRepeating();
+      lastSearchTime = (new Date()).getTime();
       f.findRepeat();
     } else {
-      f = new Finder(simg, this);
       Image img = null;
       if (ptn instanceof String) {
         img = Image.create((String) ptn);
         if (img.isValid()) {
-          f.find(img);
+          lastSearchTime = (new Date()).getTime();
+          f = checkLastSeen(img);
+          if (!f.hasNext()) {
+            f.find(img);
+          }
         } else if (img.isText()){
+          f = new Finder(getScreen().capture(x, y, w, h), this);
+          lastSearchTime = (new Date()).getTime();
           f.findText((String) ptn);
         } else {
           throw new IOException("Region: doFind: Image not loadable: " + (String) ptn);
@@ -1893,14 +1909,23 @@ public class Region {
       } else if (ptn instanceof Pattern) { 
         if (((Pattern) ptn).isValid()) {
           img = ((Pattern) ptn).getImage();
-          f.find((Pattern) ptn);
+          lastSearchTime = (new Date()).getTime();
+          f = checkLastSeen(img);
+          if (!f.hasNext()) {
+            f.find((Pattern) ptn);
+          }
         } else {
           throw new IOException("Region: doFind: Image not loadable: " + (String) ptn);
         }
       } else if (ptn instanceof Image) { 
         if (((Image) ptn).isValid()) {
           img = ((Image) ptn);
-          f.find((Image) ptn);
+          lastSearchTime = (new Date()).getTime();
+          f = checkLastSeen(img);
+          lastSearchTime = (new Date()).getTime();
+          if (!f.hasNext()) {
+            f.find(img);
+          }
         } else {
           throw new IOException("Region: doFind: Image not loadable: " + (String) ptn);
         }
@@ -1913,10 +1938,28 @@ public class Region {
         repeating._image = img;
       }
     }
+    lastSearchTime = (new Date()).getTime() - lastSearchTime;
+    lastFindTime = (new Date()).getTime() - lastFindTime;
     if (f.hasNext()) {
-      return f.next();
+      m = f.next();
+      m.setTimes(lastFindTime, lastSearchTime);
+    }    
+    return m;
+  }
+
+  private Finder checkLastSeen(Image img) {
+    if (Settings.CheckLastSeen && null != img.getLastSeen()) {
+      Region r = Region.create(img.getLastSeen());
+      if (this.contains(r)) {
+        Debug.log(3, "Region: checkLastSeen: true");
+        Finder f = new Finder(new Screen().capture(r), r);
+        f.find(new Pattern(img).similar(Settings.CheckLastSeenSimilar));
+        if (f.hasNext()) {
+          return f;
+        }
+      }
     }
-    return null;
+    return new Finder(getScreen().capture(x, y, w, h), this);
   }
 
   /**
