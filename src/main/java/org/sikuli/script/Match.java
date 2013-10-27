@@ -23,6 +23,13 @@ public class Match extends Region implements Comparable {
   private Location target = null;
   private Image image = null;
   private String ocrText = null;
+  private long lastSearchTime;
+  private long lastFindTime;
+  
+  public void setTimes(long ftime, long stime) {
+    lastFindTime = ftime;
+    lastSearchTime = stime;
+  }
 
   /**
    * create a copy of Match object<br />
@@ -89,6 +96,8 @@ public class Match extends Region implements Comparable {
     if (m.target != null) {
       target = new Location(m.target);
     }
+    lastFindTime = m.lastFindTime;
+    lastSearchTime = m.lastSearchTime;
   }
 
   /**
@@ -218,13 +227,14 @@ public class Match extends Region implements Comparable {
     String starget;
     Location c = getCenter();
     if (target != null && !c.equals(target)) {
-      starget = String.format("Target:%d,%d", target.x, target.y);
+      starget = String.format("T:%d,%d", target.x, target.y);
     } else {
-      starget = String.format("Center:%d,%d", c.x, c.y);
+      starget = String.format("C:%d,%d", c.x, c.y);
     }
-    return String.format("M[%d,%d %dx%d]@S(%s) S:%.2f %s", x, y, w, h,
+    String findTimes = String.format("[%d/%d msec]", lastFindTime, lastSearchTime);
+    return String.format("M[%d,%d %dx%d]@S(%s) S:%.2f %s %s", x, y, w, h,
               (getScreen()== null ? "?" : getScreen().toStringShort()),
-              simScore, starget);
+              simScore, starget, findTimes);
   }
 
   @Override
