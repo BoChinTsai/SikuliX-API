@@ -32,6 +32,12 @@ public class Finder implements Iterator<Match> {
   static {
     FileManager.loadLibrary("VisionProxy");
   }
+  
+  
+  /**
+   * Just to force library initialization
+   */
+  public Finder() {}
 
   /**
    * Finder constructor (finding within an image).
