@@ -19,15 +19,6 @@ import javax.swing.JDialog;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 
-//TODO:
-//- (done) close --> abort
-//- (done) keep the dialog box always on top
-//- (done) display target image
-//- display oversized target images at a proper scale
-//- beautify the layout
-//- (done) disable resizing
-//- ensure the dialog disappears before find is reattempted so that it won't find the
-//target image in the dialog box.
 class FindFailedDialog extends JDialog implements ActionListener {
 
 	JButton retryButton;
@@ -37,7 +28,6 @@ class FindFailedDialog extends JDialog implements ActionListener {
 
 	public <PatternString> FindFailedDialog(PatternString target) {
 		setModal(true);
-		//super(new Frame(),true);
 
 		JPanel panel = new JPanel();
 		panel.setLayout(new BorderLayout());
@@ -68,15 +58,11 @@ class FindFailedDialog extends JDialog implements ActionListener {
 
 
 		addWindowListener(new WindowAdapter() {
+      @Override
 			public void windowClosing(WindowEvent e) {
 				_response = FindFailedResponse.ABORT;
-				//dispose();
 			}
 		});
-
-		//pack(); // don't pack, doing so messes up AlwaysOnTop
-		//setLocationRelativeTo(null);
-
 	}
 
 	@Override
@@ -88,7 +74,7 @@ class FindFailedDialog extends JDialog implements ActionListener {
 		} else if (skipButton == e.getSource()) {
 			_response = FindFailedResponse.SKIP;
 		}
-		dispose();
+    dispose();
 	}
 
 	public FindFailedResponse getResponse() {
@@ -96,7 +82,7 @@ class FindFailedDialog extends JDialog implements ActionListener {
 	}
 
 	<PatternString> Component createTargetComponent(PatternString target) {
-		Image image = null;
+		org.sikuli.script.Image image = null;
 		JLabel c = null;
 		String targetTyp = "";
 		JPanel p;
@@ -104,9 +90,9 @@ class FindFailedDialog extends JDialog implements ActionListener {
 			Pattern pat = (Pattern) target;
 			targetTyp = "pattern";
 			target = (PatternString) pat.toString();
-			image = pat.getBImage();
+			image = pat.getImage();
 		} else if (target instanceof String) {
-			image = ImageLocator.getImage((String) target);
+			image = org.sikuli.script.Image.get((String) target);
 			if (image != null) {
 				targetTyp = "image";
 			} else {
@@ -120,9 +106,10 @@ class FindFailedDialog extends JDialog implements ActionListener {
 		p.setLayout(new BorderLayout());
 		JLabel iconLabel = new JLabel();
 		String rescale = "";
+    Image bimage = null;
 		if (image != null) {
-			int w = image.getWidth(this);
-			int h = image.getHeight(this);
+			int w = image.getBImage().getWidth(this);
+			int h = image.getBImage().getHeight(this);
 			if (w > 500) {
 				w = 500;
 				h = -h;
@@ -138,9 +125,9 @@ class FindFailedDialog extends JDialog implements ActionListener {
 				h = 300;
 				rescale = " (rescaled to 500x300)";
 			}
-			image = image.getScaledInstance(w, h, Image.SCALE_DEFAULT);
+			bimage = image.getBImage().getScaledInstance(w, h, Image.SCALE_DEFAULT);
 		}
-		iconLabel.setIcon(new ImageIcon(image));
+		iconLabel.setIcon(new ImageIcon(bimage));
 		c = new JLabel("Sikuli cannot find " + targetTyp + rescale + ".");
 		p.add(c, BorderLayout.PAGE_START);
 		p.add(new JLabel((String) target));
@@ -150,18 +137,16 @@ class FindFailedDialog extends JDialog implements ActionListener {
 
 	@Override
 	public void setVisible(boolean flag) {
-
 		if (flag) {
-			// These can not be called in the constructor.
-			// Doing so somehow made it impossible to keep
-			// the dialog always on top.
+//TODO Can not be called in the constructor (as JFRrame?)
+// Doing so somehow made it impossible to keep
+// the dialog always on top.
 			requestFocus();
 			setAlwaysOnTop(true);
 			pack();
 			setResizable(false);
 			setLocationRelativeTo(this);
 		}
-
 		super.setVisible(flag);
 	}
 }
