@@ -78,12 +78,14 @@ public class Screen extends Region implements EventObserver, IScreen {
       screens[is].initScreen();
     }
     primaryScreen = 0;
-    Debug.log(2, "Screen: initScreens: basic initialization (%d Screen(s) found)", gdevs.length);
-    Debug.log(3, "*** monitor configuration (primary: %d) ***", primaryScreen);
-    for (int i = 0; i < gdevs.length; i++) {
-      Debug.log(3, "Screen %d: %s", i, screens[i].toStringShort());
+    if (!reset) {
+      Debug.log(2, "Screen: initScreens: basic initialization (%d Screen(s) found)", gdevs.length);
+      Debug.log(3, "*** monitor configuration (primary: %d) ***", primaryScreen);
+      for (int i = 0; i < gdevs.length; i++) {
+        Debug.log(3, "Screen %d: %s", i, screens[i].toStringShort());
+      }
+      Debug.log(3, "*** end monitor configuration ***");
     }
-    Debug.log(3, "*** end monitor configuration ***");
   }
 
   // hack to get an additional internal constructor for the initialization
