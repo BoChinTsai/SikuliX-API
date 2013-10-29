@@ -148,11 +148,11 @@ class FindFailedDialog extends JDialog implements ActionListener {
 //TODO Can not be called in the constructor (as JFRrame?)
 // Doing so somehow made it impossible to keep
 // the dialog always on top.
-      requestFocus();
-      setAlwaysOnTop(true);
       pack();
+      setAlwaysOnTop(true);
       setResizable(false);
       setLocationRelativeTo(this);
+      requestFocus();
     }
     super.setVisible(flag);
   }
