@@ -21,132 +21,140 @@ import javax.swing.JPanel;
 
 class FindFailedDialog extends JDialog implements ActionListener {
 
-	JButton retryButton;
-	JButton skipButton;
-	JButton abortButton;
-	FindFailedResponse _response;
+  JButton retryButton;
+  JButton skipButton;
+  JButton abortButton;
+  FindFailedResponse _response;
+  boolean isCapture = false;
 
-	public <PatternString> FindFailedDialog(PatternString target) {
-		setModal(true);
+  public FindFailedDialog(Object target) {
+    init(target, false);
+  }
 
-		JPanel panel = new JPanel();
-		panel.setLayout(new BorderLayout());
+  public FindFailedDialog(Object target, boolean isCapture) {
+    init(target, isCapture);
+  }
 
-		Component targetComp = createTargetComponent(target);
-
-		panel.add(targetComp, BorderLayout.NORTH);
-
-		JPanel buttons = new JPanel();
-
-		retryButton = new JButton("Retry");
-		retryButton.addActionListener(this);
-
-		skipButton = new JButton("Skip");
-		skipButton.addActionListener(this);
-
-		abortButton = new JButton("Abort");
-		abortButton.addActionListener(this);
-
-		buttons.add(retryButton);
-		buttons.add(skipButton);
-		buttons.add(abortButton);
-
-		panel.add(buttons, BorderLayout.SOUTH);
-
-		add(panel);
-		setDefaultCloseOperation(DISPOSE_ON_CLOSE);
-
-
-		addWindowListener(new WindowAdapter() {
+  public void init(Object target, boolean isCapture) {
+    this.isCapture = isCapture;
+    setModal(true);
+    JPanel panel = new JPanel();
+    panel.setLayout(new BorderLayout());
+    Component targetComp = createTargetComponent(target);
+    panel.add(targetComp, BorderLayout.NORTH);
+    JPanel buttons = new JPanel();
+    String textRetry = "Retry";
+    if (isCapture) {
+      textRetry = "Capture";
+    }
+    retryButton = new JButton(textRetry);
+    retryButton.addActionListener(this);
+    skipButton = new JButton("Skip");
+    skipButton.addActionListener(this);
+    abortButton = new JButton("Abort");
+    abortButton.addActionListener(this);
+    buttons.add(retryButton);
+    buttons.add(skipButton);
+    buttons.add(abortButton);
+    panel.add(buttons, BorderLayout.SOUTH);
+    add(panel);
+    setDefaultCloseOperation(DISPOSE_ON_CLOSE);
+    addWindowListener(new WindowAdapter() {
       @Override
-			public void windowClosing(WindowEvent e) {
-				_response = FindFailedResponse.ABORT;
-			}
-		});
-	}
+      public void windowClosing(WindowEvent e) {
+        _response = FindFailedResponse.ABORT;
+      }
+    });
+  }
 
-	@Override
-	public void actionPerformed(ActionEvent e) {
-		if (retryButton == e.getSource()) {
-			_response = FindFailedResponse.RETRY;
-		} else if (abortButton == e.getSource()) {
-			_response = FindFailedResponse.ABORT;
-		} else if (skipButton == e.getSource()) {
-			_response = FindFailedResponse.SKIP;
-		}
+  @Override
+  public void actionPerformed(ActionEvent e) {
+    if (retryButton == e.getSource()) {
+      _response = FindFailedResponse.RETRY;
+    } else if (abortButton == e.getSource()) {
+      _response = FindFailedResponse.ABORT;
+    } else if (skipButton == e.getSource()) {
+      _response = FindFailedResponse.SKIP;
+    }
     dispose();
-	}
+  }
 
-	public FindFailedResponse getResponse() {
-		return _response;
-	}
+  public FindFailedResponse getResponse() {
+    return _response;
+  }
 
-	<PatternString> Component createTargetComponent(PatternString target) {
-		org.sikuli.script.Image image = null;
-		JLabel c = null;
-		String targetTyp = "";
-		JPanel p;
-		if (target instanceof Pattern) {
-			Pattern pat = (Pattern) target;
-			targetTyp = "pattern";
-			target = (PatternString) pat.toString();
-			image = pat.getImage();
-		} else if (target instanceof String) {
-			image = org.sikuli.script.Image.get((String) target);
-			if (image != null) {
-				targetTyp = "image";
-			} else {
-				c = new JLabel("Sikuli cannot find text:" + (String) target);
-				return c;
-			}
-		} else {
-			return null;
-		}
-		p = new JPanel();
-		p.setLayout(new BorderLayout());
-		JLabel iconLabel = new JLabel();
-		String rescale = "";
+  <PatternString> Component createTargetComponent(PatternString target) {
+    org.sikuli.script.Image image = null;
+    JLabel c = null;
+    String targetTyp = "";
+    JPanel p;
+    if (!isCapture) {
+      if (target instanceof Pattern) {
+        Pattern pat = (Pattern) target;
+        targetTyp = "pattern";
+        target = (PatternString) pat.toString();
+        image = pat.getImage();
+      } else if (target instanceof String) {
+        image = org.sikuli.script.Image.get((String) target);
+        if (image != null) {
+          targetTyp = "image";
+        } else {
+          c = new JLabel("Sikuli cannot find text:" + (String) target);
+          return c;
+        }
+      } else {
+        return null;
+      }
+    } else {
+      c = new JLabel("*****\nRequest to capture\n"
+              + "***\n" + (String) target + "\n*****");
+      return c;
+    }
+    p = new JPanel();
+    p.setLayout(new BorderLayout());
+    JLabel iconLabel = new JLabel();
+    String rescale = "";
     Image bimage = null;
-		if (image != null) {
-			int w = image.getBImage().getWidth(this);
-			int h = image.getBImage().getHeight(this);
-			if (w > 500) {
-				w = 500;
-				h = -h;
-				rescale = " (rescaled to 500x...)";
-			}
-			if (h > 300) {
-				h = 300;
-				w = -w;
-				rescale = " (rescaled to ...x300)";
-			}
-			if (h < 0 && w < 0) {
-				w = 500;
-				h = 300;
-				rescale = " (rescaled to 500x300)";
-			}
-			bimage = image.getBImage().getScaledInstance(w, h, Image.SCALE_DEFAULT);
-		}
-		iconLabel.setIcon(new ImageIcon(bimage));
-		c = new JLabel("Sikuli cannot find " + targetTyp + rescale + ".");
-		p.add(c, BorderLayout.PAGE_START);
-		p.add(new JLabel((String) target));
-		p.add(iconLabel, BorderLayout.PAGE_END);
-		return p;
-	}
+    if (image != null) {
+      int w = image.getBImage().getWidth(this);
+      int h = image.getBImage().getHeight(this);
+      if (w > 500) {
+        w = 500;
+        h = -h;
+        rescale = " (rescaled to 500x...)";
+      }
+      if (h > 300) {
+        h = 300;
+        w = -w;
+        rescale = " (rescaled to ...x300)";
+      }
+      if (h < 0 && w < 0) {
+        w = 500;
+        h = 300;
+        rescale = " (rescaled to 500x300)";
+      }
+      bimage = image.getBImage().getScaledInstance(w, h, Image.SCALE_DEFAULT);
+    }
+    iconLabel.setIcon(new ImageIcon(bimage));
+    c = new JLabel("Sikuli cannot find " + targetTyp + rescale + ".");
+    p.add(c, BorderLayout.PAGE_START);
+    p.add(new JLabel((String) target));
+    p.add(iconLabel, BorderLayout.PAGE_END);
+    return p;
+  }
 
-	@Override
-	public void setVisible(boolean flag) {
-		if (flag) {
+  @Override
+  public void setVisible(boolean flag) {
+    if (flag) {
 //TODO Can not be called in the constructor (as JFRrame?)
 // Doing so somehow made it impossible to keep
 // the dialog always on top.
-			requestFocus();
-			setAlwaysOnTop(true);
-			pack();
-			setResizable(false);
-			setLocationRelativeTo(this);
-		}
-		super.setVisible(flag);
-	}
+      requestFocus();
+      setAlwaysOnTop(true);
+      pack();
+      setResizable(false);
+      setLocationRelativeTo(this);
+    }
+    super.setVisible(flag);
+  }
 }
