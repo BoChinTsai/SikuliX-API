@@ -15,6 +15,8 @@ import java.io.IOException;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import org.sikuli.basics.Debug;
 import org.sikuli.basics.Settings;
 
@@ -24,7 +26,7 @@ import org.sikuli.basics.Settings;
  * @author RaiMan
  */
 public class Region {
-  
+
   private static String me = "Region";
   private static String mem = "";
   private static int lvl = 3;
@@ -32,12 +34,13 @@ public class Region {
   private static void log(int level, String message, Object... args) {
     Debug.logx(level, "", me + ": " + message, args);
   }
-  
+
   /**
    * The Screen containing the Region
    */
   private Screen scr;
-  private boolean otherScreen = false;;
+  private boolean otherScreen = false;
+  ;
   
   /**
    * The ScreenHighlighter for this Region
@@ -82,13 +85,15 @@ public class Region {
    * The {@link SikuliEventManager} Singleton instance
    */
   private SikuliEventManager evtMgr = null;
+
   public SikuliEventManager getEvtMgr() {
     return evtMgr;
   }
+
   public void setEvtMgr(SikuliEventManager em) {
-     evtMgr = em;
+    evtMgr = em;
   }
-  
+
   /**
    * The last found {@link Match} in the Region
    */
@@ -97,7 +102,7 @@ public class Region {
    * The last found {@link Match}es in the Region
    */
   private Iterator<Match> lastMatches = null;
-  
+
   private long lastSearchTime;
   private long lastFindTime;
 
@@ -117,31 +122,31 @@ public class Region {
 
   //<editor-fold defaultstate="collapsed" desc="OFF: Specials for scripting environment">
   /* 
-  public Object __enter__() {
-    Debug.error("Region: with(__enter__): Trying to make it a Jython Region for with: usage");
-    IScriptRunner runner = Settings.getScriptRunner("jython", null, null);
-    if (runner != null) {
-      Object[] jyreg = new Object[]{this};
-      if (runner.doSomethingSpecial("createRegionForWith", jyreg)) {
-        if (jyreg[0] != null) {
-          return jyreg[0];
-        }
-      }
-    }
-    Debug.error("Region: with(__enter__): Sorry, not possible");
-    return null;
-  }
+   public Object __enter__() {
+   Debug.error("Region: with(__enter__): Trying to make it a Jython Region for with: usage");
+   IScriptRunner runner = Settings.getScriptRunner("jython", null, null);
+   if (runner != null) {
+   Object[] jyreg = new Object[]{this};
+   if (runner.doSomethingSpecial("createRegionForWith", jyreg)) {
+   if (jyreg[0] != null) {
+   return jyreg[0];
+   }
+   }
+   }
+   Debug.error("Region: with(__enter__): Sorry, not possible");
+   return null;
+   }
 
-  public void __exit__(Object type, Object value, Object traceback) {
-    Debug.error("Region: with(__exit__): Sorry, not a Jython Region and not posssible!");
-  }
-  */
+   public void __exit__(Object type, Object value, Object traceback) {
+   Debug.error("Region: with(__exit__): Sorry, not a Jython Region and not posssible!");
+   }
+   */
   //</editor-fold>
-  
   //<editor-fold defaultstate="collapsed" desc="Initialization">
   /**
-   * Detects on which Screen the Region is present.
-   * The region is cropped to the intersection with the given screen or the screen with the largest intersection
+   * Detects on which Screen the Region is present. The region is cropped to the
+   * intersection with the given screen or the screen with the largest
+   * intersection
    *
    * @param scr The Screen containing the Region
    */
@@ -180,7 +185,7 @@ public class Region {
     }
     // check all possible screens if no screen was given or the region is not on given screen
     // crop to the screen with the largest intersection
-    screenRect = new Rectangle(0,0,0,0);
+    screenRect = new Rectangle(0, 0, 0, 0);
     screenOn = null;
     for (int i = 0; i < Screen.getNumberScreens(); i++) {
       screen = Screen.getScreen(i);
@@ -193,10 +198,10 @@ public class Region {
       }
     }
     if (screenOn != null) {
-        x = screenRect.x;
-        y = screenRect.y;
-        w = screenRect.width;
-        h = screenRect.height;
+      x = screenRect.x;
+      y = screenRect.y;
+      w = screenRect.width;
+      h = screenRect.height;
       this.scr = screenOn;
     } else {
       // no screen found
@@ -226,7 +231,7 @@ public class Region {
   public void setOtherScreen() {
     otherScreen = true;
   }
-  
+
   /**
    * Checks if the Screen contains the Region.
    *
@@ -315,7 +320,6 @@ public class Region {
   }
 
   //</editor-fold>
-  
   //<editor-fold defaultstate="collapsed" desc="Quasi-Constructors to be used in Java">
   /**
    * internal use only, used for new Screen objects to get the Region behavior
@@ -496,7 +500,6 @@ public class Region {
   }
 
   //</editor-fold>
-  
   //<editor-fold defaultstate="collapsed" desc="handle coordinates">
   /**
    * check if current region contains given point
@@ -620,7 +623,7 @@ public class Region {
   }
 
   /**
-   * 
+   *
    * @return the regions current WaitScanRate
    */
   public float getWaitScanRate() {
@@ -629,14 +632,15 @@ public class Region {
 
   /**
    * set the regions individual WaitScanRate
+   *
    * @param waitScanRate
    */
   public void setWaitScanRate(float waitScanRate) {
     this.waitScanRate = waitScanRate;
   }
-  
+
   /**
-   * 
+   *
    * @return the regions current ObserveScanRate
    */
   public float getObserveScanRate() {
@@ -645,6 +649,7 @@ public class Region {
 
   /**
    * set the regions individual ObserveScanRate
+   *
    * @param observeScanRate
    */
   public void setObserveScanRate(float observeScanRate) {
@@ -652,7 +657,7 @@ public class Region {
   }
 
   /**
-   * 
+   *
    * @return the regions current WaitForVaish time in seconds
    */
   public int getWaitForVanish() {
@@ -661,14 +666,14 @@ public class Region {
 
   /**
    * set the regions individual WaitForVanish
+   *
    * @param waitForVanish time in seconds
    */
   public void setWaitForVanish(int waitForVanish) {
     this.waitForVanish = waitForVanish;
   }
-  
-  //</editor-fold>
 
+  //</editor-fold>
   //<editor-fold defaultstate="collapsed" desc="getters / setters / modificators">
   /**
    *
@@ -677,7 +682,7 @@ public class Region {
   public Screen getScreen() {
     return scr;
   }
-  
+
   // to avoid NPE for points outside any screen
   private IRobot getRobotForPoint(String action, Location loc) {
     if (getScreen() == null) {
@@ -687,16 +692,16 @@ public class Region {
     if (!getScreen().isOtherScreen()) {
       getScreen().showTarget(loc);
     }
-    return getScreen().getRobot();    
-  } 
+    return getScreen().getRobot();
+  }
 
   // to avoid NPE for Regions being outside any screen
   private IRobot getRobotForRegion() {
     if (getScreen() == null) {
       return Screen.getPrimaryScreen().getRobot();
     }
-    return getScreen().getRobot();    
-  } 
+    return getScreen().getRobot();
+  }
 
   /**
    *
@@ -728,7 +733,7 @@ public class Region {
   protected Region setScreen(int id) {
     return setScreen(Screen.getScreen(id));
   }
-  
+
   /**
    * synonym for showMonitors
    */
@@ -751,7 +756,7 @@ public class Region {
   public Location getCenter() {
     return addRemote(new Location(x + w / 2, y + h / 2));
   }
-  
+
   /**
    * convenience method
    *
@@ -1209,7 +1214,6 @@ public class Region {
   }
 
   //</editor-fold>
-  
   //<editor-fold defaultstate="collapsed" desc="spatial operators - new regions">
   /**
    * check if current region contains given region
@@ -1633,16 +1637,46 @@ public class Region {
   }
 
   /**
-   * return false to skip return true to try again throw FindFailed to abort
+   * return false to skip <br />
+   * return true to try again <br />
+   * throw FindFailed to abort
    *
    * @param target Handles a failed find action
    * @return
    * @throws FindFailed
    */
   private <PSI> boolean handleFindFailed(PSI target) throws FindFailed {
+      return handleFindFailedShowDialog(target, false);
+  }
+
+  private <PSI> boolean handleFindFailedImageMissing(PSI target) {
+    boolean shouldHandle = false;
+    try {
+      shouldHandle = handleFindFailedShowDialog(target, true);
+    } catch (FindFailed ex) {
+      return false;
+    }
+    if (!shouldHandle) {
+      return false;
+    }
+    getRobotForRegion().delay(500);
+    ScreenImage img =  getScreen().userCapture("capture missing image");
+    if (img != null) {
+      String path = ImagePath.getBundlePath();
+      if (path == null) {
+        return false;
+      }
+      String imgName = (String) target;
+      img.getFile(path, imgName);
+      return true;
+    }
+    return false;
+  }
+  
+  private boolean handleFindFailedShowDialog(Object target, boolean shouldCapture) throws FindFailed {
     FindFailedResponse response;
     if (findFailedResponse == FindFailedResponse.PROMPT) {
-      FindFailedDialog fd = new FindFailedDialog(target);
+      FindFailedDialog fd = new FindFailedDialog(target, shouldCapture);
       fd.setVisible(true);
       response = fd.getResponse();
       fd.dispose();
@@ -1677,8 +1711,13 @@ public class Region {
     while (true) {
       try {
         lastMatch = doFind(target, null);
-      } catch (Exception e) {
-        throw new FindFailed(e.getMessage());
+      } catch (Exception ex) {
+        if (ex instanceof IOException) {
+          if (handleFindFailedImageMissing(target)) {
+            continue;
+          }
+        }
+        throw new FindFailed(ex.getMessage());
       }
       if (lastMatch != null) {
         lastMatch.setImage(getImage(target));
@@ -1692,9 +1731,9 @@ public class Region {
   }
 
   /**
-   * Iterator<Match> findAll( Pattern/String/Image ) finds the given
-   * pattern on the screen and returns the best match. If AutoWaitTimeout is
-   * set, this is equivalent to wait().
+   * Iterator<Match> findAll( Pattern/String/Image ) finds the given pattern on
+   * the screen and returns the best match. If AutoWaitTimeout is set, this is
+   * equivalent to wait().
    *
    * @param target A search criteria
    * @return All elements matching
@@ -1711,8 +1750,13 @@ public class Region {
         } else {
           lastMatches = doFindAll(target, null);
         }
-      } catch (Exception e) {
-        throw new FindFailed(e.getMessage());
+      } catch (Exception ex) {
+        if (ex instanceof IOException) {
+          if (handleFindFailedImageMissing(target)) {
+            continue;
+          }
+        }
+        throw new FindFailed(ex.getMessage());
       }
       if (lastMatches != null) {
         return lastMatches;
@@ -1735,8 +1779,8 @@ public class Region {
   }
 
   /**
-   * Match wait(Pattern/String/Image target, timeout-sec) waits until
-   * target appears or timeout (in second) is passed
+   * Match wait(Pattern/String/Image target, timeout-sec) waits until target
+   * appears or timeout (in second) is passed
    *
    * @param target A search criteria
    * @param timeout Timeout in seconds
@@ -1748,12 +1792,17 @@ public class Region {
     lastMatch = null;
     while (true) {
       try {
-        Debug.log(2, "waiting for " + target + " to appear");
+        log(2, "find: waiting for " + target + " to appear");
         rf = new RepeatableFind(target);
         rf.repeat(timeout);
         lastMatch = rf.getMatch();
-      } catch (Exception e) {
-        throw new FindFailed(e.getMessage());
+      } catch (Exception ex) {
+        if (ex instanceof IOException) {
+          if (handleFindFailedImageMissing(target)) {
+            continue;
+          }
+        }
+        throw new FindFailed(ex.getMessage());
       }
       if (lastMatch != null) {
         lastMatch.setImage(rf._image);
@@ -1761,7 +1810,7 @@ public class Region {
         log(lvl, "find: %s has appeared \nat %s", target, lastMatch);
         break;
       }
-      Debug.log(2, "" + target + " has not appeared.");
+      log(2, "find: " + target + " has not appeared.");
       if (!handleFindFailed(target)) {
         return null;
       }
@@ -1789,15 +1838,26 @@ public class Region {
    */
   public <PSI> Match exists(PSI target, double timeout) {
     lastMatch = null;
-    try {
-      RepeatableFind rf = new RepeatableFind(target);
-      if (rf.repeat(timeout)) {
-        lastMatch = rf.getMatch();
-        lastMatch.setImage(getImage(target));
-        getImage(target).setLastSeen(lastMatch.getRect());
-        return lastMatch;
+    while (true) {
+      try {
+        log(lvl, "exists: waiting for " + target + " to appear");
+        RepeatableFind rf = new RepeatableFind(target);
+        if (rf.repeat(timeout)) {
+          lastMatch = rf.getMatch();
+          lastMatch.setImage(getImage(target));
+          getImage(target).setLastSeen(lastMatch.getRect());
+          log(lvl, "exists: %s has appeared \nat %s", target, lastMatch);
+          return lastMatch;
+        }
+      } catch (Exception ex) {
+        if (ex instanceof IOException) {
+          if (!handleFindFailedImageMissing(target)) {
+            break;
+          }
+        }
       }
-    } catch (Exception ex) {  }
+    }
+    log(2, "exists: " + target + " has not appeared.");
     return null;
   }
 
@@ -1841,8 +1901,8 @@ public class Region {
   }
 
   /**
-   * boolean waitVanish(Pattern/String/Image target, timeout-sec) waits
-   * until target vanishes or timeout (in second) is passed
+   * boolean waitVanish(Pattern/String/Image target, timeout-sec) waits until
+   * target vanishes or timeout (in second) is passed
    *
    * @return true if the target vanishes, otherwise returns false.
    */
@@ -1851,31 +1911,40 @@ public class Region {
   }
 
   /**
-   * boolean waitVanish(Pattern/String/Image target, timeout-sec) waits
-   * until target vanishes or timeout (in second) is passed
+   * boolean waitVanish(Pattern/String/Image target, timeout-sec) waits until
+   * target vanishes or timeout (in second) is passed
    *
    * @return true if target vanishes, false otherwise and if imagefile is
    * missing.
    */
   public <PSI> boolean waitVanish(PSI target, double timeout) {
-    try {
-      Debug.log(2, "waiting for " + target + " to vanish");
-      RepeatableVanish r = new RepeatableVanish(target);
-      if (r.repeat(timeout)) {
-        Debug.log(2, "" + target + " has vanished");
-        return true;
+    while (true) {
+      try {
+        Debug.log(2, "waiting for " + target + " to vanish");
+        RepeatableVanish r = new RepeatableVanish(target);
+        if (r.repeat(timeout)) {
+          Debug.log(2, "" + target + " has vanished");
+          return true;
+        }
+        Debug.log(2, "" + target + " has not vanished before timeout");
+        return false;
+      } catch (Exception ex) {
+        if (ex instanceof IOException) {
+          if (handleFindFailedImageMissing(target)) {
+            continue;
+          }
+        }
+        break;
       }
-      Debug.log(2, "" + target + " has not vanished before timeout");
-      return false;
-    } catch (Exception e) { }
+    }
     return false;
   }
   //</editor-fold>
 
   //<editor-fold defaultstate="collapsed" desc="find internal methods">
   /**
-   * Match doFind( Pattern/String/Image ) finds the given pattern on the
-   * screen and returns the best match without waiting.
+   * Match doFind( Pattern/String/Image ) finds the given pattern on the screen
+   * and returns the best match without waiting.
    */
   private <PSI> Match doFind(PSI ptn, RepeatableFind repeating) throws IOException {
     Finder f = null;
@@ -1899,14 +1968,14 @@ public class Region {
           if (!f.hasNext()) {
             f.find(img);
           }
-        } else if (img.isText()){
+        } else if (img.isText()) {
           f = new Finder(getScreen().capture(x, y, w, h), this);
           lastSearchTime = (new Date()).getTime();
           f.findText((String) ptn);
         } else {
           throw new IOException("Region: doFind: Image not loadable: " + (String) ptn);
         }
-      } else if (ptn instanceof Pattern) { 
+      } else if (ptn instanceof Pattern) {
         if (((Pattern) ptn).isValid()) {
           img = ((Pattern) ptn).getImage();
           lastSearchTime = (new Date()).getTime();
@@ -1917,7 +1986,7 @@ public class Region {
         } else {
           throw new IOException("Region: doFind: Image not loadable: " + (String) ptn);
         }
-      } else if (ptn instanceof Image) { 
+      } else if (ptn instanceof Image) {
         if (((Image) ptn).isValid()) {
           img = ((Image) ptn);
           lastSearchTime = (new Date()).getTime();
@@ -1943,7 +2012,7 @@ public class Region {
     if (f.hasNext()) {
       m = f.next();
       m.setTimes(lastFindTime, lastSearchTime);
-    }    
+    }
     return m;
   }
 
@@ -1963,8 +2032,8 @@ public class Region {
   }
 
   /**
-   * Match findAllNow( Pattern/String/Image ) finds all the given pattern on
-   * the screen and returns the best matches without waiting.
+   * Match findAllNow( Pattern/String/Image ) finds all the given pattern on the
+   * screen and returns the best matches without waiting.
    */
   private <PSI> Iterator<Match> doFindAll(PSI ptn, RepeatableFindAll repeating) throws IOException {
     Finder f;
@@ -1981,19 +2050,19 @@ public class Region {
         img = Image.create((String) ptn);
         if (img.isValid()) {
           f.findAll(img);
-        } else if (img.isText()){
+        } else if (img.isText()) {
           f.findAllText((String) ptn);
         } else {
           throw new IOException("Region: doFind: Image not loadable: " + (String) ptn);
         }
-      } else if (ptn instanceof Pattern) { 
+      } else if (ptn instanceof Pattern) {
         if (((Pattern) ptn).isValid()) {
           img = ((Pattern) ptn).getImage();
           f.findAll((Pattern) ptn);
         } else {
           throw new IOException("Region: doFind: Image not loadable: " + (String) ptn);
         }
-      } else if (ptn instanceof Image) { 
+      } else if (ptn instanceof Image) {
         if (((Image) ptn).isValid()) {
           img = ((Image) ptn);
           f.findAll((Image) ptn);
@@ -2069,7 +2138,7 @@ public class Region {
 
     @Override
     public void run() throws IOException {
-      _match = doFind(_target, this); 
+      _match = doFind(_target, this);
     }
 
     @Override
@@ -2131,7 +2200,7 @@ public class Region {
     }
     return null;
   }
-  
+
   private <PatternStringRegionMatchLocation> Location getLocationFromTarget(PatternStringRegionMatchLocation target) throws FindFailed {
     if (target instanceof Pattern || target instanceof String || target instanceof Image) {
       Match m = find(target);
@@ -2164,7 +2233,7 @@ public class Region {
   public boolean isObserving() {
     return observing;
   }
-  
+
   public <PSI> void onAppear(PSI target, Object observer) {
     getEventManager().addAppearObserver(target, (SikuliEventObserver) observer);
   }
@@ -2184,7 +2253,7 @@ public class Region {
   public void observe() {
     observe(Float.POSITIVE_INFINITY);
   }
-  
+
   public void observe(double secs) {
 //TODO repeated observe, observe all, observe any
     if (evtMgr == null) {
@@ -2222,7 +2291,7 @@ public class Region {
     }
     if (observing) {
       observing = false;
-      Debug.log(2, "Region: observe: stopped due to timeout in " 
+      Debug.log(2, "Region: observe: stopped due to timeout in "
               + this.toStringShort() + " for " + secs + " seconds");
     } else {
       Debug.log(2, "Region: observe: observing has ended for " + this.toStringShort());
@@ -2242,16 +2311,19 @@ public class Region {
   }
 
   private class ObserverThread implements Runnable {
-    private double time;    
+
+    private double time;
+
     ObserverThread(double time) {
       this.time = time;
     }
+
     @Override
     public void run() {
       observe(time);
     }
   }
-  
+
   public void stopObserver() {
     Debug.log(2, "Region: observe: request to stop observer for " + this.toStringShort());
     observing = false;
@@ -2495,9 +2567,11 @@ public class Region {
     msg += " on " + loc;
     return msg;
   }
-  
+
   /**
-   * time in milliseconds to delay between button down/up at next click only (max 1000)
+   * time in milliseconds to delay between button down/up at next click only
+   * (max 1000)
+   *
    * @param millisecs
    */
   public void delayClick(int millisecs) {
@@ -2767,12 +2841,12 @@ public class Region {
   public void keyUp(String keys) {
     getRobotForRegion().keyUp(keys);
   }
-  
+
   public int write(String text) {
     log(lvl, "write: " + text);
     char c;
     String token, tokenSave;
-    String modifier = ""; 
+    String modifier = "";
     int k;
     IRobot robot = getRobotForRegion();
     int pause = 20 + (Settings.TypeDelay > 1 ? 1000 : (int) (Settings.TypeDelay * 1000));
@@ -2796,7 +2870,7 @@ public class Region {
             token = text.substring(i, k + 1);
             if (token.length() > Key.keyMaxLength || token.substring(1).contains("#")) {
               token = null;
-            }            
+            }
           }
         }
       }
@@ -2804,7 +2878,7 @@ public class Region {
         log(3, "%d: %s", i, c);
       } else {
         Integer key;
-        int repeat = 0;            
+        int repeat = 0;
         if (token.startsWith("#W")) {
           if (token.length() > 3) {
             i += token.length() - 1;
@@ -2827,12 +2901,12 @@ public class Region {
           }
         } else if (tokenSave.length() == 3 && Key.isModifier(tokenSave)) {
           i += tokenSave.length() - 1;
-          modifier += tokenSave.substring(1,2);
+          modifier += tokenSave.substring(1, 2);
           continue;
         }
         if (-1 < (key = Key.toJavaKeyCodeFromText(token))) {
           if (repeat > 0) {
-            log(3, "write: %d: Token: %s Repeating: %d", i, token, repeat);  
+            log(3, "write: %d: Token: %s Repeating: %d", i, token, repeat);
           } else {
             log(3, "write: %d: Token: %s", i, tokenSave);
             repeat = 1;
@@ -2841,8 +2915,7 @@ public class Region {
           if (isModifier) {
             if (tokenSave.endsWith("+")) {
               robot.keyDown(key);
-            }
-            else {
+            } else {
               robot.keyUp(key);
             }
           } else {
@@ -2855,21 +2928,21 @@ public class Region {
       }
       if (!modifier.isEmpty()) {
         log(3, "write: modifier + " + modifier);
-        for (int n = 0; n < modifier.length(); n++){
-          robot.keyDown(Key.toJavaKeyCodeFromText(String.format("#%s.", modifier.substring(n, n+1))));          
+        for (int n = 0; n < modifier.length(); n++) {
+          robot.keyDown(Key.toJavaKeyCodeFromText(String.format("#%s.", modifier.substring(n, n + 1))));
         }
       }
       robot.typeChar(c, IRobot.KeyMode.PRESS_RELEASE);
       if (!modifier.isEmpty()) {
         log(3, "write: modifier - " + modifier);
-        for (int n = 0; n < modifier.length(); n++){
-          robot.keyUp(Key.toJavaKeyCodeFromText(String.format("#%s.", modifier.substring(n, n+1))));          
+        for (int n = 0; n < modifier.length(); n++) {
+          robot.keyUp(Key.toJavaKeyCodeFromText(String.format("#%s.", modifier.substring(n, n + 1))));
         }
       }
       robot.delay(pause);
       modifier = "";
     }
-    
+
     robot.typeEnds();
     robot.waitForIdle();
     return 0;
@@ -3023,7 +3096,7 @@ public class Region {
         r.pressModifiers(modifiers);
         r.typeChar(text.charAt(i), IRobot.KeyMode.PRESS_RELEASE);
         r.releaseModifiers(modifiers);
-        r.delay(pause);        
+        r.delay(pause);
       }
       r.typeEnds();
       r.waitForIdle();
@@ -3032,9 +3105,11 @@ public class Region {
 
     return 0;
   }
-  
+
   /**
-   * time in milliseconds to delay between each character at next type only (max 1000)
+   * time in milliseconds to delay between each character at next type only (max
+   * 1000)
+   *
    * @param millisecs
    */
   public void delayType(int millisecs) {

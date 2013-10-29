@@ -106,8 +106,7 @@ class FindFailedDialog extends JDialog implements ActionListener {
         return null;
       }
     } else {
-      c = new JLabel("*****\nRequest to capture\n"
-              + "***\n" + (String) target + "\n*****");
+      c = new JLabel("Request to capture: " + (String) target);
       return c;
     }
     p = new JPanel();
