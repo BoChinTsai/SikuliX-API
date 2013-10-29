@@ -1649,6 +1649,14 @@ public class Region {
       return handleFindFailedShowDialog(target, false);
   }
 
+  private <PSI> boolean handleFindFailedQuietly(PSI target) {
+    try {
+      return handleFindFailedShowDialog(target, false);
+    } catch (FindFailed ex) {
+    }
+    return false;
+  }
+
   private <PSI> boolean handleFindFailedImageMissing(PSI target) {
     boolean shouldHandle = false;
     try {
@@ -1848,6 +1856,10 @@ public class Region {
           getImage(target).setLastSeen(lastMatch.getRect());
           log(lvl, "exists: %s has appeared \nat %s", target, lastMatch);
           return lastMatch;
+        } else {
+          if (!handleFindFailedQuietly(target)) {
+            break;
+          }
         }
       } catch (Exception ex) {
         if (ex instanceof IOException) {
@@ -1991,7 +2003,6 @@ public class Region {
           img = ((Image) ptn);
           lastSearchTime = (new Date()).getTime();
           f = checkLastSeen(img);
-          lastSearchTime = (new Date()).getTime();
           if (!f.hasNext()) {
             f.find(img);
           }
