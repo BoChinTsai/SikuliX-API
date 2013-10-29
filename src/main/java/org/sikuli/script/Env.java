@@ -83,7 +83,7 @@ public class Env {
 		} else if (Settings.isMac()) {
 			return OS.MAC;
 		} else if (Settings.isLinux()) {
-			return OS.MAC;
+			return OS.LINUX;
 		} else {
 			return OS.NOT_SUPPORTED;
 		}
