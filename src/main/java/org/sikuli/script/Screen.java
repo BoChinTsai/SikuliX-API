@@ -217,6 +217,7 @@ public class Screen extends Region implements EventObserver, IScreen {
   private static int getValidID(int id) {
     initScreens();
     if (id < 0 || id >= gdevs.length) {
+      Debug.error("Screen: invalid screen id %d - using primary screen", id);
       return primaryScreen;
     }
     return id;
