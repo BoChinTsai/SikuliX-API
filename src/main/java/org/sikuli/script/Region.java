@@ -15,8 +15,6 @@ import java.io.IOException;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import org.sikuli.basics.Debug;
 import org.sikuli.basics.Settings;
 
@@ -2031,12 +2029,13 @@ public class Region {
     if (Settings.CheckLastSeen && null != img.getLastSeen()) {
       Region r = Region.create(img.getLastSeen());
       if (this.contains(r)) {
-        Debug.log(3, "Region: checkLastSeen: true");
         Finder f = new Finder(new Screen().capture(r), r);
         f.find(new Pattern(img).similar(Settings.CheckLastSeenSimilar));
         if (f.hasNext()) {
+          Debug.log(3, "Region: checkLastSeen: still there");
           return f;
         }
+        Debug.log(3, "Region: checkLastSeen: not there");
       }
     }
     return new Finder(getScreen().capture(x, y, w, h), this);

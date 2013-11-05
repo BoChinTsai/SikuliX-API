@@ -339,7 +339,7 @@ public class Image {
    */
   public BufferedImage getImage() {
     if (bimg != null) {
-      log(lvl, "getImage: %s taken from cache", (fileURL == null ? filepath : fileURL));
+      log(lvl, "getImage from cache: %s", (fileURL == null ? filepath : fileURL));
       return bimg;
     } else {
       return loadImage();
