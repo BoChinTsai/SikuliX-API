@@ -8,7 +8,7 @@ import org.sikuli.basics.Settings;
 
 public class Vision {
   @Deprecated
-  private static void setParameter(String param, float val) {
+  public static void setParameter(String param, float val) {
     Settings.setVisionParameter(param, val);
   }
 
