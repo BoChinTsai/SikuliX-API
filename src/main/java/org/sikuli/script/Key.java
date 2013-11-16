@@ -898,6 +898,18 @@ public class Key {
               (codeI[2] == -1 ? "" : KeyEvent.getKeyText(codeI[2])) ));
     }
   }
+
+  public static String convertKeyToText(int code, int mod) {
+    String txtMod = KeyEvent.getKeyModifiersText(mod);
+    String txtCode = KeyEvent.getKeyText(code);
+    String ret;
+    if (code == KeyEvent.VK_ALT || code == KeyEvent.VK_CONTROL || code == KeyEvent.VK_SHIFT) {
+      ret = txtMod;
+    } else {
+      ret = txtMod + " " + txtCode;
+    }
+    return ret;
+  }
   
   static class ShowKeyBoardSetupWindow extends Thread {
     
