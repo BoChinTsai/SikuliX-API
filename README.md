@@ -20,10 +20,13 @@ This repo is **fully Maven**, so a fork of this repo can be directly used as pro
 [A more detailed info on usage, contents and production of standalone runnable packages](https://github.com/RaiMan/SikuliX-API/wiki/Maven-support)
 <br /><br />
 **Roadmap**
- - **2013 December 15:** release of Sikuli API 1.1
-  - new features tbd.
+ - **2013 August 12:** service update Sikuli IDE 1.0.1
+  - bug fixes and some enhancements
 <br />
- - **2014:** new versions in June and December
+<br />
+ - **2014 January 31:** release of Sikuli IDE 1.1
+  - new features tbd.
+  - Beta versions available starting end November 2013
 
 **History**
  - this is based on the developement at MIT (Tsung-Hsiang Chang (Sean aka vgod) and Tom Yeh) which was discontinued end 2011 (https://github.com/sikuli/sikuli) with a latest version called Sikuli X-1.0r930.
