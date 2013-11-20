@@ -96,7 +96,7 @@ public class Finder implements Iterator<Match> {
 	 * @param simg
 	 */
 	public Finder(Image simg) {
-    _findInput.setSource(OpenCV.convertBufferedImageToMat(simg.getBImage()));
+    _findInput.setSource(OpenCV.convertBufferedImageToMat(simg.get()));
   }
 
 	private void initScreenFinder(ScreenImage simg, Region region) {

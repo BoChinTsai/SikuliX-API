@@ -115,8 +115,8 @@ class FindFailedDialog extends JDialog implements ActionListener {
     String rescale = "";
     Image bimage = null;
     if (image != null) {
-      int w = image.getBImage().getWidth(this);
-      int h = image.getBImage().getHeight(this);
+      int w = image.get().getWidth(this);
+      int h = image.get().getHeight(this);
       if (w > 500) {
         w = 500;
         h = -h;
@@ -132,7 +132,7 @@ class FindFailedDialog extends JDialog implements ActionListener {
         h = 300;
         rescale = " (rescaled to 500x300)";
       }
-      bimage = image.getBImage().getScaledInstance(w, h, Image.SCALE_DEFAULT);
+      bimage = image.get().getScaledInstance(w, h, Image.SCALE_DEFAULT);
     }
     iconLabel.setIcon(new ImageIcon(bimage));
     c = new JLabel("Sikuli cannot find " + targetTyp + rescale + ".");

@@ -217,7 +217,7 @@ public class Pattern {
 	 * @return might be null
 	 */
 	public BufferedImage getBImage() {
-		return image.getImage();
+		return image.get();
   }
 
 	/**

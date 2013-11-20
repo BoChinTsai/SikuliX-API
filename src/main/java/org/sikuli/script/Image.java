@@ -274,11 +274,29 @@ public class Image {
   }
   
   public Image(BufferedImage img) {
-    imageName = isBImg;
+    this(img, null);
+  }
+
+  public Image(BufferedImage img, String name) {
+    if (name == null) {
+      imageName = isBImg;
+    } else {
+      imageName = name;
+    }
     filepath = isBImg;
     bimg = img;
+    bwidth = bimg.getWidth();
+    bheight = bimg.getHeight();    
   }
   
+  public Image(ScreenImage img) {
+    this(img.getImage(), null);
+  }
+
+  public Image(ScreenImage img, String name) {
+    this(img.getImage(), name);
+  }
+
   /**
    * check wether image is available
    *
@@ -337,22 +355,17 @@ public class Image {
    *
    * @return
    */
-  public BufferedImage getImage() {
+  public BufferedImage get() {
     if (bimg != null) {
-      log(lvl, "getImage from cache: %s", (fileURL == null ? filepath : fileURL));
+      if (!filepath.equals(isBImg)) {
+        log(lvl, "getImage from cache: %s\n%s", imageName, (fileURL == null ? filepath : fileURL));
+      } else {
+        log(lvl, "getImage inMemory: %s", imageName);
+      }
       return bimg;
     } else {
       return loadImage();
     }
-  }
-  
-  /**
-   * Simple getter for BufferedImage
-   * 
-   * @return 
-   */
-  public BufferedImage getBImage() {
-    return bimg;
   }
   
   public Dimension getSize() {
@@ -373,7 +386,7 @@ public class Image {
    * @return
    */
   public Mat getMat() {
-    return convertBufferedImageToMat(getImage());
+    return convertBufferedImageToMat(get());
   }
 
   //<editor-fold defaultstate="collapsed" desc="create an OpenCV Mat from a BufferedImage">

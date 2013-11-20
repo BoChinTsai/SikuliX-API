@@ -925,7 +925,7 @@ public class Key {
       kbSetup.pack();
       kbSetup.setAlwaysOnTop(true);
       kbSetup.setDefaultCloseOperation(DISPOSE_ON_CLOSE);
-      win.setLogo(new ImageIcon(Image.create("SikuliLogo").getImage()));
+      win.setLogo(new ImageIcon(Image.create("SikuliLogo").get()));
       kbSetup.setVisible(true);
     }
     

@@ -165,7 +165,7 @@ public class Match extends Region implements Comparable {
     if (image == null) {
       return null;
     } else {
-      return image.getImage();
+      return image.get();
     }
   }
 
