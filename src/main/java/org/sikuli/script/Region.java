@@ -2377,6 +2377,7 @@ public class Region {
    */
   public <PatternFilenameRegionMatchLocation> int hover(PatternFilenameRegionMatchLocation target)
           throws FindFailed {
+    Debug.log(3, "hover: " + target);
     return mouseMove(target);
   }
 

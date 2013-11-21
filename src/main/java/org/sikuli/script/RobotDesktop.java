@@ -11,6 +11,9 @@ import org.sikuli.basics.Settings;
 import org.sikuli.basics.Debug;
 import java.awt.AWTException;
 import java.awt.Color;
+import java.awt.MouseInfo;
+import java.awt.Point;
+import java.awt.PointerInfo;
 import java.awt.Rectangle;
 import java.awt.Robot;
 import java.awt.event.KeyEvent;
@@ -27,14 +30,14 @@ public class RobotDesktop extends Robot implements IRobot {
 
   @Override
   public Screen getScreen() {
-      return scr;
+    return scr;
   }
 
   public RobotDesktop(Screen screen) throws AWTException {
     super(screen.getGraphicsDevice());
     scr = screen;
   }
-  
+
   @Override
   public void smoothMove(Location dest) {
     smoothMove(Region.atMouse(), dest, (long) (Settings.MoveMouseDelay * 1000L));
@@ -47,6 +50,7 @@ public class RobotDesktop extends Robot implements IRobot {
       Screen s = dest.getScreen();
       Location p = new Location(dest.x - s.x, dest.y - s.y);
       s.getRobot().mouseMove(p.x, p.y);
+      moveMouseAndCheckPos(p, s);
       return;
     }
 
@@ -59,8 +63,26 @@ public class RobotDesktop extends Robot implements IRobot {
       float y = aniY.step();
       Screen s = (new Location(x, y)).getScreen();
       Location p = new Location(x - s.x, y - s.y);
-      s.getRobot().mouseMove(p.x, p.y);
+      moveMouseAndCheckPos(p, s);
       delay(50);
+    }
+  }
+
+  private void moveMouseAndCheckPos(Location p, Screen s) {
+    //TODO Why? need to correct double correction of gdLoc (top left of screen grafic area) when not (0,0)
+    //Check at initScreens 
+    s.getRobot().mouseMove(p.x, p.y);
+    PointerInfo mp = MouseInfo.getPointerInfo();
+    Point pc;
+    if (mp == null) {
+      p.translate(-s.x, -s.y);
+      s.getRobot().mouseMove(p.x, p.y);
+    } else {
+      pc = mp.getLocation();
+      if (pc.x != p.x || pc.y != p.y) {
+        p.translate(-s.x, -s.y);
+        s.getRobot().mouseMove(p.x, p.y);
+      }
     }
   }
 
@@ -87,14 +109,14 @@ public class RobotDesktop extends Robot implements IRobot {
     }
     waitForIdle();
   }
-  
-  @Override
-  public void clickStarts() {
-  }  
 
   @Override
-  public void clickEnds() {    
-  }  
+  public void clickStarts() {
+  }
+
+  @Override
+  public void clickEnds() {
+  }
 
   @Override
   public void delay(int ms) {
@@ -239,13 +261,13 @@ public class RobotDesktop extends Robot implements IRobot {
 
   @Override
   public void typeChar(char character, KeyMode mode) {
-    Debug.log(3, "Robot: doType: %s ( %d )", 
-            KeyEvent.getKeyText(Key.toJavaKeyCode(character)[0]).toString(), 
+    Debug.log(3, "Robot: doType: %s ( %d )",
+            KeyEvent.getKeyText(Key.toJavaKeyCode(character)[0]).toString(),
             Key.toJavaKeyCode(character)[0]);
     doType(mode, Key.toJavaKeyCode(character));
     waitForIdle();
   }
-  
+
   @Override
   public void typeKey(int key) {
     Debug.log(3, "Robot: doType: %s ( %d )", KeyEvent.getKeyText(key), key);
@@ -268,24 +290,23 @@ public class RobotDesktop extends Robot implements IRobot {
         doType(KeyMode.PRESS_RELEASE, key);
         doType(KeyMode.RELEASE_ONLY, Key.toJavaKeyCodeFromText("#A."));
         return;
-      } 
+      }
     }
     doType(KeyMode.PRESS_RELEASE, key);
   }
-  
+
   @Override
-  public void typeStarts() { }
-    
-  @Override
-  public void typeEnds() { 
+  public void typeStarts() {
   }
-    
+
+  @Override
+  public void typeEnds() {
+  }
+
   @Override
   public void cleanup() {
     HotkeyManager.getInstance().cleanUp();
     keyUp();
     mouseUp(0);
   }
-
-
 }
