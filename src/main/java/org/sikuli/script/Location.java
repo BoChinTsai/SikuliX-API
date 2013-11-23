@@ -334,6 +334,31 @@ public class Location {
     Location n = new Location(screen.getBounds().getLocation());
     return new Location(n.x + x - o.x, n.y + y - o.y);
   }
+  
+  /**
+   * Move the mouse to this location point
+   * 
+   * @return this
+   */
+  public Location hover() {
+    try {
+      getScreen().hover(this);
+    } catch (FindFailed ex) {}
+    return this;
+  }
+
+  
+  /**
+   * Move the mouse to this location point
+   * 
+   * @return this
+   */
+  public Location click() {
+    try {
+      getScreen().click(this);
+    } catch (FindFailed ex) {}
+    return this;
+  }
 
   /**
    * {@inheritDoc}
