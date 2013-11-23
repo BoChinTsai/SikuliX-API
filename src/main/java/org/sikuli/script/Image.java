@@ -1,3 +1,9 @@
+/*
+ * Copyright 2010-2013, Sikuli.org
+ * Released under the MIT License.
+ *
+ * added RaiMan 2013
+ */
 package org.sikuli.script;
 
 import java.awt.Dimension;
@@ -28,6 +34,24 @@ import org.sikuli.basics.Settings;
 import org.sikuli.natives.Mat;
 import org.sikuli.natives.Vision;
 
+/**
+ * This class hides the complexity behind image names given as string.<br />
+ * Its companion is ImagePath that maintains a list of places, where images are stored.<br />
+ * Another companion is ImageGroup allowing to to look at images in a folder as a group.<br />
+ * An Image object:<br />
+ * - has a name, either given or taken from the basename without ending.<br />
+ * - keeps its in memory buffered image in a configurable cache avoiding reload from source<br />
+ * - remembers, where it was found the last time searched<br />
+ * - can be sourced from the filesystem, from jars, from the web and from other in memory images <br />
+ * - it will have features for basic image manipulation 
+ * - it contains the stuff to communicate with the underlying OpenCV based search engine
+ * 
+ * This class maintains<br />
+ * - a list of all images loaded with there source reference and a ref to the image object
+ * - a list of all images currently storing their in memory buffered image (managed as a cache)
+ * 
+ * @author RaiMan
+ */
 public class Image {
 
   private static String me = "Image";
