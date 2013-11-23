@@ -17,8 +17,8 @@ import java.awt.Rectangle;
 /**
  * A screen represents a physical monitor with its coordinates and size according to the global
  * point system: the screen areas are grouped around a point (0,0) like in a cartesian system (the
- * top left corner and the points containd in the screen area might have negative x and/or y values)
- * <br >The screens are aranged in an array (index = id) and each screen is always the same object
+ * top left corner and the points contained in the screen area might have negative x and/or y values)
+ * <br >The screens are arranged in an array (index = id) and each screen is always the same object
  * (not possible to create new objects).
  * <br />A screen inherits from class Region, so it can be used as such in all aspects. If you need
  * the region of the screen more than once, you have to create new ones based on the screen.
@@ -38,11 +38,17 @@ public class Screen extends Region implements EventObserver, IScreen {
   protected boolean waitPrompt;
   protected OverlayCapturePrompt prompt;
   private ScreenImage lastScreenImage = null;
+  private static Point lastMousePosition = null;
 
   //<editor-fold defaultstate="collapsed" desc="Initialization">
-  private static void initScreens() {
+  
+  static {
     initScreens(false);
   }
+  
+//  private static void initScreens() {
+//    initScreens(false);
+//  }
 
   private static void initScreens(boolean reset) {
     if (genv != null && !reset) {
@@ -102,19 +108,17 @@ public class Screen extends Region implements EventObserver, IScreen {
    */
   public Screen(int id) throws Exception {
     super();
-    initScreens();
-
+//    initScreens();
     if (id < 0 || id >= gdevs.length) {
       throw new IllegalArgumentException("Screen ID " + id + " not in valid range (between 0 and " + (gdevs.length - 1));
     }
-
     curID = id;
     initScreen();
   }
   
   public Screen(boolean isScreenUnion) {
     super();
-    initScreens();
+//    initScreens();
   }
   
   public void setAsScreenUnion() {
@@ -132,7 +136,7 @@ public class Screen extends Region implements EventObserver, IScreen {
    */
   public Screen() {
     super();
-    initScreens();
+//    initScreens();
     curID = getPrimaryId();
     initScreen();
   }
@@ -181,7 +185,7 @@ public class Screen extends Region implements EventObserver, IScreen {
    * show the current monitor setup
    */
   public static void showMonitors() {
-    initScreens();
+//    initScreens();
     Debug.info("*** monitor configuration [ %s Screen(s)] ***", Screen.getNumberScreens());
     Debug.info("*** Primary is Screen %d", Screen.getPrimaryId());
     for (int i = 0; i < gdevs.length; i++) {
@@ -215,7 +219,7 @@ public class Screen extends Region implements EventObserver, IScreen {
   }
 
   private static int getValidID(int id) {
-    initScreens();
+//    initScreens();
     if (id < 0 || id >= gdevs.length) {
       Debug.error("Screen: invalid screen id %d - using primary screen", id);
       return primaryScreen;
@@ -228,7 +232,7 @@ public class Screen extends Region implements EventObserver, IScreen {
    * @return number of available screens
    */
   public static int getNumberScreens() {
-    initScreens();
+//    initScreens();
     return gdevs.length;
   }
 
@@ -237,7 +241,7 @@ public class Screen extends Region implements EventObserver, IScreen {
    * @return the id of the screen at (0,0), if not exists 0
    */
   public static int getPrimaryId() {
-    initScreens();
+//    initScreens();
     return primaryScreen;
   }
 
