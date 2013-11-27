@@ -1,6 +1,6 @@
 Sikuli API 1.1.0 developement branch
 ===
-**planned release date December 15th** - betas will be available before [(... look here)](https://launchpad.net/sikuli/+download)
+**planned release date 2014 January 31st** - betas will be available before [(... look here)](https://launchpad.net/sikuli/+download)
 <hr />
 **Sikuli API 1.0.1 <br />Service Update per August 12th, 2013**
 <hr />
@@ -23,12 +23,6 @@ Hava a look at the Java docs:
 This repo is **fully Maven**, so a fork of this repo can be directly used as project in NetBeans/Eclipse/... or with mvn on commandline.<br />
 [A more detailed info on usage, contents and production of standalone runnable packages](https://github.com/RaiMan/SikuliX-API/wiki/Maven-support)
 <br /><br />
-**Roadmap**
- - **2013 December 15:** release of Sikuli API 1.1
-  - new features tbd.
-<br />
- - **2014:** new versions in June and December
-
 **History**
  - this is based on the developement at MIT (Tsung-Hsiang Chang (Sean aka vgod) and Tom Yeh) which was discontinued end 2011 (https://github.com/sikuli/sikuli) with a latest version called Sikuli X-1.0r930.
 
