@@ -26,7 +26,7 @@ public interface IRobot {
    void typeEnds();
    void mouseMove(int x, int y);
    void mouseDown(int buttons);
-   void mouseUp(int buttons);
+   int mouseUp(int buttons);
    void clickStarts();
    void clickEnds();   
    void smoothMove(Location dest);
@@ -38,9 +38,11 @@ public interface IRobot {
    void setAutoDelay(int ms);
    Color getColorAt(int x, int y);
    void cleanup();
+   boolean isRemote();
 
    /**
     *  Return the underlying device object (if any).
+   * @return 
     */
    IScreen getScreen();
 }

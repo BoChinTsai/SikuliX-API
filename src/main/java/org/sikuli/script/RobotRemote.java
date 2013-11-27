@@ -67,6 +67,11 @@ public class RobotRemote implements IRobot {
   public boolean isValid() {
     return (scr != null);
   }
+  
+  @Override
+  public boolean isRemote() {
+    return true;
+  }
 
   public String getSystem() {
     return system;
@@ -299,7 +304,7 @@ public class RobotRemote implements IRobot {
   }
 
   @Override
-  public void mouseUp(int buttons) {
+  public int mouseUp(int buttons) {
     int bAfter;
     if (buttons == 0) {
       buttons = heldButtons;
@@ -313,6 +318,7 @@ public class RobotRemote implements IRobot {
       clickCommand += " U" + buttons;
     }
     heldButtons = bAfter;
+    return heldButtons;
   }
 
   @Override

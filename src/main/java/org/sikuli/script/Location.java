@@ -341,27 +341,43 @@ public class Location {
    * @return this
    */
   public Location hover() {
-    try {
-      getScreen().hover(this);
-    } catch (FindFailed ex) {}
+    Mouse.move(this);
     return this;
   }
 
-  
   /**
-   * Move the mouse to this location point
+   * Move the mouse to this location point and click left
    * 
    * @return this
    */
   public Location click() {
-    try {
-      getScreen().click(this);
-    } catch (FindFailed ex) {}
+    Mouse.click(this, "L");
+    return this;
+  }
+
+  /**
+   * Move the mouse to this location point and double click left
+   * 
+   * @return this
+   */
+  public Location doubleClick() {
+    Mouse.click(this, "LD");
+    return this;
+  }
+
+  /**
+   * Move the mouse to this location point and click right
+   * 
+   * @return this
+   */
+  public Location rightClick() {
+    Mouse.click(this, "R");
     return this;
   }
 
   /**
    * {@inheritDoc}
+   * @return 
    */
   @Override
   public String toString() {
@@ -372,5 +388,17 @@ public class Location {
   
   public String toStringShort() {
     return "L(" + x + "," + y + ")";
+  }
+
+  // to avoid NPE for points outside any screen
+  protected IRobot getRobotForPoint(String action) {
+    if (getScreen() == null) {
+      Debug.error("Point %s outside any screen not useable for %s", this, action);
+      return null;
+    }
+    if (!getScreen().isOtherScreen()) {
+      getScreen().showTarget(this);
+    }
+    return getScreen().getRobot();
   }
 }

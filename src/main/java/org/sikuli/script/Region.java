@@ -106,6 +106,7 @@ public class Region {
 
   /**
    * {@inheritDoc}
+   * @return 
    */
   @Override
   public String toString() {
@@ -679,18 +680,6 @@ public class Region {
    */
   public Screen getScreen() {
     return scr;
-  }
-
-  // to avoid NPE for points outside any screen
-  private IRobot getRobotForPoint(String action, Location loc) {
-    if (getScreen() == null) {
-      Debug.error("Point %s outside any screen not useable for %s", loc, action);
-      return null;
-    }
-    if (!getScreen().isOtherScreen()) {
-      getScreen().showTarget(loc);
-    }
-    return getScreen().getRobot();
   }
 
   // to avoid NPE for Regions being outside any screen
@@ -1644,7 +1633,7 @@ public class Region {
    * @throws FindFailed
    */
   private <PSI> boolean handleFindFailed(PSI target) throws FindFailed {
-      return handleFindFailedShowDialog(target, false);
+    return handleFindFailedShowDialog(target, false);
   }
 
   private <PSI> boolean handleFindFailedQuietly(PSI target) {
@@ -1666,7 +1655,7 @@ public class Region {
       return false;
     }
     getRobotForRegion().delay(500);
-    ScreenImage img =  getScreen().userCapture("capture missing image");
+    ScreenImage img = getScreen().userCapture("capture missing image");
     if (img != null) {
       String path = ImagePath.getBundlePath();
       if (path == null) {
@@ -1678,7 +1667,7 @@ public class Region {
     }
     return false;
   }
-  
+
   private boolean handleFindFailedShowDialog(Object target, boolean shouldCapture) throws FindFailed {
     FindFailedResponse response;
     if (findFailedResponse == FindFailedResponse.PROMPT) {
@@ -2424,7 +2413,7 @@ public class Region {
   public <PatternFilenameRegionMatchLocation> int click(PatternFilenameRegionMatchLocation target, int modifiers)
           throws FindFailed {
     Location loc = getLocationFromTarget(target);
-    int ret = _click(loc, InputEvent.BUTTON1_MASK, modifiers, false);
+    int ret = Mouse.click(loc, InputEvent.BUTTON1_MASK, modifiers, false, this);
 
     //TODO      SikuliActionManager.getInstance().clickTarget(this, target, _lastScreenImage, _lastMatch);
     return ret;
@@ -2473,7 +2462,7 @@ public class Region {
   public <PatternFilenameRegionMatchLocation> int doubleClick(PatternFilenameRegionMatchLocation target, int modifiers)
           throws FindFailed {
     Location loc = getLocationFromTarget(target);
-    int ret = _click(loc, InputEvent.BUTTON1_MASK, modifiers, true);
+    int ret = Mouse.click(loc, InputEvent.BUTTON1_MASK, modifiers, true, this);
 
     //TODO      SikuliActionManager.getInstance().doubleClickTarget(this, target, _lastScreenImage, _lastMatch);
     return ret;
@@ -2522,63 +2511,10 @@ public class Region {
   public <PatternFilenameRegionMatchLocation> int rightClick(PatternFilenameRegionMatchLocation target, int modifiers)
           throws FindFailed {
     Location loc = getLocationFromTarget(target);
-    int ret = _click(loc, InputEvent.BUTTON3_MASK, modifiers, false);
+    int ret = Mouse.click(loc, InputEvent.BUTTON3_MASK, modifiers, false, this);
 
     //TODO      SikuliActionManager.getInstance().rightClickTarget(this, target, _lastScreenImage, _lastMatch);
     return ret;
-  }
-
-  private int _click(Location loc, int buttons, int modifiers, boolean dblClick) {
-    if (loc == null) {
-      return 0;
-    }
-    IRobot r = getRobotForPoint("click", loc);
-    if (r == null) {
-      return 0;
-    }
-    Mouse.get().start(this);
-    Debug.history(getClickMsg(loc, buttons, modifiers, dblClick));
-    r.smoothMove(loc);
-    r.clickStarts();
-    r.pressModifiers(modifiers);
-    //TODO ClickDelay add to API ??
-    int pause = Settings.ClickDelay > 1 ? 1 : (int) (Settings.ClickDelay * 1000);
-    Settings.ClickDelay = 0.0;
-    if (dblClick) {
-      r.mouseDown(buttons);
-      r.mouseUp(buttons);
-      r.mouseDown(buttons);
-      r.mouseUp(buttons);
-    } else {
-      r.mouseDown(buttons);
-      r.delay(pause);
-      r.mouseUp(buttons);
-    }
-    r.releaseModifiers(modifiers);
-    r.clickEnds();
-    r.waitForIdle();
-    Mouse.get().stop(this);
-    return 1;
-  }
-
-  private String getClickMsg(Location loc, int buttons, int modifiers, boolean dblClick) {
-    String msg = "";
-    if (modifiers != 0) {
-      msg += KeyEvent.getKeyModifiersText(modifiers) + "+";
-    }
-    if (buttons == InputEvent.BUTTON1_MASK && !dblClick) {
-      msg += "CLICK";
-    }
-    if (buttons == InputEvent.BUTTON1_MASK && dblClick) {
-      msg += "DOUBLE CLICK";
-    }
-    if (buttons == InputEvent.BUTTON3_MASK) {
-      msg += "RIGHT CLICK";
-    } else if (buttons == InputEvent.BUTTON2_MASK) {
-      msg += "MID CLICK";
-    }
-    msg += " on " + loc;
-    return msg;
   }
 
   /**
@@ -2620,23 +2556,23 @@ public class Region {
     Location loc1 = getLocationFromTarget(t1);
     Location loc2 = getLocationFromTarget(t2);
     if (loc1 != null && loc2 != null) {
-      IRobot r = getRobotForPoint("drag", loc1);
+      IRobot r = loc1.getRobotForPoint("drag");
       if (r == null) {
         return 0;
       }
-      Mouse.get().start(this);
+      Mouse.get().use(this);
       r.smoothMove(loc1);
       r.mouseDown(InputEvent.BUTTON1_MASK);
       r.delay((int) (Settings.DelayAfterDrag * 1000));
-      r = getRobotForPoint("drop", loc2);
+      r = loc2.getRobotForPoint("drop");
       if (r == null) {
-        Mouse.get().stop(this);
+        Mouse.get().let(this);
         return 0;
       }
       r.smoothMove(loc2);
       r.delay((int) (Settings.DelayBeforeDrop * 1000));
       r.mouseUp(InputEvent.BUTTON1_MASK);
-      Mouse.get().stop(this);
+      Mouse.get().let(this);
       return 1;
     }
     return 0;
@@ -2654,11 +2590,11 @@ public class Region {
           throws FindFailed {
     Location loc = getLocationFromTarget(target);
     if (loc != null) {
-      IRobot r = getRobotForPoint("drag", loc);
+      IRobot r = loc.getRobotForPoint("drag");
       if (r == null) {
         return 0;
       }
-      Mouse.get().start(this);
+      Mouse.get().use(this);
       r.smoothMove(loc);
       r.mouseDown(InputEvent.BUTTON1_MASK);
       r.delay((int) (Settings.DelayAfterDrag * 1000));
@@ -2680,7 +2616,7 @@ public class Region {
           throws FindFailed {
     Location loc = getLocationFromTarget(target);
     if (loc != null) {
-      IRobot r = getRobotForPoint("drop", loc);
+      IRobot r = loc.getRobotForPoint("drop");
       if (r == null) {
         return 0;
       }
@@ -2688,7 +2624,7 @@ public class Region {
       r.delay((int) (Settings.DelayBeforeDrop * 1000));
       r.mouseUp(InputEvent.BUTTON1_MASK);
       r.waitForIdle();
-      Mouse.get().stop(this);
+      Mouse.get().let(this);
       return 1;
     }
     return 0;
@@ -2704,15 +2640,14 @@ public class Region {
    * @param buttons
    */
   public void mouseDown(int buttons) {
-    Mouse.get().start(this);
-    getRobotForRegion().mouseDown(buttons);
+    Mouse.down(buttons, this);
   }
 
   /**
    * release all currently held buttons
    */
   public void mouseUp() {
-    mouseUp(0);
+    Mouse.up(0, this);
   }
 
   /**
@@ -2722,8 +2657,7 @@ public class Region {
    * @param buttons
    */
   public void mouseUp(int buttons) {
-    getRobotForRegion().mouseUp(buttons);
-    Mouse.get().stop(this);
+    Mouse.up(buttons, this);
   }
 
   /**
@@ -2750,24 +2684,14 @@ public class Region {
    * Location - position at that point<br />
    *
    * @param <PatternFilenameRegionMatchLocation> target
+   * @param target
    * @return 1 if possible, 0 otherwise
    * @throws FindFailed for Pattern or Filename
    */
   public <PatternFilenameRegionMatchLocation> int mouseMove(PatternFilenameRegionMatchLocation target)
           throws FindFailed {
     Location loc = getLocationFromTarget(target);
-    if (loc != null) {
-      IRobot r = getRobotForPoint("mouseMove", loc);
-      if (r == null) {
-        return 0;
-      }
-      Mouse.get().start(this);
-      r.smoothMove(loc);
-      r.waitForIdle();
-      Mouse.get().stop(this);
-      return 1;
-    }
-    return 0;
+    return Mouse.move(loc, this);
   }
 
   /**
@@ -2779,15 +2703,7 @@ public class Region {
    * @return 1 in any case
    */
   public int wheel(int direction, int steps) {
-    IRobot r = getRobotForRegion();
-    Mouse.get().start(this);
-    Debug.log(3, "Region: wheel: %s steps: %d",
-                 (direction == Button.WHEEL_UP ? "WHEEL_UP" : "WHEEL_DOWN"), steps);
-    for (int i = 0; i < steps; i++) {
-      r.mouseWheel(direction);
-      r.delay(50);
-    }
-    Mouse.get().stop(this);
+    Mouse.wheel(direction, steps, this);
     return 1;
   }
 
@@ -2804,11 +2720,15 @@ public class Region {
    */
   public <PatternFilenameRegionMatchLocation> int wheel(PatternFilenameRegionMatchLocation target, int direction, int steps)
           throws FindFailed {
-    Mouse.get().start(this);
-    if (target == null || mouseMove(target) != 0) {
-      return wheel(direction, steps);
+    Location loc = getLocationFromTarget(target);
+    if (loc != null) {
+      Mouse.get().use(this);
+      Mouse.get().keep(this);
+      Mouse.move(loc, this);
+      Mouse.wheel(direction, steps, this);
+      Mouse.get().let(this);
+      return 1;
     }
-    Mouse.get().stop(this);
     return 0;
   }
 

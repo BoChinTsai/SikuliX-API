@@ -29,6 +29,11 @@ public class RobotDesktop extends Robot implements IRobot {
   private Screen scr = null;
 
   @Override
+  public boolean isRemote() {
+    return false;
+  }
+  
+  @Override
   public Screen getScreen() {
     return scr;
   }
@@ -99,7 +104,7 @@ public class RobotDesktop extends Robot implements IRobot {
   }
 
   @Override
-  public void mouseUp(int buttons) {
+  public int mouseUp(int buttons) {
     if (buttons == 0) {
       mouseRelease(heldButtons);
       heldButtons = 0;
@@ -108,6 +113,7 @@ public class RobotDesktop extends Robot implements IRobot {
       heldButtons &= ~buttons;
     }
     waitForIdle();
+    return heldButtons;
   }
 
   @Override
