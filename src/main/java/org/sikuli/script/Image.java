@@ -43,13 +43,13 @@ import org.sikuli.natives.Vision;
  * - keeps its in memory buffered image in a configurable cache avoiding reload from source<br />
  * - remembers, where it was found the last time searched<br />
  * - can be sourced from the filesystem, from jars, from the web and from other in memory images <br />
- * - it will have features for basic image manipulation 
+ * - it will have features for basic image manipulation
  * - it contains the stuff to communicate with the underlying OpenCV based search engine
- * 
+ *
  * This class maintains<br />
  * - a list of all images loaded with there source reference and a ref to the image object
  * - a list of all images currently storing their in memory buffered image (managed as a cache)
- * 
+ *
  * @author RaiMan
  */
 public class Image {
@@ -61,7 +61,7 @@ public class Image {
   private static void log(int level, String message, Object... args) {
     Debug.logx(level, "", me + ": " + message, args);
   }
-  
+
   private static List<Image> images = Collections.synchronizedList(new ArrayList<Image>());
   private static List<Image> purgeList = Collections.synchronizedList(new ArrayList<Image>());
   private static Map<URL, Image> imageFiles = Collections.synchronizedMap(new HashMap<URL, Image>());
@@ -70,7 +70,7 @@ public class Image {
   private static int maxMemory = 64 * MB;
   private static int currentMemory;
   private static String imageFromJar = "__FROM_JAR__";
-  public final static String isBImg = "__BufferedImage__";
+  private final static String isBImg = "__BufferedImage__";
   private String imageName = null;;
   private boolean imageIsText = false;
   private boolean imageIsAbsolute = false;
@@ -81,7 +81,7 @@ public class Image {
   private int bwidth;
   private int bheight;
   private Rectangle lastSeen = null;
-  
+
   @Override
   public String toString() {
     return (imageName != null ? imageName : "__UNKNOWN__");
@@ -102,7 +102,7 @@ public class Image {
     }
     return createImageValidate(img);
   }
-  
+
   private static Image createImageValidate(Image img) {
     if (!img.isValid()) {
       if (Settings.OcrTextSearch) {
@@ -117,7 +117,7 @@ public class Image {
   public static Image get(URL imgURL) {
     return imageFiles.get(imgURL);
   }
-  
+
   public static Image get(String fname) {
     if (!fname.endsWith(".png")) {
       fname += ".png";
@@ -129,15 +129,15 @@ public class Image {
       return null;
     }
   }
-  
+
   public Image() {
     log(-1, "Use Image.create(String or URL) to get a new Image object. This instance is not useable!");
   }
-  
+
   private Image(String fname) {
     init(fname);
   }
-  
+
   private void init(String fname) {
     imageName = fname;
     if (!fname.endsWith(".png")) {
@@ -184,7 +184,7 @@ public class Image {
     }
     loadImage();
   }
-  
+
   private Image(URL fURL) {
     if ("file".equals(fURL.getProtocol())) {
       init(fURL.getPath());
@@ -195,13 +195,13 @@ public class Image {
       loadImage();
     } else if (fURL.getProtocol().startsWith("http")) {
       log(-1, "FatalError: Image from http(s) not supported: " + fURL);
-      
+
     } else {
       log(-1, "FatalError: ImageURL not supported: " + fURL);
     }
     fileURL = fURL;
   }
-  
+
   private static String getNameFromURL(URL fURL) {
 //TODO add handling for http
     if ("jar".equals(fURL.getProtocol())) {
@@ -213,7 +213,7 @@ public class Image {
     }
     return null;
   }
-  
+
   private BufferedImage loadImage() {
     if (filepath != null) {
       try {
@@ -245,7 +245,7 @@ public class Image {
     }
     return bimg;
   }
-  
+
   public static void purge(String bundlePath) {
     URL pathURL = FileManager.makeURL(bundlePath);
     if (!ImagePath.getPaths().get(0).pathURL.equals(pathURL)) {
@@ -279,7 +279,7 @@ public class Image {
         log(lvl, "purge: entry: " + imgURL.toString());
         purgeList.add(entry.getValue());
         it.remove();
-        
+
       }
     }
     if (purgeList.size() > 0) {
@@ -292,11 +292,11 @@ public class Image {
             currentMemory -= buf.bsize;
           }
         }
-        log(lvl, "Max %d MB (%d / %d %%) (%d))", (int) (maxMemory / MB), images.size(), 
+        log(lvl, "Max %d MB (%d / %d %%) (%d))", (int) (maxMemory / MB), images.size(),
                 (int) (100 * currentMemory / maxMemory), (int) (currentMemory / KB));
     }
   }
-  
+
   public Image(BufferedImage img) {
     this(img, null);
   }
@@ -310,9 +310,9 @@ public class Image {
     filepath = isBImg;
     bimg = img;
     bwidth = bimg.getWidth();
-    bheight = bimg.getHeight();    
+    bheight = bimg.getHeight();
   }
-  
+
   public Image(ScreenImage img) {
     this(img.getImage(), null);
   }
@@ -329,7 +329,7 @@ public class Image {
   public boolean isValid() {
     return filepath != null;
   }
-  
+
   /**
    *
    * @return true if image was given with absolute filepath
@@ -349,7 +349,7 @@ public class Image {
   public URL getURL() {
     return fileURL;
   }
-  
+
   /**
    * Get the image's absolute filename or null if jar, http or in memory only
    *
@@ -391,7 +391,7 @@ public class Image {
       return loadImage();
     }
   }
-  
+
   public Dimension getSize() {
     return new Dimension(bwidth, bheight);
   }
@@ -402,14 +402,14 @@ public class Image {
 
   public void setLastSeen(Rectangle lastSeen) {
     this.lastSeen = lastSeen;
-  }  
+  }
 
   /**
    * return an OpenCV Mat version from the BufferedImage
    *
    * @return
    */
-  public Mat getMat() {
+  protected Mat getMat() {
     return convertBufferedImageToMat(get());
   }
 
