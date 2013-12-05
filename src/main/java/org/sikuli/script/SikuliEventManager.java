@@ -14,7 +14,6 @@ import org.sikuli.natives.FindInput;
 import org.sikuli.natives.FindResult;
 import org.sikuli.natives.FindResults;
 import org.sikuli.natives.Mat;
-import org.sikuli.natives.OpenCV;
 import org.sikuli.natives.Vision;
 
 public class SikuliEventManager {
@@ -258,12 +257,12 @@ public class SikuliEventManager {
 
   private void checkChanges(ScreenImage img) {
     if (_lastImgMat == null) {
-      _lastImgMat = OpenCV.convertBufferedImageToMat(img.getImage());
+      _lastImgMat = Image.convertBufferedImageToMat(img.getImage());
       return;
     }
     FindInput fin = new FindInput();
     fin.setSource(_lastImgMat);
-    Mat target = OpenCV.convertBufferedImageToMat(img.getImage());
+    Mat target = Image.convertBufferedImageToMat(img.getImage());
     fin.setTarget(target);
     fin.setSimilarity(_minChanges);
     FindResults results = Vision.findChanges(fin);

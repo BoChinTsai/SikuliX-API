@@ -342,7 +342,7 @@ public class ImageLocator {
     }
 
     /**
-     * find the file in the following order: <br />1. absolute path or url x)
+     * findX the file in the following order: <br />1. absolute path or url x)
      * <br />2. bundle path <br />3. ENV[SIKULI_IMAGE_PATH] <br />4. Java
      * -DSIKULI_IMAGE_PATH <br />5. paths added later using addImagePath or via
      * import ... .sikuli
@@ -380,7 +380,7 @@ public class ImageLocator {
     }
 
     /**
-     * tries to find the file using locate(filename) and loads it as image if
+     * tries to findX the file using locate(filename) and loads it as image if
      * possible
      *
      * @param filename

@@ -31,7 +31,11 @@ import javax.imageio.ImageIO;
 import org.sikuli.basics.Debug;
 import org.sikuli.basics.FileManager;
 import org.sikuli.basics.Settings;
-import org.sikuli.natives.Mat;
+import org.opencv.core.Mat;
+import org.opencv.core.CvType;
+import org.opencv.core.Core;
+import org.opencv.imgproc.Imgproc;
+//import org.sikuli.natives.Mat;
 import org.sikuli.natives.Vision;
 
 /**
@@ -43,16 +47,19 @@ import org.sikuli.natives.Vision;
  * - keeps its in memory buffered image in a configurable cache avoiding reload from source<br />
  * - remembers, where it was found the last time searched<br />
  * - can be sourced from the filesystem, from jars, from the web and from other in memory images <br />
- * - it will have features for basic image manipulation
- * - it contains the stuff to communicate with the underlying OpenCV based search engine
+ * - it will have features for basic image manipulation <br />
+ * - it contains the stuff to communicate with the underlying OpenCV based search engine <br />
  *
  * This class maintains<br />
- * - a list of all images loaded with there source reference and a ref to the image object
- * - a list of all images currently storing their in memory buffered image (managed as a cache)
+ * - a list of all images loaded with there source reference and a ref to the image object<br />
+ * - a list of all images currently storing their in memory buffered image (managed as a cache)<br />
  *
- * @author RaiMan
  */
 public class Image {
+  
+  static {
+    FileManager.loadLibrary("opencv_java247");
+  }
 
   private static String me = "Image";
   private static String mem = "";
@@ -114,11 +121,11 @@ public class Image {
     return img;
   }
 
-  public static Image get(URL imgURL) {
+  protected static Image get(URL imgURL) {
     return imageFiles.get(imgURL);
   }
 
-  public static Image get(String fname) {
+  protected static Image get(String fname) {
     if (!fname.endsWith(".png")) {
       fname += ".png";
     }
@@ -130,8 +137,7 @@ public class Image {
     }
   }
 
-  public Image() {
-    log(-1, "Use Image.create(String or URL) to get a new Image object. This instance is not useable!");
+  private Image() {
   }
 
   private Image(String fname) {
@@ -403,50 +409,27 @@ public class Image {
   public void setLastSeen(Rectangle lastSeen) {
     this.lastSeen = lastSeen;
   }
+  
+  public Image subImage(int x, int y, int w, int h) {
+    Image img = new Image(get().getSubimage(x, y, w, h));
+    return img;
+  }
 
   /**
    * return an OpenCV Mat version from the BufferedImage
    *
    * @return
    */
-  protected Mat getMat() {
+  protected org.sikuli.natives.Mat getMat() {
     return convertBufferedImageToMat(get());
   }
 
-  //<editor-fold defaultstate="collapsed" desc="create an OpenCV Mat from a BufferedImage">
-  private static BufferedImage createBufferedImage(int w, int h) {
-    ColorSpace cs = ColorSpace.getInstance(ColorSpace.CS_sRGB);
-    int[] nBits = {8, 8, 8, 8};
-    ColorModel cm = new ComponentColorModel(cs, nBits,
-            true, false,
-            Transparency.TRANSLUCENT,
-            DataBuffer.TYPE_BYTE);
-    SampleModel sm = cm.createCompatibleSampleModel(w, h);
-    DataBufferByte db = new DataBufferByte(w * h * 4); //4 channels buffer
-    WritableRaster r = WritableRaster.createWritableRaster(sm, db, new Point(0, 0));
-    BufferedImage bm = new BufferedImage(cm, r, false, null);
-    return bm;
-  }
-
-  private static byte[] convertBufferedImageToByteArray(BufferedImage img) {
+  protected static org.sikuli.natives.Mat convertBufferedImageToMat(BufferedImage img) {
     if (img != null) {
-      BufferedImage cvImg = createBufferedImage(img.getWidth(), img.getHeight());
-      Graphics2D g = cvImg.createGraphics();
-      g.drawImage(img, 0, 0, null);
-      g.dispose();
-      return ((DataBufferByte) cvImg.getRaster().getDataBuffer()).getData();
-    } else {
-      return null;
-    }
-  }
-
-  private static Mat convertBufferedImageToMat(BufferedImage img) {
-    if (img != null) {
-      byte[] data = convertBufferedImageToByteArray(img);
+      byte[] data = ImageFinder.convertBufferedImageToByteArray(img);
       return Vision.createMat(img.getHeight(), img.getWidth(), data);
     } else {
       return null;
     }
   }
-  //</editor-fold>
 }

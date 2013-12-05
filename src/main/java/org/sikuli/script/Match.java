@@ -11,11 +11,11 @@ import java.awt.image.BufferedImage;
 import org.sikuli.natives.FindResult;
 
 /**
- * holds the result of a find operation, is itself the region on the screen,
+ * holds the result of a findX operation, is itself the region on the screen,
  * where the image was found and hence inherits all methods from Region<br />
  * attributes:<br /> the match score (0 ... 1.0)<br /> the click target (e.g.
  * from Pattern)<br /> the filename of the used image<br />or the text used for
- * find text
+ * findX text
  */
 public class Match extends Region implements Comparable {
 
@@ -70,7 +70,7 @@ public class Match extends Region implements Comparable {
   }
 
   /**
-   * internally used constructor used by find image
+   * internally used constructor used by findX image
    *
    * @param f
    * @param _parent
