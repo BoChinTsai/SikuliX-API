@@ -11,7 +11,10 @@ import java.awt.image.DataBuffer;
 import java.awt.image.DataBufferByte;
 import java.awt.image.SampleModel;
 import java.awt.image.WritableRaster;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Date;
+import java.util.List;
 import org.opencv.core.Core;
 import org.opencv.core.CvType;
 import org.opencv.core.Mat;
@@ -74,7 +77,8 @@ public class ImageFinder extends Finder {
   private long lastSearchTime = 0;
   private boolean repeating;
   private long MaxTimePerScan;
-  private Match[] matches = new Match[] {null}; 
+  private static List<Match> matches = Collections.synchronizedList(new ArrayList<Match>());
+  
   
   public ImageFinder() {
     init(null, null, null);
@@ -98,6 +102,8 @@ public class ImageFinder extends Finder {
     this.base = base;
     isImage = true;
     isValid = true;
+    matches.clear();
+    matches.add(0, null);
     log(3, "search in: \n%s", base);
   }
   
@@ -110,6 +116,8 @@ public class ImageFinder extends Finder {
     } else if (reg != null) {
       setRegion(reg);
     }
+    matches.clear();
+    matches.add(0, null);
   }
   
   private void reset() {
@@ -124,6 +132,8 @@ public class ImageFinder extends Finder {
     pImage = null;
     probe = new Mat();
     result = new Mat();
+    matches.clear();
+    matches.add(0, null);
   }
   
   @Override
@@ -301,7 +311,7 @@ public class ImageFinder extends Finder {
     }
     boolean ret = doFind();   
     if (!isInnerFind) {
-      log(lvl, "find: success: %s", matches[0]);
+      log(lvl, "find: success: %s", matches.get(0));
     }                  
     return ret;
   }
@@ -388,24 +398,62 @@ public class ImageFinder extends Finder {
 
   @Override
   public boolean hasNext() {
-    return matches[matches.length - 1] != null;
+    if (matches.size() > 0) {
+      return matches.get(0) != null;
+    }
+    return false;
   }
   
   @Override
   public Match next() {
-    Match m = matches[matches.length - 1];
+    Match m = null;
+    if (matches.size() > 0) {
+    m = matches.get(0);
     remove();
+    }
     return m;
   }
   
   @Override
   public void remove() {
-    matches[matches.length - 1] = null;
+    if (matches.size() > 0) {
+      matches.remove(0);
+    }
+  }
+  
+  public Match get() {
+    return get(0);
+  }
+  
+  public Match get(int n) {
+    if (n < matches.size()) {
+      return matches.get(n);
+    }
+    return null;
   }
 
+  private Match add(Match m) {
+    if (matches.add(m)) {
+      return m;
+    }
+    return null;
+  }
+  
+  private Match set(Match m) {
+    if (matches.size() > 0) {
+      matches.set(0, m);
+    } else {
+      matches.add(m);
+    }
+    return m;
+  }
+  
+  public int getSize() {
+    return matches.size();
+  }
+  
   private boolean doFind() {
     Debug.enter(me + ": doFind");
-    Match match = null;
     boolean found =false;
     Core.MinMaxLocResult fres = null; 
     repeating = false;
@@ -420,10 +468,10 @@ public class ImageFinder extends Finder {
         f.find(probe);
         if (found = (f.hasNext())) {
           log(lvl, "checkLastSeen: success");
-          matches[0] = f.next();
-          matches[0].setTimes(lastFindTime, lastSearchTime);
+          set(f.next());
+          get().setTimes(lastFindTime, lastSearchTime);
           if (pImage != null) {
-            pImage.setLastSeen(matches[0].getRect());
+            pImage.setLastSeen(get().getRect());
           }
           break;
         }
@@ -450,17 +498,17 @@ public class ImageFinder extends Finder {
         }
         fres = doFindDown(0, 0.0);
         if(fres != null && fres.maxVal > similarity - 0.01) {
-          matches[0] = new Match((int) fres.maxLoc.x + offX, (int) fres.maxLoc.y + offY, 
-                  probe.width(), probe.height(), fres.maxVal, null, null);
+          set(new Match((int) fres.maxLoc.x + offX, (int) fres.maxLoc.y + offY, 
+                  probe.width(), probe.height(), fres.maxVal, null, null));
         }
       } else {
-        matches[0] = checkFound(fres);
+        set(checkFound(fres));
       }
       lastFindTime = (new Date()).getTime() - lastFindTime;
-      if (null != matches[0]) {
-        matches[0].setTimes(lastFindTime, lastSearchTime);
+      if (hasNext()) {
+        get().setTimes(lastFindTime, lastSearchTime);
         if (pImage != null) {
-          pImage.setLastSeen(matches[0].getRect());
+          pImage.setLastSeen(get().getRect());
         }
         found = true;
         break;
