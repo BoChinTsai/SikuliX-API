@@ -15,7 +15,6 @@ import java.util.Iterator;
 import org.sikuli.natives.FindInput;
 import org.sikuli.natives.FindResult;
 import org.sikuli.natives.FindResults;
-import org.sikuli.natives.OpenCV;
 import org.sikuli.natives.TARGET_TYPE;
 import org.sikuli.natives.Vision;
 
@@ -27,13 +26,13 @@ public class Finder implements Iterator<Match> {
   private FindResults _results = null;
   private int _cur_result_i;
   private boolean repeating = false;
+  private boolean isImageFinder = false;
 
 //TODO Vision.setParameter("GPU", 1);
   static {
     FileManager.loadLibrary("VisionProxy");
   }
-  
-  
+    
   /**
    * Just to force library initialization
    */
@@ -68,11 +67,11 @@ public class Finder implements Iterator<Match> {
 	 * @param bimg
 	 */
 	public Finder(BufferedImage bimg) {
-    _findInput.setSource(OpenCV.convertBufferedImageToMat(bimg));
+    _findInput.setSource(Image.convertBufferedImageToMat(bimg));
 	}
 
   /**
-	 * Finder constructor for special use froma a ScreenImage
+	 * Finder constructor for special use from a ScreenImage
 	 *
 	 * @param simg
 	 */
@@ -96,7 +95,7 @@ public class Finder implements Iterator<Match> {
 	 * @param simg
 	 */
 	public Finder(Image simg) {
-    _findInput.setSource(OpenCV.convertBufferedImageToMat(simg.get()));
+    _findInput.setSource(Image.convertBufferedImageToMat(simg.get()));
   }
 
 	private void initScreenFinder(ScreenImage simg, Region region) {
@@ -121,7 +120,7 @@ public class Finder implements Iterator<Match> {
 	 * @param simg
 	 */
 	protected void setScreenImage(ScreenImage simg) {
-    _findInput.setSource(OpenCV.convertBufferedImageToMat(simg.getImage()));
+    _findInput.setSource(Image.convertBufferedImageToMat(simg.getImage()));
 	}
 
   /**
@@ -132,23 +131,19 @@ public class Finder implements Iterator<Match> {
   }
 
 	/**
-	 * internal use: repeat find with same Finder
+	 * internal use: repeat findX with same Finder
 	 */
 	protected void findRepeat() {
 		_results = Vision.find(_findInput);
 		_cur_result_i = 0;
 	}
 
-  public String find(String imageOrText) {
-    return find(imageOrText, Settings.MinSimilarity);
-  }
-
   /**
    *
    * @param imageOrText
    * @param minSimilarity
    */
-  public String find(String imageOrText, double minSimilarity) {
+  public String find(String imageOrText) {
 		String target = setTargetSmartly(_findInput, imageOrText);
     if (null == target) {
       return null;
@@ -156,14 +151,14 @@ public class Finder implements Iterator<Match> {
 		if (target.equals(imageOrText+"???")) {
 			return target;
 		}
-    _findInput.setSimilarity(minSimilarity);
+    _findInput.setSimilarity(Settings.MinSimilarity);
     _results = Vision.find(_findInput);
     _cur_result_i = 0;
     return target;
   }
 
   /**
-   * find given pattern within the stored image
+   * findX given pattern within the stored image
    *
    * @param aPtn
    */
@@ -200,7 +195,7 @@ public class Finder implements Iterator<Match> {
   }
 
   /**
-	 * internal use: repeat find with same Finder
+	 * internal use: repeat findX with same Finder
 	 */
   protected void findAllRepeat() {
     Debug timing = new Debug();
@@ -210,16 +205,12 @@ public class Finder implements Iterator<Match> {
     timing.endTiming("Finder.findAll");
 	}
 
-  public String findAll(String imageOrText) {
-    return findAll(imageOrText, Settings.MinSimilarity);
-  }
-
   /**
    *
    * @param imageOrText
    * @param minSimilarity
    */
-  public String findAll(String imageOrText, double minSimilarity) {
+  public String findAll(String imageOrText) {
 		String target = setTargetSmartly(_findInput, imageOrText);
     if (null == target) {
       return null;
@@ -231,7 +222,7 @@ public class Finder implements Iterator<Match> {
     timing.startTiming("Finder.findAll");
 
     setTargetSmartly(_findInput, imageOrText);
-    _findInput.setSimilarity(minSimilarity);
+    _findInput.setSimilarity(Settings.MinSimilarity);
     _findInput.setFindAll(true);
     _results = Vision.find(_findInput);
     _cur_result_i = 0;
