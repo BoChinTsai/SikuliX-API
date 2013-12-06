@@ -241,6 +241,7 @@ public class ImageFinder extends Finder {
         shouldFail = (Boolean) args[1];
       }
     }
+    if (isPlainColor) shouldCheckLastSeen = false;
     return isValid;
   }
   
@@ -481,16 +482,8 @@ public class ImageFinder extends Finder {
       } else if (isScreen) {
         setBase(screen.capture().getImage());
       }
-      if (isPlainColor) {
-        if (isBlack) {
-          
-        } else {
-          
-        }
-      } else {
-        if (!isInnerFind && resizeFactor > 1.5) {
-          fres = doFindDown(0, resizeFactor);
-        }
+      if (!isInnerFind && resizeFactor > 1.5) {
+        fres = doFindDown(0, resizeFactor);
       }
       if (fres == null) {
         if (!isInnerFind) {
@@ -581,11 +574,9 @@ public class ImageFinder extends Finder {
       Size sp = new Size(probe.cols()/rfactor, probe.rows()/factor);
       Imgproc.resize(base, b, sb, 0, 0, Imgproc.INTER_AREA);
       Imgproc.resize(probe, p, sp, 0, 0, Imgproc.INTER_AREA);
-      Imgproc.matchTemplate(b, p, res, Imgproc.TM_CCOEFF_NORMED);
-      dres = Core.minMaxLoc(res);
+      dres = doFindMatch(b, p);
     } else {
-      Imgproc.matchTemplate(base, probe, res, Imgproc.TM_CCOEFF_NORMED);
-      dres = Core.minMaxLoc(res);
+      dres = doFindMatch(base, probe);
       timer.end();
       return dres;
     }
@@ -603,6 +594,26 @@ public class ImageFinder extends Finder {
     dres.maxLoc.y *= rfactor; 
     timer.end();
     return dres;
+  }
+  
+  private Core.MinMaxLocResult doFindMatch(Mat base, Mat probe) {
+    Mat res = new Mat();
+    Mat bi = new Mat();
+    Mat pi = new Mat();
+    if (!isPlainColor) {
+      Imgproc.matchTemplate(base, probe, res, Imgproc.TM_CCOEFF_NORMED);
+    } else {
+      if (isBlack) {
+        Core.bitwise_not(base, bi);
+        Core.bitwise_not(probe, pi);
+      } else {
+        bi = base;
+        pi = probe;
+      }
+      Imgproc.matchTemplate(bi, pi, res, Imgproc.TM_SQDIFF_NORMED);
+      Core.subtract(Mat.ones(res.size(), CvType.CV_32F), res, res);
+    }
+    return Core.minMaxLoc(res);
   }
   
   protected static Mat createMat(BufferedImage img) {
