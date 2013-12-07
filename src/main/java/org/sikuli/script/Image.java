@@ -7,18 +7,8 @@
 package org.sikuli.script;
 
 import java.awt.Dimension;
-import java.awt.Graphics2D;
-import java.awt.Point;
 import java.awt.Rectangle;
-import java.awt.Transparency;
-import java.awt.color.ColorSpace;
 import java.awt.image.BufferedImage;
-import java.awt.image.ColorModel;
-import java.awt.image.ComponentColorModel;
-import java.awt.image.DataBuffer;
-import java.awt.image.DataBufferByte;
-import java.awt.image.SampleModel;
-import java.awt.image.WritableRaster;
 import java.io.File;
 import java.net.URL;
 import java.util.ArrayList;
@@ -31,11 +21,6 @@ import javax.imageio.ImageIO;
 import org.sikuli.basics.Debug;
 import org.sikuli.basics.FileManager;
 import org.sikuli.basics.Settings;
-import org.opencv.core.Mat;
-import org.opencv.core.CvType;
-import org.opencv.core.Core;
-import org.opencv.imgproc.Imgproc;
-//import org.sikuli.natives.Mat;
 import org.sikuli.natives.Vision;
 
 /**
