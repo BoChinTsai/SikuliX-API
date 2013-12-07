@@ -57,6 +57,7 @@ public class ImageFinder extends Finder {
   private double resizeMinSim = 0.9;
   private double similarity = Settings.MinSimilarity;
   private double waitingTime = Settings.AutoWaitTimeout;
+  private int minChanges;
   private boolean shouldFail = true;
   private boolean shouldCheckLastSeen = Settings.CheckLastSeen;
   private static final boolean AS_EXISTS = false;
@@ -96,7 +97,7 @@ public class ImageFinder extends Finder {
     init(null, null, reg);
   }
 
-  private ImageFinder(Mat base) {
+  protected ImageFinder(Mat base) {
     log(3, "init");
     reset();
     this.base = base;
@@ -241,7 +242,6 @@ public class ImageFinder extends Finder {
         shouldFail = (Boolean) args[1];
       }
     }
-    if (isPlainColor) shouldCheckLastSeen = false;
     return isValid;
   }
   
@@ -260,7 +260,7 @@ public class ImageFinder extends Finder {
       isPlainColor = true;
     }
     sum = 0.0;
-    arr = pStdDev.toArray();
+    arr = pMean.toArray();
     for (int i = 0; i < arr.length; i++) {
       sum += arr[i];
     }
@@ -301,6 +301,12 @@ public class ImageFinder extends Finder {
     }
   }
   
+  @Override
+  public String findText(String text) {
+    log(-1, "findText: not yet implemented");
+    return null;
+  }
+
   public <PSI> boolean find(PSI probe, Object... args) {
     return imageFind(probe, args);
   }
@@ -395,8 +401,27 @@ public class ImageFinder extends Finder {
   public ImageFinder setFindAllMax(int max) {
     allMax = max;
     return this;
-  } 
+  }
+  
+  public boolean hasChanges(Mat current) {
+    Mat bg = new Mat();
+    Mat cg = new Mat();
+    Mat diff = new Mat();
+    Mat tdiff = new Mat();
+    
+    Imgproc.cvtColor(base, bg, Imgproc.COLOR_BGR2GRAY);
+    Imgproc.cvtColor(base, bg, Imgproc.COLOR_BGR2GRAY);
+    Core.absdiff(bg, cg, diff);
+    Imgproc.threshold(diff, tdiff, 5.0, 0.0, Imgproc.THRESH_TOZERO);
+    if (Core.countNonZero(tdiff) <= 5) {
+      return false;
+    }
+    return true;
+  }
 
+  public void setMinChanges(int min) {
+    minChanges = min;
+  }
   @Override
   public boolean hasNext() {
     if (matches.size() > 0) {
@@ -463,6 +488,7 @@ public class ImageFinder extends Finder {
     while (true) {
       lastFindTime = (new Date()).getTime();
       if (shouldCheckLastSeen && !repeating && !isImage && pImage.getLastSeen() != null) {
+        log(3, "checkLastSeen: trying ...");
         ImageFinder f = new ImageFinder(new Region(pImage.getLastSeen()));
         f.setIsInnerFind();
         f.setSimilarity(0.99);
@@ -476,6 +502,7 @@ public class ImageFinder extends Finder {
           }
           break;
         }
+        log(lvl, "checkLastSeen: not found");
       }
       if (isRegion) {
         setBase(region.getScreen().capture(region).getImage());
@@ -483,11 +510,12 @@ public class ImageFinder extends Finder {
         setBase(screen.capture().getImage());
       }
       if (!isInnerFind && resizeFactor > 1.5) {
+        log(3, "downsampling: trying ...");
         fres = doFindDown(0, resizeFactor);
       }
       if (fres == null) {
         if (!isInnerFind) {
-          log(3, "not found with downsampling (%f) - trying original size", resizeFactor);
+          log(3, "downsampling: not found with (%f) - trying original size", resizeFactor);
         }
         fres = doFindDown(0, 0.0);
         if(fres != null && fres.maxVal > similarity - 0.01) {
@@ -495,6 +523,7 @@ public class ImageFinder extends Finder {
                   probe.width(), probe.height(), fres.maxVal, null, null));
         }
       } else {
+        log(lvl, "downsampling: success: adjusting match");        
         set(checkFound(fres));
       }
       lastFindTime = (new Date()).getTime() - lastFindTime;
@@ -616,7 +645,7 @@ public class ImageFinder extends Finder {
     return Core.minMaxLoc(res);
   }
   
-  protected static Mat createMat(BufferedImage img) {
+  public static Mat createMat(BufferedImage img) {
     if (img != null) {
       Debug timer = Debug.startTimer("Mat create\t (%d x %d) from \n%s", 
               img.getWidth(), img.getHeight(), img);
