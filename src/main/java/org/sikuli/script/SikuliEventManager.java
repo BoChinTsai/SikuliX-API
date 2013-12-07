@@ -23,6 +23,7 @@ public class SikuliEventManager {
   }
   private Region _region;
   private Mat _lastImgMat = null;
+  private org.opencv.core.Mat _lastImageMat = new org.opencv.core.Mat();
   private Map<Object, State> _state;
   private Map<Object, Long> _wait;
   private Map<Object, Integer> _count;
@@ -109,7 +110,13 @@ public class SikuliEventManager {
   }
 
   private void checkPatterns(ScreenImage simg) {
-    Finder finder = new Finder(simg, _region);
+    Finder finder = null;
+    if (Settings.UseImageFinder) {
+      finder = new ImageFinder(_region);
+    }
+    else {
+      finder = new Finder(simg, _region);
+    }
     String imgOK;
     Debug.log(3, "observe: checkPatterns entry: sthgLeft: %s isObserving: %s", sthgLeft, _region.isObserving());
     for (Object ptn : _state.keySet()) {
@@ -256,22 +263,38 @@ public class SikuliEventManager {
   }
 
   private void checkChanges(ScreenImage img) {
-    if (_lastImgMat == null) {
-      _lastImgMat = Image.convertBufferedImageToMat(img.getImage());
-      return;
+    if (Settings.UseImageFinder) { 
+      if (_lastImageMat.empty()) {
+        _lastImageMat = ImageFinder.createMat(img.getImage());
+        return;
+      }
+      ImageFinder f = new ImageFinder(_lastImageMat);
+      f.setMinChanges(_minChanges);
+      org.opencv.core.Mat current = ImageFinder.createMat(img.getImage());
+      if (f.hasChanges(current)) {
+        //TODO implement ChangeObserver: processing changes
+        Debug.log(3, "ChangeObserver: processing changes");
+      }
+      _lastImageMat = current;
+    } 
+    else {
+      if (_lastImgMat == null) {
+        _lastImgMat = Image.convertBufferedImageToMat(img.getImage());
+        return;
+      }
+      FindInput fin = new FindInput();
+      fin.setSource(_lastImgMat);
+      Mat target = Image.convertBufferedImageToMat(img.getImage());
+      fin.setTarget(target);
+      fin.setSimilarity(_minChanges);
+      FindResults results = Vision.findChanges(fin);
+      try {
+        callChangeObserver(results);
+      } catch (AWTException e) {
+        Debug.error("EventMgr: checkChanges: ", e.getMessage());
+      }
+      _lastImgMat = target;
     }
-    FindInput fin = new FindInput();
-    fin.setSource(_lastImgMat);
-    Mat target = Image.convertBufferedImageToMat(img.getImage());
-    fin.setTarget(target);
-    fin.setSimilarity(_minChanges);
-    FindResults results = Vision.findChanges(fin);
-    try {
-      callChangeObserver(results);
-    } catch (AWTException e) {
-      Debug.error("EventMgr: checkChanges: ", e.getMessage());
-    }
-    _lastImgMat = target;
   }
 
   public boolean update(ScreenImage simg) {
