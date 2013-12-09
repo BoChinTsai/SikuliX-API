@@ -73,6 +73,7 @@ public class Image {
   private int bwidth;
   private int bheight;
   private Rectangle lastSeen = null;
+  private double lastScore = 0.0;
 
   @Override
   public String toString() {
@@ -344,7 +345,6 @@ public class Image {
   /**
    * Get the image's absolute filename or null if jar, http or in memory only
    *
-   * @return
    */
   public String getFilename() {
 //    if (isBImg.equals(imageName)) {
@@ -357,9 +357,8 @@ public class Image {
   }
 
   /**
-   * Get the image's absolute filename or null if in memory only
+   * Get the image's short name or null if in memory only
    *
-   * @return
    */
   public String getName() {
     return imageName;
@@ -368,7 +367,6 @@ public class Image {
   /**
    * return the image's BufferedImage (load it if not in cache)
    *
-   * @return
    */
   public BufferedImage get() {
     if (bimg != null) {
@@ -391,8 +389,13 @@ public class Image {
     return lastSeen;
   }
 
-  public void setLastSeen(Rectangle lastSeen) {
+  public double getLastSeenScore() {
+    return lastScore;
+  }
+  
+  public void setLastSeen(Rectangle lastSeen, double sim) {
     this.lastSeen = lastSeen;
+    this.lastScore = sim;
   }
   
   public Image subImage(int x, int y, int w, int h) {
@@ -403,7 +406,6 @@ public class Image {
   /**
    * return an OpenCV Mat version from the BufferedImage
    *
-   * @return
    */
   protected org.sikuli.natives.Mat getMat() {
     return convertBufferedImageToMat(get());
