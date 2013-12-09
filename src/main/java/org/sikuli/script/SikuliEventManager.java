@@ -113,6 +113,7 @@ public class SikuliEventManager {
     Finder finder = null;
     if (Settings.UseImageFinder) {
       finder = new ImageFinder(_region);
+      ((ImageFinder) finder).setIsMultiFinder();
     }
     else {
       finder = new Finder(simg, _region);
