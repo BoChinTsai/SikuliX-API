@@ -41,7 +41,6 @@ public class ImagePath {
 
   /**
    * get the list of path entries
-   * @return
    */
   public static List<PathEntry> getPaths() {
     return imagePaths;
@@ -49,7 +48,6 @@ public class ImagePath {
   
   /**
    * print the list of path entries
-   * @return
    */
   public static void printPaths() {
     log(0, "ImagePath has %d entries", imagePaths.size());
@@ -131,13 +129,9 @@ public class ImagePath {
   }
   
   /**
-   * Set the primary image path to the top folder level of a jar based on the given class name (must
-   * be found on class path). When not running from a jar (e.g. running in some IDE) the path will be the
-   * path to the compiled classes (for Maven based projects this is target/classes that contains all
-   * stuff copied from src/main/resources automatically)<br />
-   * this is the same as setJarImagePath(klassName, null)
-   *
-   * @param klassName fully qualified (canonical) class Name
+   * see; {@link #add(String, String)} 
+   * 
+   * @param mainPath a valid classname optionally followed by /subfolder...
    */
   public static boolean add(String mainPath) {
     return add(mainPath, null);
@@ -148,9 +142,8 @@ public class ImagePath {
    * be found on class path). When not running from a jar (e.g. running in some IDE) the path will be the
    * path to the compiled classes (for Maven based projects this is target/classes that contains all
    * stuff copied from src/main/resources automatically)<br />
-   * this is the same as setJarImagePath(klassName, null)
    *
-   * @param klassName fully qualified (canonical) class Name
+   * @param mainPath a valid classname optionally followed by /subfolder...
    * @param altPath alternative image folder, when not running from jar (absolute path) 
    */
   public static boolean add(String mainPath, String altPath) {
@@ -169,11 +162,9 @@ public class ImagePath {
    * add entry to end of list
    * 
    * @param pURL
-   * @return
    */
-  public static boolean add(URL pURL) {
+  public static void add(URL pURL) {
     imagePaths.add(new PathEntry("__PATH_URL__", pURL));
-    return true;
   }
   
   /**
@@ -242,7 +233,7 @@ public class ImagePath {
 	 * Settings.BundlePath is replaced as well
 	 *
 	 * @param bundlePath a file path string relative or absolute
-   * @return true on success, false ozherwise
+   * @return true on success, false otherwise
 	 */
   public static boolean setBundlePath(String bundlePath) {
     if (bundlePath != null && !bundlePath.isEmpty()) {
@@ -265,7 +256,7 @@ public class ImagePath {
   /**
    * the resetting version of setBundlePath for IDE usage
    * @param bundlePath
-   * @return
+   * @return true on success, false otherwise
    */
   public static boolean resetBundlePath(String bundlePath) {
     reset();

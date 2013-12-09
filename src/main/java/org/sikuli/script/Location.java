@@ -28,23 +28,23 @@ public class Location {
    * @param y
    * truncated to the integer part
    */
-  public Location(float _x, float _y) {
-    x = (int) _x;
-    y = (int) _y;
+  public Location(double x, double y) {
+    this.x = (int) x;
+    this.y = (int) y;
   }
 
   /**
-   *
+   * a new point at the given coordinates
    * @param x
    * @param y
    */
-  public Location(int _x, int _y) {
-    x = _x;
-    y = _y;
+  public Location(int x, int y) {
+    this.x = x;
+    this.y = y;
   }
 
   /**
-   *
+   * duplicates the point
    * @param loc
    */
   public Location(Location loc) {
@@ -56,7 +56,7 @@ public class Location {
   }
 
   /**
-   *
+   * create from AWT point
    * @param point
    */
   public Location(Point point) {
@@ -72,37 +72,41 @@ public class Location {
     return y;
   }
   
+  /**
+   * get as AWT point
+   * @return point
+   */
   public Point getPoint() {
     return new Point(x,y);
   }
   
   /**
-   * sets the coordinates to the given values
-   * @param _x
-   * @param _y
+   * sets the coordinates to the given values (moves it)
+   * @param x
+   * @param y
    * @return self/this
    */
-  public Location setLocation(int _x, int _y) {
-    x = _x;
-    y = _y;
+  public Location setLocation(int x, int y) {
+    this.x = x;
+    this.y = y;
     return this;
   }
 
   /**
-   * sets the coordinates to the given values
-   * @param _x
-   * @param _y
+   * sets the coordinates to the given values (moves it)
+   * @param x
+   * @param y
    * @return self/this
    */
-  public Location setLocation(float _x, float _y) {
-    x = (int) _x;
-    y = (int) _y;
+  public Location setLocation(double x, double y) {
+    this.x = (int) x;
+    this.y = (int) y;
     return this;
   }
 
   /**
     * Returns null, if outside of any screen<br />
-    * subsequent actions will crash
+    * subsequent actions might crash
     *
     * @return the screen, that contains the given point.<br />
     */
@@ -151,10 +155,9 @@ public class Location {
   }
 
   /**
-   * the offset of given point as (x,y) relative to this point
+   * the offset of given point to this Location 
    *
-   * @param loc1
-   * @param loc2
+   * @param loc
    * @return relative offset
    */
   public Location getOffset(Location loc) {
@@ -377,7 +380,7 @@ public class Location {
 
   /**
    * {@inheritDoc}
-   * @return 
+   * @return the description
    */
   @Override
   public String toString() {
@@ -386,6 +389,10 @@ public class Location {
             ((s == null) ? "" : "@" + s.toStringShort());
   }
   
+  /**
+   *
+   * @return a shorter description
+   */
   public String toStringShort() {
     return "L(" + x + "," + y + ")";
   }

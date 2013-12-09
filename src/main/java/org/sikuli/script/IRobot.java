@@ -42,7 +42,6 @@ public interface IRobot {
 
    /**
     *  Return the underlying device object (if any).
-   * @return 
     */
    IScreen getScreen();
 }

@@ -56,7 +56,6 @@ public class Mouse {
   /**
    * To get the one Mouse instance used for synchronisation
    * 
-   * @return
    */
   protected static Mouse get() {
     if (mouse == null) {
@@ -68,7 +67,6 @@ public class Mouse {
   /**
    * current setting what to do if mouse is moved outside Sikuli's mouse protection
    * 
-   * @return
    */
   public static int getMouseMovedResponse() {
     return mouseMovedResponse;
@@ -271,7 +269,7 @@ public class Mouse {
    * @param loc where to click
    * @param action L,R,M left, right, middle - D means double click
    * @param args timing parameters
-   * @return
+   * @return the location
    */
   public static Location click(Location loc, String action, Integer... args) {
     getArgsClick(Mouse.get(), loc, action, args);
@@ -384,7 +382,7 @@ public class Mouse {
    * move the mouse to the given location (local and remote)
    * 
    * @param loc
-   * @return
+   * @return 1 for success, 0 otherwise
    */
   public static int move(Location loc) {
     return move(loc, null);
@@ -426,7 +424,6 @@ public class Mouse {
   /**
    * release all buttons 
    * 
-   * @param buttons
    */
   public static void up() {
     up(0, null);

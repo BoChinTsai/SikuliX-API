@@ -285,7 +285,6 @@ public class Screen extends Region implements EventObserver, IScreen {
 
   /**
    *
-   * @return
    */
   public int getID() {
     return curID;
@@ -293,7 +292,6 @@ public class Screen extends Region implements EventObserver, IScreen {
 
   /**
    *
-   * @return
    */
   public GraphicsDevice getGraphicsDevice() {
     return curGD;

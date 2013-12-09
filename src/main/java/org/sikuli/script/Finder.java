@@ -141,7 +141,6 @@ public class Finder implements Iterator<Match> {
   /**
    *
    * @param imageOrText
-   * @param minSimilarity
    */
   public String find(String imageOrText) {
 		String target = setTargetSmartly(_findInput, imageOrText);
@@ -208,7 +207,6 @@ public class Finder implements Iterator<Match> {
   /**
    *
    * @param imageOrText
-   * @param minSimilarity
    */
   public String findAll(String imageOrText) {
 		String target = setTargetSmartly(_findInput, imageOrText);
@@ -233,7 +231,6 @@ public class Finder implements Iterator<Match> {
 
 	/**
    *
-   * @param Pattern
    * @param aPtn
    */
   public String findAll(Pattern aPtn)  {

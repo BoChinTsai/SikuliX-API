@@ -45,7 +45,7 @@ public class Pattern {
   /**
    * create a Pattern with given image<br />
    *
-   * @param imgpath
+   * @param img
    */
   public Pattern(Image img) {
     image = img;
@@ -120,7 +120,7 @@ public class Pattern {
   /**
    * set a new image for this pattern
    *
-   * @param fileURL
+   * @param img
    * @return the Pattern itself
    */
   public Pattern setFilename(Image img) {
@@ -244,7 +244,6 @@ public class Pattern {
   /**
    * get the Pattern's image
    *
-   * @return
    */
   public Image getImage() {
     return image;

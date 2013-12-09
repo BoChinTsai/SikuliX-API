@@ -51,7 +51,7 @@ public class Match extends Region implements Comparable {
    * internally used constructor by TextRecognizer.listText()
    *
    * @param x
-   * @param x
+   * @param y
    * @param w
    * @param h
    * @param Score
@@ -148,7 +148,7 @@ public class Match extends Region implements Comparable {
 
   /**
    * internal use: set the image filename after finding with success
-   * @param imageFileName
+   * @param img
    */
   protected void setImage(Image img) {
     image = img;

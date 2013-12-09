@@ -174,7 +174,7 @@ public class ImageLocator {
      * directory <br />- are removed from the list <br />- and then added to the
      * end of the list (file path: if it exists)
      *
-     * @param path absolute or relative paths or urls as string array
+     * @param pl absolute or relative paths or urls as string array
      */
     public static String addImagePath(String[] pl) {
         return addImagePath(pl, false);
@@ -187,7 +187,7 @@ public class ImageLocator {
      * beginning of the list (file path: if it exists) <br />as entry 1 after
      * the current bundlepath (entry 0)
      *
-     * @param path absolute or relative paths or urls as string array
+     * @param pl absolute or relative paths or urls as string array
      */
     public static String addImagePathFirst(String[] pl) {
         return addImagePath(pl, true);
@@ -213,7 +213,7 @@ public class ImageLocator {
      * />- if file path relative: make absolute path based on current working
      * directory <br />- is/are removed from the list
      *
-     * @param path absolute or relative path(s) or url(s) as string array
+     * @param pl absolute or relative path(s) or url(s) as string array
      */
     public static void removeImagePath(String[] pl) {
         for (int i = 0; i < pl.length; i++) {
@@ -265,7 +265,7 @@ public class ImageLocator {
      * Env(SIKULI_IMAGE_PATH)
      * <br /> then the given path(s) are added using addImagePath()
      *
-     * @param path absolute or relative path(s) or url(s) as string array
+     * @param pl absolute or relative path(s) or url(s) as string array
      */
     public static void resetImagePath(String[] pl) {
         clearImagePath();
