@@ -37,7 +37,6 @@ public class Region {
    */
   private Screen scr;
   private boolean otherScreen = false;
-  ;
   
   /**
    * The ScreenHighlighter for this Region
@@ -100,11 +99,45 @@ public class Region {
   private Iterator<Match> lastMatches = null;
   private long lastSearchTime;
   private long lastFindTime;
+  
+  /**
+   * the area constants for use with get()
+   */
+  public static final int N2 = 12, NORTH = N2;
+  public static final int N3 = 13, NORTH_NORTH = N3;
+  public static final int E2 = 22, EAST = E2;
+  public static final int E3 = 23, EAST_EAST = E3;
+  public static final int S2 = 32, SOUTH = S2;
+  public static final int S3 = 33, SOUTH_SOUTH = S3;
+  public static final int W2 = 42, WEST = W2;
+  public static final int W3 = 43, WEST_WEST = W3;
+  public static final int NW = 10, NORTH_WEST = NW;
+  public static final int NE = 11, NORTH_EAST = NE;
+  public static final int SW = 10, SOUTH_WEST = SW;
+  public static final int SE = 11, SOUTH_EAST = SE;
+  public static final int MV = 50, MID_VERTICAL = MV;
+  public static final int MH = 51, MID_HORIZONTAL = MH;
+  public static final int M2 = 52, MIDDLE_HALF = M2;
+  public static final int M3 = 53, MIDDLE_THIRD = M3;
+  public static final int EN = NE, EAST_NORTH = NE;
+  public static final int ES = SE, EAST_SOUTH = SE;
+  public static final int WN = NW, WEST_NORTH = NW;
+  public static final int WS = SW, WEST_SOUTH = SW;
+  
+  /**
+   * to support a raster over the region
+   */
+  private int rows;
+  private int cols = 0;
+  private int rowH = 0;
+  private int colW = 0;
+  private int rowHd = 0;
+  private int colWd = 0;
 
   /**
    * {@inheritDoc}
    *
-   * @return
+   * @return the description
    */
   @Override
   public String toString() {
@@ -113,6 +146,10 @@ public class Region {
             throwException ? "Y" : "N", autoWaitTimeout);
   }
 
+  /**
+   *
+   * @return a compact description
+   */
   public String toStringShort() {
     return String.format("R[%d,%d %dx%d]@S(%s)", x, y, w, h, (getScreen() == null ? "?" : getScreen().getID()));
   }
@@ -206,14 +243,14 @@ public class Region {
     }
   }
 
-  private Location addRemote(Location loc) {
+  private Location checkAndSetRemote(Location loc) {
     if (!isOtherScreen()) {
       return loc;
     }
     return loc.setOtherScreen(scr);
   }
 
-  private Region addRemote(Region reg) {
+  private Region checkAndSetRemote(Region reg) {
     if (!isOtherScreen()) {
       return reg;
     }
@@ -260,6 +297,7 @@ public class Region {
    */
   public Region(int X, int Y, int W, int H, int screenNumber) {
     this(X, Y, W, H, Screen.getScreen(screenNumber));
+    this.rows = 0;
   }
 
   /**
@@ -272,6 +310,7 @@ public class Region {
    * @param parentScreen the screen containing the Region
    */
   public Region(int X, int Y, int W, int H, Screen parentScreen) {
+    this.rows = 0;
     this.x = X;
     this.y = Y;
     this.w = W > 1 ? W : 1;
@@ -289,6 +328,7 @@ public class Region {
    */
   public Region(int X, int Y, int W, int H) {
     this(X, Y, W, H, null);
+    this.rows = 0;
     Debug.log(3, "Region: init: (%d, %d, %d, %d)", X, Y, W, H);
   }
 
@@ -299,6 +339,7 @@ public class Region {
    */
   public Region(Rectangle r) {
     this(r.x, r.y, r.width, r.height, null);
+    this.rows = 0;
   }
 
   /**
@@ -308,6 +349,7 @@ public class Region {
    */
   public Region(Region r) {
     this(r.x, r.y, r.w, r.h, r.getScreen());
+    this.rows = 0;
     autoWaitTimeout = r.autoWaitTimeout;
     findFailedResponse = r.findFailedResponse;
     throwException = r.throwException;
@@ -319,6 +361,7 @@ public class Region {
    * internal use only, used for new Screen objects to get the Region behavior
    */
   protected Region() {
+    this.rows = 0;
   }
 
   /**
@@ -328,7 +371,7 @@ public class Region {
    * @param Y top left Y position
    * @param W width
    * @param H heigth
-   * @return
+   * @return then new region
    */
   public static Region create(int X, int Y, int W, int H) {
     return Region.create(X, Y, W, H, null);
@@ -342,7 +385,7 @@ public class Region {
    * @param W width
    * @param H heigth
    * @param scr the source screen
-   * @return the created region
+   * @return the new region
    */
   private static Region create(int X, int Y, int W, int H, Screen scr) {
     return new Region(X, Y, W, H, scr);
@@ -354,7 +397,7 @@ public class Region {
    * @param loc top left corner
    * @param w width
    * @param h height
-   * @return
+   * @return then new region
    */
   public static Region create(Location loc, int w, int h) {
     return Region.create(loc.x, loc.y, w, h, loc.getScreen());
@@ -457,7 +500,7 @@ public class Region {
    * Create a region from another region<br />including the region's settings
    *
    * @param r the region
-   * @return
+   * @return then new region
    */
   public static Region create(Region r) {
     Region reg = Region.create(r.x, r.y, r.w, r.h, r.getScreen());
@@ -539,7 +582,7 @@ public class Region {
    * coordinates of matches to screen coordinates
    *
    * @param m
-   * @return
+   * @return the modified match
    */
   protected Match toGlobalCoord(Match m) {
     m.x += x;
@@ -575,7 +618,7 @@ public class Region {
   }
 
   /**
-   * the time in seconds a findX operation should wait for the appearence of the target in this
+   * the time in seconds a find operation should wait for the appearence of the target in this
    * region<br /> initial value 3 secs
    *
    * @param sec
@@ -733,7 +776,7 @@ public class Region {
    * @return the center pixel location of the region
    */
   public Location getCenter() {
-    return addRemote(new Location(x + w / 2, y + h / 2));
+    return checkAndSetRemote(new Location(x + w / 2, y + h / 2));
   }
 
   /**
@@ -764,7 +807,7 @@ public class Region {
    * @return top left corner Location
    */
   public Location getTopLeft() {
-    return addRemote(new Location(x, y));
+    return checkAndSetRemote(new Location(x, y));
   }
 
   /**
@@ -782,7 +825,7 @@ public class Region {
    * @return top right corner Location
    */
   public Location getTopRight() {
-    return addRemote(new Location(x + w - 1, y));
+    return checkAndSetRemote(new Location(x + w - 1, y));
   }
 
   /**
@@ -804,7 +847,7 @@ public class Region {
    * @return bottom left corner Location
    */
   public Location getBottomLeft() {
-    return addRemote(new Location(x, y + h - 1));
+    return checkAndSetRemote(new Location(x, y + h - 1));
   }
 
   /**
@@ -826,7 +869,7 @@ public class Region {
    * @return bottom right corner Location
    */
   public Location getBottomRight() {
-    return addRemote(new Location(x + w - 1, y + h - 1));
+    return checkAndSetRemote(new Location(x + w - 1, y + h - 1));
   }
 
   /**
@@ -1122,10 +1165,10 @@ public class Region {
 
   // ************************************************
   /**
-   * a findX operation saves its match on success in the used region object<br />unchanged if not
+   * a find operation saves its match on success in the used region object<br />unchanged if not
    * successful
    *
-   * @return the Match object from last successful findX in this region
+   * @return the Match object from last successful find in this region
    */
   public Match getLastMatch() {
     return lastMatch;
@@ -1133,10 +1176,10 @@ public class Region {
 
   // ************************************************
   /**
-   * a findAll operation saves its matches on success in the used region object<br />unchanged if
+   * a searchAll operation saves its matches on success in the used region object<br />unchanged if
    * not successful
    *
-   * @return a Match-Iterator of matches from last successful findAll in this region
+   * @return a Match-Iterator of matches from last successful searchAll in this region
    */
   public Iterator<Match> getLastMatches() {
     return lastMatches;
@@ -1146,7 +1189,7 @@ public class Region {
   /**
    * get the last image taken on this regions screen
    *
-   * @return
+   * @return the stored ScreenImage
    */
   public ScreenImage getLastScreenImage() {
     return getScreen().getLastScreenImageFromScreen();
@@ -1210,8 +1253,8 @@ public class Region {
    * @param y vertical offset
    * @return the new region
    */
-  public Region offset(int _x, int _y) {
-    return Region.create(x + _x, y + _y, w, h, scr);
+  public Region offset(int x, int y) {
+    return Region.create(this.x + x, this.y + y, w, h, scr);
   }
 
   /**
@@ -1262,7 +1305,8 @@ public class Region {
 
   /**
    * create a region enlarged l pixels on left and r pixels right side<br /> and t pixels at top
-   * side and b pixels at bottom side
+   * side and b pixels at bottom side <br /> 
+   * negative values go inside (shrink)
    *
    * @param l
    * @param b
@@ -1292,7 +1336,7 @@ public class Region {
    * @return point with given offset horizontally to middle point on right edge
    */
   public Location rightAt(int offset) {
-    return addRemote(new Location(x + w + offset, y + h / 2));
+    return checkAndSetRemote(new Location(x + w + offset, y + h / 2));
   }
 
   /**
@@ -1307,18 +1351,21 @@ public class Region {
   }
 
   /**
-   * create a region right of the right side with same height and given width<br /> use grow() to
-   * include the current region
+   * create a region right of the right side with same height and given width<br /> 
+   * negative width creates the right part with width inside the region
+   * use grow() to include the current region
    *
    * @param width
    * @return the new region
    */
   public Region right(int width) {
-    int _x = x + w;
-    int _y = y;
-    int _w = width;
-    int _h = h;
-    return Region.create(_x, _y, _w, _h, scr);
+    int _x;
+    if (width < 0) {
+      _x = x + w + width;
+    } else {
+      _x = x + w;
+    }
+    return Region.create(_x, y, Math.abs(width), h, scr);
   }
 
   /**
@@ -1335,7 +1382,7 @@ public class Region {
    * @return point with given offset horizontally to middle point on left edge
    */
   public Location leftAt(int offset) {
-    return addRemote(new Location(x + offset, y + h / 2));
+    return checkAndSetRemote(new Location(x + offset, y + h / 2));
   }
 
   /**
@@ -1350,19 +1397,21 @@ public class Region {
   }
 
   /**
-   * create a region left of the left side with same height and given width<br /> use grow() to
-   * include the current region
+   * create a region left of the left side with same height and given width<br />
+   * negative width creates the left part with width inside the region
+   * use grow() to include the current region <br />
    *
    * @param width
    * @return the new region
    */
   public Region left(int width) {
-    Rectangle bounds = getScreen().getBounds();
-    int _x = x - width < bounds.x ? bounds.x : x - width;
-    int _y = y;
-    int _w = x - _x;
-    int _h = h;
-    return Region.create(_x, _y, _w, _h, scr);
+    int _x;
+    if (width < 0) {
+      _x = x;
+    } else {
+      _x = x - width;
+    }
+    return Region.create(getScreen().getBounds().intersection(new Rectangle(_x, y, Math.abs(width), h)), scr);
   }
 
   /**
@@ -1379,7 +1428,7 @@ public class Region {
    * @return point with given offset vertically to middle point on top edge
    */
   public Location aboveAt(int offset) {
-    return addRemote(new Location(x + w / 2, y + offset));
+    return checkAndSetRemote(new Location(x + w / 2, y + offset));
   }
 
   /**
@@ -1395,18 +1444,20 @@ public class Region {
 
   /**
    * create a region above the top side with same width and given height<br />
+   * negative height creates the top part with height inside the region
    * use grow() to include the current region
    *
    * @param height
    * @return the new region
    */
   public Region above(int height) {
-    Rectangle bounds = getScreen().getBounds();
-    int _x = x;
-    int _y = y - height < bounds.y ? bounds.y : y - height;
-    int _w = w;
-    int _h = y - _y;
-    return Region.create(_x, _y, _w, _h, scr);
+    int _y;
+    if (height < 0) {
+      _y = y;
+    } else {
+      _y = y - height;
+    }
+    return Region.create(getScreen().getBounds().intersection(new Rectangle(x, _y, w, Math.abs(height))), scr);
   }
 
   /**
@@ -1423,7 +1474,7 @@ public class Region {
    * @return point with given offset vertically to middle point on bottom edge
    */
   public Location belowAt(int offset) {
-    return addRemote(new Location(x + w / 2, y + h - offset));
+    return checkAndSetRemote(new Location(x + w / 2, y + h - offset));
   }
 
   /**
@@ -1438,18 +1489,21 @@ public class Region {
   }
 
   /**
-   * create a region below the bottom side with same width and given height<br /> use grow() to
-   * include the current region
+   * create a region below the bottom side with same width and given height<br /> 
+   * negative height creates the bottom part with height inside the region
+   * use grow() to include the current region
    *
    * @param height
    * @return the new region
    */
   public Region below(int height) {
-    int _x = x;
-    int _y = y + h;
-    int _w = w;
-    int _h = height;
-    return Region.create(_x, _y, _w, _h, scr);
+    int _y;
+    if (height < 0) {
+      _y = y + h + height;
+    } else {
+      _y = y + h;
+    }
+    return Region.create(x, _y, w, Math.abs(height), scr);
   }
 
   /**
@@ -1472,6 +1526,197 @@ public class Region {
   public Region intersection(Region ir) {
     Rectangle r = getRect().intersection(ir.getRect());
     return Region.create(r.x, r.y, r.width, r.height, scr);
+  }
+  
+  /**
+   * select the specified part of the region <br />
+   * example for upper part of region (NORTH) <br />
+   * NORTH (N2) - upper half <br />
+   * NORTH_NORTH (N3) - middle third in upper third <br />
+   * NORTH_EAST (NE) - right third in upper third <br />
+   * NORTH_WEST (NW) - left third in upper third <br />
+   * ... similar for the other directions <br />
+   * MID_VERTICAL (MV) half of width vertically centered <br /> 
+   * MID_HORIZONTAL (MV) half of height horizontally centered <br />
+   * MID_HALF (M2) half of width / half of height centered <br />
+   * MID_THIRD (M3) third of width / third of height centered <br />
+   * @param reg
+   * @return new region
+   */
+  public Region get(int reg) {
+    int gw2 = (int) ((w+1f)/2f);
+    int gw3 = (int) ((w+2f)/3f);
+    int gw4 = (int) ((w)/4f);
+    int gh2 = (int) ((h+1f)/2f);
+    int gh3 = (int) ((h+2f)/3f);
+    int gh4 = (int) ((h)/4f);
+    int ir = (int) (reg/10);
+    int irr = reg - ir*10;
+    Rectangle rect = new Rectangle(x, y, w, h);;
+    switch(ir) {
+      case 1:
+        switch(irr) {
+          case 0:
+            rect = new Rectangle(x, y, gw3, gh3);
+            break;
+          case 1:
+            rect = new Rectangle(x + w - gw3, y, gw3, gh3);
+            break;
+          case 2:
+            rect = new Rectangle(x, y, w, gh2);
+            break;
+          case 3:
+            rect = new Rectangle(x + gw3, y, gw3, gh3);
+            break;
+        }
+        break;
+      case 2:
+        break;
+      case 3:
+        break;
+      case 4:
+        break;
+      case 5:
+        switch(irr) {
+          case 0:
+            rect = new Rectangle(x + gw3, y, gw3, h);
+            break;
+          case 1:
+            rect = new Rectangle(x, y + gh3, w, gh3);
+            break;
+          case 2:
+            rect = new Rectangle(x + gw4, y + gh4, 2*gw4, 2*gh4);
+            break;
+          case 3:
+            rect = new Rectangle(x + gw3, y + gh3, gw3, gh3);
+            break;
+        }
+        break;
+    }
+    return Region.create(rect);
+  }
+  
+  /**
+   * store info: this region is divided vertically into n even rows <br />
+   * a preparation for using getRow()
+   * @param n
+   * @return the top row
+   */
+  public Region setRows(int n) {
+    return setRaster(n, 0);
+  }
+  
+  /**
+   * store info: this region is divided horizontally into n even columns <br />
+   * a preparation for using getCol()
+   * @param n
+   * @return the leftmost column
+   */
+  public Region setCols(int n) {
+    return setRaster(0, n);    
+  }
+  
+  public int getRows() {
+    return rows;
+  }
+  
+  public int getRowH() {
+    return rowH;
+  }
+  
+  public int getCols() {
+    return cols;
+  }
+  
+  public int getColW() {
+    return colW;
+  }
+  
+  /**
+   * store info: this region is divided into a raster of even cells <br />
+   * a preparation for using getCell()
+   * @param r 
+   * @param c
+   * @return the topleft cell
+   */
+  public Region setRaster(int r, int c) {
+    rows = r;
+    cols = c;
+    if (r > 0) {
+      rowH = (int) (h/r);
+      rowHd = h - r*rowH;
+    }
+    if (c > 0) {
+      colW = (int) (w/c);
+      colWd = w - c*colW;
+    }
+    return getCell(0, 0);
+  }
+  
+  
+  
+  /**
+   * get the specified row counting from 0, if rows or raster are setup
+   * negative counts reverse from the end (last = -1)
+   * values outside range are 0 or last respectively
+   * @param r
+   * @return the row as new region or the region itself, if no rows are setup
+   */
+  public Region getRow(int r) {
+    if (rows == 0) {
+      return this;
+    }
+    if (r < 0) {
+      r = rows - r;
+    }
+    r = Math.max(0, r);
+    r = Math.min(r, rows-1);
+    return Region.create(x, y + r * rowH, w, rowH);
+  }
+  
+  /**
+   * get the specified column counting from 0, if columns or raster are setup
+   * negative counts reverse from the end (last = -1)
+   * values outside range are 0 or last respectively
+   * @param c
+   * @return the column as new region or the region itself, if no columns are setup
+   */
+  public Region getCol(int c) {
+    if (cols == 0) {
+      return this;
+    }
+    if (c < 0) {
+      c = cols - c;
+    }
+    c = Math.max(0, c);
+    c = Math.min(c, cols-1);
+    return Region.create(x + c * colW, y, colW, h);    
+  }
+  
+  /**
+   * get the specified cell counting from (0, 0), if a raster is setup <br />
+   * negative counts reverse from the end (last = -1)
+   * values outside range are 0 or last respectively
+   * @param c
+   * @return the cell as new region or the region itself, if no raster is setup
+   */
+  public Region getCell(int r, int c) {
+    if (rows == 0) return getCol(c);
+    if (cols == 0) return getRow(r);
+    if (rows == 0 && cols == 0) {
+      return this;
+    }
+    if (r < 0) {
+      r = rows - r;
+    }
+    if (c < 0) {
+      c = cols - c;
+    }
+    r = Math.max(0, r);
+    r = Math.min(r, rows-1);
+    c = Math.max(0, c);
+    c = Math.min(c, cols-1);
+    return Region.create(x + c * colW, y + r * rowH, colW, rowH);    
   }
   //</editor-fold>
 
@@ -1544,7 +1789,7 @@ public class Region {
    * highlight(secs) if available the last match is highlighted
    *
    * @param secs
-   * @return
+   * @return this region
    */
   public Region highlight(int secs) {
     if (isOtherScreen()) {
@@ -1563,7 +1808,7 @@ public class Region {
   }
   //</editor-fold>
 
-  //<editor-fold defaultstate="collapsed" desc="findX public methods">
+  //<editor-fold defaultstate="collapsed" desc="find public methods">
   /**
    * WARNING: wait(long timeout) is taken by Java Object as final. This method catches any
    * interruptedExceptions
@@ -1601,8 +1846,7 @@ public class Region {
    * return true to try again <br />
    * throw FindFailed to abort
    *
-   * @param target Handles a failed findX action
-   * @return
+   * @param target Handles a failed find action
    * @throws FindFailed
    */
   private <PSI> boolean handleFindFailed(PSI target) throws FindFailed {
@@ -1663,7 +1907,7 @@ public class Region {
   }
 
   /**
-   * Match findX( Pattern/String ) finds the given pattern on the screen and returns the best match.
+   * Match find( Pattern/String ) finds the given pattern on the screen and returns the best match.
    * If AutoWaitTimeout is set, this is equivalent to wait().
    *
    * @param target A search criteria
@@ -1688,7 +1932,7 @@ public class Region {
       }
       if (lastMatch != null) {
         lastMatch.setImage(getImage(target));
-        getImage(target).setLastSeen(lastMatch.getRect());
+        getImage(target).setLastSeen(lastMatch.getRect(), lastMatch.getScore());
         return lastMatch;
       }
       if (!handleFindFailed(target)) {
@@ -1698,7 +1942,7 @@ public class Region {
   }
 
   /**
-   * Iterator<Match> findAll( Pattern/String/Image ) finds the given pattern on the screen and
+   * Iterator<Match> searchAll( Pattern/String/Image ) finds the given pattern on the screen and
    * returns the best match. If AutoWaitTimeout is set, this is equivalent to wait().
    *
    * @param target A search criteria
@@ -1771,7 +2015,7 @@ public class Region {
       }
       if (lastMatch != null) {
         lastMatch.setImage(rf._image);
-        rf._image.setLastSeen(lastMatch.getRect());
+        rf._image.setLastSeen(lastMatch.getRect(), lastMatch.getScore());
         log(lvl, "find: %s has appeared \nat %s", target, lastMatch);
         break;
       }
@@ -1810,7 +2054,7 @@ public class Region {
         if (rf.repeat(timeout)) {
           lastMatch = rf.getMatch();
           lastMatch.setImage(getImage(target));
-          getImage(target).setLastSeen(lastMatch.getRect());
+          getImage(target).setLastSeen(lastMatch.getRect(), lastMatch.getScore());
           log(lvl, "exists: %s has appeared \nat %s", target, lastMatch);
           return lastMatch;
         } else {
@@ -1831,51 +2075,39 @@ public class Region {
   }
 
   /**
-   * Use findText() instead of findX() in cases where the given string could be misinterpreted as an
+   * Use findText() instead of find() in cases where the given string could be misinterpreted as an
    * image filename
    *
    * @param text
    * @param timeout
-   * @return
+   * @return the matched region containing the text
    */
   public Match findText(String text, double timeout) throws FindFailed {
     // the leading/trailing tab is used to internally switch to text search directly
-    return find("\t" + text + "\t");
+    return wait("\t" + text + "\t", timeout);
   }
 
   /**
-   * Use findText() instead of findX() in cases where the given string could be misinterpreted as an
+   * Use findText() instead of find() in cases where the given string could be misinterpreted as an
    * image filename
    *
    * @param text
-   * @return
+   * @return the matched region containing the text
    */
   public Match findText(String text) throws FindFailed {
     return findText(text, autoWaitTimeout);
   }
 
   /**
-   * Use findAllText() instead of findX() in cases where the given string could be misinterpreted as
+   * Use findAllText() instead of find() in cases where the given string could be misinterpreted as
    * an image filename
    *
    * @param text
-   * @param timeout
-   * @return
+   * @return the matched region containing the text
    */
-  public Match findAllText(String text, double timeout) throws FindFailed {
+  public Iterator<Match> findAllText(String text) throws FindFailed {
     // the leading/trailing tab is used to internally switch to text search directly
-    return find("\t" + text + "\t");
-  }
-
-  /**
-   * Use findAllText() instead of findX() in cases where the given string could be misinterpreted as
-   * an image filename
-   *
-   * @param text
-   * @return
-   */
-  public Match findAllText(String text) throws FindFailed {
-    return findText(text, autoWaitTimeout);
+    return findAll("\t" + text + "\t");
   }
 
   /**
@@ -1918,7 +2150,7 @@ public class Region {
   }
   //</editor-fold>
 
-  //<editor-fold defaultstate="collapsed" desc="findX internal methods">
+  //<editor-fold defaultstate="collapsed" desc="find internal methods">
   /**
    * Match doFind( Pattern/String/Image ) finds the given pattern on the screen and returns the best
    * match without waiting.
@@ -1945,7 +2177,7 @@ public class Region {
           img = Image.create((String) ptn);
           if (img.isValid()) {
             lastSearchTime = (new Date()).getTime();
-            f = checkLastSeenAndCreateFinder(img);
+            f = checkLastSeenAndCreateFinder(img, repeating.getFindTimeOut());
             if (!f.hasNext()) {
               f.find(img);
             }
@@ -1964,7 +2196,7 @@ public class Region {
         if (((Pattern) ptn).isValid()) {
           img = ((Pattern) ptn).getImage();
           lastSearchTime = (new Date()).getTime();
-          f = checkLastSeenAndCreateFinder(img);
+          f = checkLastSeenAndCreateFinder(img, repeating.getFindTimeOut());
           if (!f.hasNext()) {
             f.find((Pattern) ptn);
           }
@@ -1975,7 +2207,7 @@ public class Region {
         if (((Image) ptn).isValid()) {
           img = ((Image) ptn);
           lastSearchTime = (new Date()).getTime();
-          f = checkLastSeenAndCreateFinder(img);
+          f = checkLastSeenAndCreateFinder(img, repeating.getFindTimeOut());
           if (!f.hasNext()) {
             f.find(img);
           }
@@ -2000,7 +2232,7 @@ public class Region {
     return m;
   }
 
-  private Finder checkLastSeenAndCreateFinder(Image img) {
+  private Finder checkLastSeenAndCreateFinder(Image img, double findTimeout) {
     if (!Settings.UseImageFinder && Settings.CheckLastSeen && null != img.getLastSeen()) {
       Region r = Region.create(img.getLastSeen());
       if (this.contains(r)) {
@@ -2014,7 +2246,9 @@ public class Region {
       }
     }
     if (Settings.UseImageFinder) {
-      return new ImageFinder(this);
+      ImageFinder f = new ImageFinder(this);
+      f. setFindTimeout(findTimeout);
+      return f;
     } else {
       return new Finder(getScreen().capture(x, y, w, h), this);
     }
@@ -2025,6 +2259,7 @@ public class Region {
    * the best matches without waiting.
    */
   private <PSI> Iterator<Match> doFindAll(PSI ptn, RepeatableFindAll repeating) throws IOException {
+    boolean findingText = false;
     Finder f;
     ScreenImage simg = getScreen().capture(x, y, w, h);
     if (repeating != null && repeating._finder != null) {
@@ -2036,13 +2271,20 @@ public class Region {
       f = new Finder(simg, this);
       Image img = null;
       if (ptn instanceof String) {
-        img = Image.create((String) ptn);
-        if (img.isValid()) {
-          f.findAll(img);
-        } else if (img.isText()) {
-          f.findAllText((String) ptn);
+        if (((String) ptn).startsWith("\t") && ((String) ptn).endsWith("\t")) {
+          findingText = true;
         } else {
-          throw new IOException("Region: doFind: Image not loadable: " + (String) ptn);
+          img = Image.create((String) ptn);
+          if (img.isValid()) {
+            f.findAll(img);
+          } else if (img.isText()) {
+            findingText = true;
+          } else {
+            throw new IOException("Region: doFind: Image not loadable: " + (String) ptn);
+          }
+        }
+        if (findingText) {
+          f.findAllText((String) ptn);
         }
       } else if (ptn instanceof Pattern) {
         if (((Pattern) ptn).isValid()) {
@@ -2075,15 +2317,22 @@ public class Region {
 
   // Repeatable Find ////////////////////////////////
   private abstract class Repeatable {
+    
+    private double findTimeout;
 
     abstract void run() throws Exception;
 
     abstract boolean ifSuccessful();
+    
+    double getFindTimeOut() {
+      return findTimeout;
+    }
 
     // return TRUE if successful before timeout
     // return FALSE if otherwise
     // throws Exception if any unexpected error occurs
     boolean repeat(double timeout) throws Exception {
+      findTimeout = timeout;
       int MaxTimePerScan = (int) (1000.0 / waitScanRate);
       int timeoutMilli = (int) (timeout * 1000);
       long begin_t = (new Date()).getTime();
@@ -2346,7 +2595,7 @@ public class Region {
 
   /**
    * move the mouse pointer to the given target location<br /> same as mouseMove<br /> Pattern or
-   * Filename - do a findX before and use the match<br /> Region - position at center<br /> Match -
+   * Filename - do a find before and use the match<br /> Region - position at center<br /> Match -
    * position at match's targetOffset<br /> Location - position at that point<br />
    *
    * @param <PatternFilenameRegionMatchLocation> target
@@ -2374,7 +2623,7 @@ public class Region {
   }
 
   /**
-   * left click at the given target location<br /> Pattern or Filename - do a findX before and use
+   * left click at the given target location<br /> Pattern or Filename - do a find before and use
    * the match<br /> Region - position at center<br /> Match - position at match's targetOffset<br
    * /> Location - position at that point<br />
    *
@@ -2389,7 +2638,7 @@ public class Region {
 
   /**
    * left click at the given target location<br /> holding down the given modifier keys<br />
-   * Pattern or Filename - do a findX before and use the match<br /> Region - position at center<br
+   * Pattern or Filename - do a find before and use the match<br /> Region - position at center<br
    * /> Match - position at match's targetOffset<br /> Location - position at that point<br />
    *
    * @param <PatternFilenameRegionMatchLocation> target
@@ -2421,7 +2670,7 @@ public class Region {
   }
 
   /**
-   * double click at the given target location<br /> Pattern or Filename - do a findX before and use
+   * double click at the given target location<br /> Pattern or Filename - do a find before and use
    * the match<br /> Region - position at center<br /> Match - position at match's targetOffset<br
    * /> Location - position at that point<br />
    *
@@ -2436,7 +2685,7 @@ public class Region {
 
   /**
    * double click at the given target location<br /> holding down the given modifier keys<br />
-   * Pattern or Filename - do a findX before and use the match<br /> Region - position at center<br
+   * Pattern or Filename - do a find before and use the match<br /> Region - position at center<br
    * /> Match - position at match's targetOffset<br /> Location - position at that point<br />
    *
    * @param <PatternFilenameRegionMatchLocation> target
@@ -2468,7 +2717,7 @@ public class Region {
   }
 
   /**
-   * right click at the given target location<br /> Pattern or Filename - do a findX before and use
+   * right click at the given target location<br /> Pattern or Filename - do a find before and use
    * the match<br /> Region - position at center<br /> Match - position at match's targetOffset<br
    * /> Location - position at that point<br />
    *
@@ -2483,7 +2732,7 @@ public class Region {
 
   /**
    * right click at the given target location<br /> holding down the given modifier keys<br />
-   * Pattern or Filename - do a findX before and use the match<br /> Region - position at center<br
+   * Pattern or Filename - do a find before and use the match<br /> Region - position at center<br
    * /> Match - position at match's targetOffset<br /> Location - position at that point<br />
    *
    * @param <PatternFilenameRegionMatchLocation> target
@@ -2659,7 +2908,7 @@ public class Region {
 
   /**
    * move the mouse pointer to the given target location<br /> same as hover<br /> Pattern or
-   * Filename - do a findX before and use the match<br /> Region - position at center<br /> Match -
+   * Filename - do a find before and use the match<br /> Region - position at center<br /> Match -
    * position at match's targetOffset<br />
    * Location - position at that point<br />
    *
