@@ -28,9 +28,13 @@ public class SikuliEventManager {
   private Map<Object, Long> _wait;
   private Map<Object, Integer> _count;
   private Map<Object, Match> _lastMatch;
-  private Map<Object, SikuliEventObserver> _appearOb, _vanishOb;
-  private Map<Integer, SikuliEventObserver> _changeOb;
+  private Map<Object, String> _names;
+//  private Map<Object, SikuliEventObserver> _appearOb, _vanishOb;
+  private Map<Object, Object> _appearOb, _vanishOb;
+//  private Map<Integer, SikuliEventObserver> _changeOb;
+  private Map<Integer, Object> _changeOb;
   private Map<Integer, Integer> _countc;
+  private Map<Integer, String> _cnames;
   private int _minChanges;
   private boolean sthgLeft;
 
@@ -40,10 +44,15 @@ public class SikuliEventManager {
     _wait = new HashMap<Object, Long>();
     _count = new HashMap<Object, Integer>();
     _lastMatch = new HashMap<Object, Match>();
-    _appearOb = new HashMap<Object, SikuliEventObserver>();
-    _vanishOb = new HashMap<Object, SikuliEventObserver>();
-    _changeOb = new HashMap<Integer, SikuliEventObserver>();
+    _names = new HashMap<Object, String>();
+//    _appearOb = new HashMap<Object, SikuliEventObserver>();
+//    _vanishOb = new HashMap<Object, SikuliEventObserver>();
+//    _changeOb = new HashMap<Integer, SikuliEventObserver>();
+    _appearOb = new HashMap<Object, Object>();
+    _vanishOb = new HashMap<Object, Object>();
+    _changeOb = new HashMap<Integer, Object>();
     _countc = new HashMap<Integer, Integer>();
+    _cnames = new HashMap<Integer, String>();
   }
 
   public void initialize() {
@@ -77,36 +86,48 @@ public class SikuliEventManager {
     return similarity;
   }
 
-  public <PSC> void addAppearObserver(PSC ptn, SikuliEventObserver ob) {
+  public <PSC> void addAppearObserver(PSC ptn, SikuliEventObserver ob, String name) {
     _appearOb.put(ptn, ob);
     _state.put(ptn, State.FIRST);
+    _names.put(ptn, name);
   }
 
   public <PSC> void removeAppearObserver(PSC ptn) {
+    Observer.remove(_names.get(ptn));
+    _names.remove(ptn);
     _appearOb.remove(ptn);
     _state.remove(ptn);
   }
 
-  public <PSC> void addVanishObserver(PSC ptn, SikuliEventObserver ob) {
+  public <PSC> void addVanishObserver(PSC ptn, SikuliEventObserver ob, String name) {
     _vanishOb.put(ptn, ob);
     _state.put(ptn, State.FIRST);
+    _names.put(ptn, name);
   }
 
   public <PSC> void removeVanishObserver(PSC ptn) {
+    Observer.remove(_names.get(ptn));
+    _names.remove(ptn);
     _vanishOb.remove(ptn);
     _state.remove(ptn);
   }
 
   private void callAppearObserver(Object ptn, Match m) {
     SikuliEventAppear se = new SikuliEventAppear(ptn, m, _region);
-    SikuliEventObserver ob = _appearOb.get(ptn);
-    ob.targetAppeared(se);
+    Object ao = _appearOb.get(ptn);
+    Observer.addEvent(_names.get(ptn), se);
+    if (ao != null && ao instanceof SikuliEventObserver) {
+      ((SikuliEventObserver)_appearOb.get(ptn)).targetAppeared(se);
+    }
   }
 
   private void callVanishObserver(Object ptn, Match m) {
     SikuliEventVanish se = new SikuliEventVanish(ptn, m, _region);
-    SikuliEventObserver ob = _vanishOb.get(ptn);
-    ob.targetVanished(se);
+    Object ao = _vanishOb.get(ptn);
+    Observer.addEvent(_names.get(ptn), se);
+    if (ao != null && ao instanceof SikuliEventObserver) {
+      ((SikuliEventObserver)_vanishOb.get(ptn)).targetVanished(se);
+    }
   }
 
   private void checkPatterns(ScreenImage simg) {
@@ -225,12 +246,15 @@ public class SikuliEventManager {
     }
   }
   
-  public void addChangeObserver(int threshold, SikuliEventObserver ob) {
+  public void addChangeObserver(int threshold, SikuliEventObserver ob, String name) {
     _changeOb.put(new Integer(threshold), ob);
     _minChanges = getMinChanges();
+    _cnames.put(threshold, name);
   }
 
   public void removeChangeObserver(int threshold) {
+    Observer.remove(_cnames.get(threshold));
+    _names.remove(threshold);
     _changeOb.remove(new Integer(threshold));
     _minChanges = getMinChanges();
   }
@@ -257,8 +281,11 @@ public class SikuliEventManager {
       if (changes.size() > 0) {
         _countc.put(n, _countc.get(n) + 1);
         SikuliEventChange se = new SikuliEventChange(changes, _region);
-        SikuliEventObserver ob = _changeOb.get(n);
-        ob.targetChanged(se);
+        Object ao = _changeOb.get(n);
+        Observer.addEvent(_cnames.get(n), se);
+        if (ao instanceof SikuliEventObserver) {
+          ((SikuliEventObserver)_changeOb.get(n)).targetChanged(se);
+        }
       }
     }
   }

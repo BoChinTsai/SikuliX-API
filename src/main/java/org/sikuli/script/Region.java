@@ -2473,35 +2473,43 @@ public class Region {
     return observing;
   }
 
-  public <PSI> void onAppear(PSI target, Object observer) {
-    getEventManager().addAppearObserver(target, (SikuliEventObserver) observer);
+  public <PSI> String onAppear(PSI target, Object observer) {
+    String name = Observer.add(this, (ObserverCallBack) observer, SikuliEvent.Type.APPEAR);
+    getEventManager().addAppearObserver(target, (SikuliEventObserver) observer, name);
+    return name;
   }
 
-  public <PSI> void onVanish(PSI target, Object observer) {
-    getEventManager().addVanishObserver(target, (SikuliEventObserver) observer);
+  public <PSI> String onVanish(PSI target, Object observer) {
+    String name = Observer.add(this, (ObserverCallBack) observer, SikuliEvent.Type.VANISH);
+    getEventManager().addVanishObserver(target, (SikuliEventObserver) observer, name);
+    return name;
   }
 
-  public void onChange(int threshold, Object observer) {
-    getEventManager().addChangeObserver(threshold, (SikuliEventObserver) observer);
+  public String onChange(int threshold, Object observer) {
+    String name = Observer.add(this, (ObserverCallBack) observer, SikuliEvent.Type.CHANGE);
+    getEventManager().addChangeObserver(threshold, (SikuliEventObserver) observer, name);
+    return name;
   }
 
-  public void onChange(SikuliEventObserver observer) {
-    getEventManager().addChangeObserver(Settings.ObserveMinChangedPixels, observer);
+  public String onChange(SikuliEventObserver observer) {
+    String name = Observer.add(this, (ObserverCallBack) observer, SikuliEvent.Type.CHANGE);
+    getEventManager().addChangeObserver(Settings.ObserveMinChangedPixels, observer, name);
+    return name;
   }
 
   public void observe() {
     observe(Float.POSITIVE_INFINITY);
   }
 
-  public void observe(double secs) {
-//TODO repeated observe, observe all, observe any
+  public boolean observe(double secs) {    
     if (evtMgr == null) {
       Debug.error("Region: observe: Nothing to observe (Region might be invalid): " + this.toStringShort());
-      return;
+      return false;
     }
+    Observer.getEvents(this);
     if (observing) {
       Debug.error("Region: observe: already running for this region. Only one allowed!");
-      return;
+      return false;
     }
     Debug.log(2, "Region: observe: starting in " + this.toStringShort() + " for " + secs + " seconds");
     int MaxTimePerScan = (int) (1000.0 / observeScanRate);
@@ -2536,6 +2544,7 @@ public class Region {
       Debug.log(2, "Region: observe: observing has ended for " + this.toStringShort());
     }
     SikuliX.removeRunningObserver(this);
+    return Observer.hasEvents(this);
   }
 
   public void observeInBackground(double secs) {

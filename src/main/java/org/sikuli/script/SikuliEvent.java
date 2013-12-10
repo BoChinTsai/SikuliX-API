@@ -11,9 +11,9 @@ import java.util.List;
 public class SikuliEvent {
 
   public enum Type {
-
-    APPEAR, VANISH, CHANGE
+    APPEAR, VANISH, CHANGE, GENERIC
   }
+  
   public Type type;
   public Region region = null;
   // AppearEvent must have a match
