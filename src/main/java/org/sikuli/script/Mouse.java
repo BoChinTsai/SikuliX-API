@@ -16,7 +16,7 @@ import org.sikuli.basics.Settings;
  * used for appropriate actions (e.g. pause a script)
  * the mouse can be blocked for a longer time, so only this owner can use
  * the mouse (like some transactional processing)
- * Currently deadlocks and infinte waits are not detected, but should not happen ;-)
+ * Currently deadlocks and infinite waits are not detected, but should not happen ;-)
  * Contained are methods to use the mouse (click, move, button down/up) as is
  * 
  * @author RaiMan
