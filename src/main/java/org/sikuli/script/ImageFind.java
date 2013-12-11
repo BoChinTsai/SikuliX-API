@@ -206,7 +206,7 @@ public class ImageFind implements Iterator<Match>{
         }
         log(lvl, "checkLastSeen: not found");
       }
-      if (!owner.isMultiFinder && owner.base.empty()) {
+      if (!owner.isMultiFinder || owner.base.empty()) {
         if (owner.isRegion) {
           owner.setBase(owner.region.getScreen().capture(owner.region).getImage());
         } else if (owner.isScreen) {

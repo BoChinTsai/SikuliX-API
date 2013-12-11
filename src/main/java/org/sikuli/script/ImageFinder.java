@@ -94,6 +94,7 @@ public class ImageFinder extends Finder {
   }
   
   public void setIsMultiFinder() {
+    base = new Mat();
     isMultiFinder = true;
   }
 
