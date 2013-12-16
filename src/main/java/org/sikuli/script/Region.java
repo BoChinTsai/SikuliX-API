@@ -1308,18 +1308,14 @@ public class Region {
    * side and b pixels at bottom side <br /> 
    * negative values go inside (shrink)
    *
-   * @param l
-   * @param b
-   * @param r
-   * @param t
+   * @param l add to the left
+   * @param r add to right
+   * @param t add above
+   * @param b add beneath
    * @return the new region
    */
   public Region grow(int l, int r, int t, int b) {
-    int _x = x - l;
-    int _y = y - b;
-    int _w = w + l + r;
-    int _h = h + t + b;
-    return Region.create(_x, _y, _w, _h, scr);
+    return Region.create(x - l, y - t, w + l + r, h + t + b, scr);
   }
 
   /**
@@ -1544,29 +1540,33 @@ public class Region {
    * @return new region
    */
   public Region get(int reg) {
-    int gw2 = (int) ((w+1f)/2f);
-    int gw3 = (int) ((w+2f)/3f);
-    int gw4 = (int) ((w)/4f);
-    int gh2 = (int) ((h+1f)/2f);
-    int gh3 = (int) ((h+2f)/3f);
-    int gh4 = (int) ((h)/4f);
-    int ir = (int) (reg/10);
-    int irr = reg - ir*10;
-    Rectangle rect = new Rectangle(x, y, w, h);;
-    switch(ir) {
+    return Region.create(getRectangle(x, y, w, h, reg));
+  }
+
+  static protected Rectangle getRectangle(int X, int Y, int W, int H, int part) {
+    int gw2 = (int) ((W + 1f) / 2f);
+    int gw3 = (int) ((W + 2f) / 3f);
+    int gw4 = (int) ((W) / 4f);
+    int gh2 = (int) ((H + 1f) / 2f);
+    int gh3 = (int) ((H + 2f) / 3f);
+    int gh4 = (int) ((H) / 4f);
+    int ir = (int) (part / 10);
+    int irr = part - ir * 10;
+    Rectangle rect = new Rectangle(X, Y, W, H);;
+    switch (ir) {
       case 1:
-        switch(irr) {
+        switch (irr) {
           case 0:
-            rect = new Rectangle(x, y, gw3, gh3);
+            rect = new Rectangle(X, Y, gw3, gh3);
             break;
           case 1:
-            rect = new Rectangle(x + w - gw3, y, gw3, gh3);
+            rect = new Rectangle(X + W - gw3, Y, gw3, gh3);
             break;
           case 2:
-            rect = new Rectangle(x, y, w, gh2);
+            rect = new Rectangle(X, Y, W, gh2);
             break;
           case 3:
-            rect = new Rectangle(x + gw3, y, gw3, gh3);
+            rect = new Rectangle(X + gw3, Y, gw3, gh3);
             break;
         }
         break;
@@ -1577,23 +1577,23 @@ public class Region {
       case 4:
         break;
       case 5:
-        switch(irr) {
+        switch (irr) {
           case 0:
-            rect = new Rectangle(x + gw3, y, gw3, h);
+            rect = new Rectangle(X + gw3, Y, gw3, H);
             break;
           case 1:
-            rect = new Rectangle(x, y + gh3, w, gh3);
+            rect = new Rectangle(X, Y + gh3, W, gh3);
             break;
           case 2:
-            rect = new Rectangle(x + gw4, y + gh4, 2*gw4, 2*gh4);
+            rect = new Rectangle(X + gw4, Y + gh4, 2 * gw4, 2 * gh4);
             break;
           case 3:
-            rect = new Rectangle(x + gw3, y + gh3, gw3, gh3);
+            rect = new Rectangle(X + gw3, Y + gh3, gw3, gh3);
             break;
         }
         break;
     }
-    return Region.create(rect);
+    return rect;
   }
   
   /**
@@ -1667,7 +1667,7 @@ public class Region {
       return this;
     }
     if (r < 0) {
-      r = rows - r;
+      r = rows + r;
     }
     r = Math.max(0, r);
     r = Math.min(r, rows-1);
@@ -1686,7 +1686,7 @@ public class Region {
       return this;
     }
     if (c < 0) {
-      c = cols - c;
+      c = cols + c;
     }
     c = Math.max(0, c);
     c = Math.min(c, cols-1);
@@ -3028,7 +3028,7 @@ public class Region {
   }
 
   public int write(String text) {
-    log(lvl, "write: " + text);
+    Debug.info("Write: " + text);
     char c;
     String token, tokenSave;
     String modifier = "";
@@ -3038,6 +3038,7 @@ public class Region {
     Settings.TypeDelay = 0.0;
     robot.typeStarts();
     for (int i = 0; i < text.length(); i++) {
+      log(lvl, "write: (%d) %s", i, text.substring(i));
       c = text.charAt(i);
       token = null;
       boolean isModifier = false;
@@ -3059,20 +3060,26 @@ public class Region {
           }
         }
       }
+      Integer key = -1;
       if (token == null) {
         log(3, "%d: %s", i, c);
       } else {
-        Integer key;
+        log(lvl, "write: token at %d: %s", i, token);        
         int repeat = 0;
         if (token.startsWith("#W")) {
           if (token.length() > 3) {
             i += token.length() - 1;
             int t = 0;
             try {
-              t = Integer.parseInt(token.substring(1, token.length() - 1));
+              t = Integer.parseInt(token.substring(2, token.length() - 1));
             } catch (NumberFormatException ex) {
             }
-            robot.delay(t);
+            log(lvl, "write: wait: " + t);        
+            if (t < 60) {
+              robot.delay(t * 1000);
+            } else {
+              robot.delay(t);
+            }
             continue;
           }
         }
@@ -3088,12 +3095,14 @@ public class Region {
           i += tokenSave.length() - 1;
           modifier += tokenSave.substring(1, 2);
           continue;
+        } else {
+          token = tokenSave;
         }
         if (-1 < (key = Key.toJavaKeyCodeFromText(token))) {
           if (repeat > 0) {
-            log(3, "write: %d: Token: %s Repeating: %d", i, token, repeat);
+            log(3, "write: %s Repeating: %d", token, repeat);
           } else {
-            log(3, "write: %d: Token: %s", i, tokenSave);
+            log(3, "write: %s", tokenSave);
             repeat = 1;
           }
           i += tokenSave.length() - 1;
@@ -3103,12 +3112,14 @@ public class Region {
             } else {
               robot.keyUp(key);
             }
-          } else {
+            continue;
+          }
+          if (repeat > 1) {
             for (int n = 0; n < repeat; n++) {
               robot.typeKey(key.intValue());
             }
+            continue;
           }
-          continue;
         }
       }
       if (!modifier.isEmpty()) {
@@ -3117,7 +3128,11 @@ public class Region {
           robot.keyDown(Key.toJavaKeyCodeFromText(String.format("#%s.", modifier.substring(n, n + 1))));
         }
       }
-      robot.typeChar(c, IRobot.KeyMode.PRESS_RELEASE);
+      if (key > -1) {
+        robot.typeKey(key.intValue());
+      } else {
+        robot.typeChar(c, IRobot.KeyMode.PRESS_RELEASE);
+      }
       if (!modifier.isEmpty()) {
         log(3, "write: modifier - " + modifier);
         for (int n = 0; n < modifier.length(); n++) {
