@@ -7,8 +7,18 @@
 package org.sikuli.script;
 
 import java.awt.Dimension;
+import java.awt.Graphics2D;
+import java.awt.Point;
 import java.awt.Rectangle;
+import java.awt.Transparency;
+import java.awt.color.ColorSpace;
 import java.awt.image.BufferedImage;
+import java.awt.image.ColorModel;
+import java.awt.image.ComponentColorModel;
+import java.awt.image.DataBuffer;
+import java.awt.image.DataBufferByte;
+import java.awt.image.SampleModel;
+import java.awt.image.WritableRaster;
 import java.io.File;
 import java.net.URL;
 import java.util.ArrayList;
@@ -18,6 +28,9 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import javax.imageio.ImageIO;
+import org.opencv.core.CvType;
+import org.opencv.core.Mat;
+import org.opencv.imgproc.Imgproc;
 import org.sikuli.basics.Debug;
 import org.sikuli.basics.FileManager;
 import org.sikuli.basics.Settings;
@@ -63,23 +76,48 @@ public class Image {
   private static int currentMemory;
   private static String imageFromJar = "__FROM_JAR__";
   private final static String isBImg = "__BufferedImage__";
+
   private String imageName = null;;
   private boolean imageIsText = false;
   private boolean imageIsAbsolute = false;
   private String filepath = null;
   private URL fileURL = null;
   private BufferedImage bimg = null;
-  private long bsize;
-  private int bwidth;
-  private int bheight;
+  private long bsize = 0;
+  private int bwidth = -1;
+  private int bheight = -1;
   private Rectangle lastSeen = null;
   private double lastScore = 0.0;
+  private ImageGroup group = null;
+
+  /**
+   * to support a raster over the image
+   */
+  private int rows = 0;
+  private int cols = 0;
+  private int rowH = 0;
+  private int colW = 0;
+  private int rowHd = 0;
+  private int colWd = 0;
+
+  
 
   @Override
   public String toString() {
-    return (imageName != null ? imageName : "__UNKNOWN__");
+    return String.format(
+            (imageName != null ? imageName : "__UNKNOWN__") + ": (%dx%d)", bwidth, bheight)
+            + (lastSeen == null ? "" : 
+            String.format(" seen at (%d, %d) with %.2f", lastSeen.x, lastSeen.y, lastScore));
   }
 
+  /**
+   * create a new image from a filename <br />
+   * file ending .png is added if missing <br />
+   * filename: [...path.../]name[.png] is searched on current image path and loaded to cache <br />
+   * already loaded image with same name is reused (reference) and taken from cache
+   * @param imgName
+   * @return the image
+   */
   public static Image create(String imgName) {
     Image img = get(imgName);
     if (img == null) {
@@ -88,12 +126,73 @@ public class Image {
     return createImageValidate(img);
   }
 
+  /**
+   * create a new image from the given url <br />
+   * file ending .png is added if missing <br />
+   * filename: ...url-path.../name[.png] is loaded from the url and and cached <br />
+   * already loaded image with same url is reused (reference) and taken from cache
+   * 
+   * @param imgName
+   * @return the image
+   */
   public static Image create(URL url) {
     Image img = get(url);
     if (img == null) {
       img = new Image(url);
     }
     return createImageValidate(img);
+  }
+
+  /**
+   * create a new image from a buffered image<br />
+   * can only be reused with the object reference
+   * 
+   * @param img 
+   */
+  public Image(BufferedImage img) {
+    this(img, null);
+  }
+
+  /**
+   * create a new image from a buffered image<br />
+   * giving it a descriptive name for printout and logging <br />
+   * can only be reused with the object reference
+   * 
+   * @param img
+   * @param name descriptive name
+   */
+  public Image(BufferedImage img, String name) {
+    if (name == null) {
+      imageName = isBImg;
+    } else {
+      imageName = "BImg:" + name;
+    }
+    filepath = isBImg;
+    bimg = img;
+    bwidth = bimg.getWidth();
+    bheight = bimg.getHeight();
+  }
+
+  /**
+   * create a new image from a Sikuli ScreenImage (captured)<br />
+   * can only be reused with the object reference
+   * 
+   * @param img 
+   */
+  public Image(ScreenImage img) {
+    this(img.getImage(), null);
+  }
+
+  /**
+   * create a new image from a Sikuli ScreenImage (captured)<br />
+   * giving it a descriptive name for printout and logging <br />
+   * can only be reused with the object reference
+   * 
+   * @param img
+   * @param name descriptive name
+   */
+  public Image(ScreenImage img, String name) {
+    this(img.getImage(), name);
   }
 
   private static Image createImageValidate(Image img) {
@@ -238,6 +337,11 @@ public class Image {
     return bimg;
   }
 
+  /**
+   * Internal Use: IDE: to get rid of cache entries at script close or save as
+   * 
+   * @param bundlePath
+   */
   public static void purge(String bundlePath) {
     URL pathURL = FileManager.makeURL(bundlePath);
     if (!ImagePath.getPaths().get(0).pathURL.equals(pathURL)) {
@@ -289,34 +393,18 @@ public class Image {
     }
   }
 
-  public Image(BufferedImage img) {
-    this(img, null);
+  public ImageGroup getGroup() {
+    return group;
   }
 
-  public Image(BufferedImage img, String name) {
-    if (name == null) {
-      imageName = isBImg;
-    } else {
-      imageName = name;
-    }
-    filepath = isBImg;
-    bimg = img;
-    bwidth = bimg.getWidth();
-    bheight = bimg.getHeight();
-  }
-
-  public Image(ScreenImage img) {
-    this(img.getImage(), null);
-  }
-
-  public Image(ScreenImage img, String name) {
-    this(img.getImage(), name);
+  public void setGroup(ImageGroup group) {
+    this.group = group;
   }
 
   /**
-   * check wether image is available
+   * check whether image is available
    *
-   * @return true if located or is a buffered image
+   * @return true if located or is an in memory image
    */
   public boolean isValid() {
     return filepath != null;
@@ -330,26 +418,26 @@ public class Image {
     return imageIsAbsolute;
   }
 
-  public boolean isText() {
+  protected boolean isText() {
     return imageIsText;
   }
 
-  public void setIsText(boolean isText) {
+  protected void setIsText(boolean isText) {
     imageIsText = isText;
   }
 
+  /**
+   *
+   * @return the valid url for this image (might be null)
+   */
   public URL getURL() {
     return fileURL;
   }
 
   /**
-   * Get the image's absolute filename or null if jar, http or in memory only
-   *
+   * @return the image's absolute filename or null if jar, http or in memory image
    */
   public String getFilename() {
-//    if (isBImg.equals(imageName)) {
-//      return null;
-//    }
     if (fileURL != null && !"file".equals(fileURL.getProtocol())) {
       return null;
     }
@@ -357,7 +445,7 @@ public class Image {
   }
 
   /**
-   * Get the image's short name or null if in memory only
+   * Get the image's descriptive name 
    *
    */
   public String getName() {
@@ -381,42 +469,286 @@ public class Image {
     }
   }
 
+  /**
+   *
+   * @return size of image
+   */
   public Dimension getSize() {
     return new Dimension(bwidth, bheight);
   }
 
+  /**
+   * if the image was already found before
+   * @return the rectangle where it was found
+   */
   public Rectangle getLastSeen() {
     return lastSeen;
   }
 
+  /**
+   * if the image was already found before
+   * @return the similarity score 
+   */
   public double getLastSeenScore() {
     return lastScore;
   }
   
+  /**
+   * Internal Use: set the last seen info after a find
+   * @param lastSeen
+   * @param sim
+   */
   public void setLastSeen(Rectangle lastSeen, double sim) {
     this.lastSeen = lastSeen;
     this.lastScore = sim;
+    if (group != null) {
+      group.addImageFacts(this, lastSeen, sim);
+    }
   }
   
-  public Image subImage(int x, int y, int w, int h) {
-    Image img = new Image(get().getSubimage(x, y, w, h));
-    return img;
+  /**
+   * create a sub image from this image
+   * @param x
+   * @param y
+   * @param w
+   * @param h
+   * @return the new image
+   */
+  public Image getSub(int x, int y, int w, int h) {
+    BufferedImage bi = createBufferedImage(w, h);
+    Graphics2D g = bi.createGraphics();
+    g.drawImage(get().getSubimage(x, y, w, h), 0, 0, null);
+    g.dispose();
+    return new Image(bi);
+  }
+  
+  /**
+   * create a sub image from this image
+   * @param part (the constants Region.XXX as used with region.get())
+   * @return
+   */
+  public Image getSub(int part) {
+    Rectangle r = Region.getRectangle(0, 0, getSize().width, getSize().height, part);
+    return getSub(r.x, r.y, r.width, r.height);
+  }
+  
+  /**
+   * store info: this image is divided vertically into n even rows <br />
+   * a preparation for using getRow()
+   * @param n
+   * @return the top row
+   */
+  public Image setRows(int n) {
+    return setRaster(n, 0);
+  }
+  
+  /**
+   * store info: this image is divided horizontally into n even columns <br />
+   * a preparation for using getCol()
+   * @param n
+   * @return the leftmost column
+   */
+  public Image setCols(int n) {
+    return setRaster(0, n);    
+  }
+  
+  /**
+   *
+   * @return number of eventually defined rows in this image or 0
+   */
+  public int getRows() {
+    return rows;
+  }
+  
+  /**
+   *
+   * @return height of eventually defined rows in this image or 0
+   */
+  public int getRowH() {
+    return rowH;
+  }
+  
+  /**
+   *
+   * @return number of eventually defined columns in this image or 0
+   */
+  public int getCols() {
+    return cols;
+  }
+  
+  /**
+   *
+   * @return width of eventually defined columns in this image or 0
+   */
+  public int getColW() {
+    return colW;
+  }
+  
+  /**
+   * store info: this image is divided into a raster of even cells <br />
+   * a preparation for using getCell()
+   * @param r 
+   * @param c
+   * @return the top left cell
+   */
+  public Image setRaster(int r, int c) {
+    rows = r;
+    cols = c;
+    if (r > 0) {
+      rowH = (int) (getSize().height/r);
+      rowHd = getSize().height - r*rowH;
+    }
+    if (c > 0) {
+      colW = (int) (getSize().width/c);
+      colWd = getSize().width - c*colW;
+    }
+    return getCell(0, 0);
+  }
+  
+  /**
+   * get the specified row counting from 0, if rows or raster are setup
+   * negative counts reverse from the end (last = -1)
+   * values outside range are 0 or last respectively
+   * @param r
+   * @return the row as new image or the image itself, if no rows are setup
+   */
+  public Image getRow(int r) {
+    if (rows == 0) {
+      return this;
+    }
+    if (r < 0) {
+      r = rows + r;
+    }
+    r = Math.max(0, r);
+    r = Math.min(r, rows-1);
+    return getSub(0, r * rowH, getSize().width, rowH);
+  }
+  
+  /**
+   * get the specified column counting from 0, if columns or raster are setup
+   * negative counts reverse from the end (last = -1)
+   * values outside range are 0 or last respectively
+   * @param c
+   * @return the column as new image or the image itself, if no columns are setup
+   */
+  public Image getCol(int c) {
+    if (cols == 0) {
+      return this;
+    }
+    if (c < 0) {
+      c = cols + c;
+    }
+    c = Math.max(0, c);
+    c = Math.min(c, cols-1);
+    return getSub(c * colW, 0, colW, getSize().height);    
+  }
+  
+  /**
+   * get the specified cell counting from (0, 0), if a raster is setup <br />
+   * negative counts reverse from the end (last = -1)
+   * values outside range are 0 or last respectively
+   * @param c
+   * @return the cell as new image or the image itself, if no raster is setup
+   */
+  public Image getCell(int r, int c) {
+    if (rows == 0) return getCol(c);
+    if (cols == 0) return getRow(r);
+    if (rows == 0 && cols == 0) {
+      return this;
+    }
+    if (r < 0) {
+      r = rows - r;
+    }
+    if (c < 0) {
+      c = cols - c;
+    }
+    r = Math.max(0, r);
+    r = Math.min(r, rows-1);
+    c = Math.max(0, c);
+    c = Math.min(c, cols-1);
+    return getSub(c * colW, r * rowH, colW, rowH);    
+  }
+  
+  /**
+   * get the OpenCV Mat version of the image's BufferedImage
+   * 
+   * @return OpenCV Mat
+   */
+  public Mat getMat() {
+    return createMat(get());
+  }
+  
+  protected static Mat createMat(BufferedImage img) {
+    if (img != null) {
+      Debug timer = Debug.startTimer("Mat create\t (%d x %d) from \n%s", img.getWidth(), img.getHeight(), img);
+      Mat mat_ref = new Mat(img.getHeight(), img.getWidth(), CvType.CV_8UC4);
+      timer.lap("init");
+      byte[] data;
+      BufferedImage cvImg;
+      ColorSpace cs = ColorSpace.getInstance(ColorSpace.CS_sRGB);
+      int[] nBits = {8, 8, 8, 8};
+      ColorModel cm = new ComponentColorModel(cs, nBits, true, false, Transparency.TRANSLUCENT, DataBuffer.TYPE_BYTE);
+      SampleModel sm = cm.createCompatibleSampleModel(img.getWidth(), img.getHeight());
+      DataBufferByte db = new DataBufferByte(img.getWidth() * img.getHeight() * 4);
+      WritableRaster r = WritableRaster.createWritableRaster(sm, db, new Point(0, 0));
+      cvImg = new BufferedImage(cm, r, false, null);
+      timer.lap("empty");
+      Graphics2D g = cvImg.createGraphics();
+      g.drawImage(img, 0, 0, null);
+      g.dispose();
+      timer.lap("created");
+      data = ((DataBufferByte) cvImg.getRaster().getDataBuffer()).getData();
+      mat_ref.put(0, 0, data);
+      Mat mat = new Mat();
+      timer.lap("filled");
+      Imgproc.cvtColor(mat_ref, mat, Imgproc.COLOR_RGBA2BGR, 3);
+      timer.end();
+      return mat;
+    } else {
+      return null;
+    }
   }
 
   /**
-   * return an OpenCV Mat version from the BufferedImage
-   *
+   * to get old style OpenCV Mat for FindInput
+   * 
+   * @return SWIG interfaced OpenCV Mat
+   * @deprecated
    */
-  protected org.sikuli.natives.Mat getMat() {
+  @Deprecated
+  protected org.sikuli.natives.Mat getMatNative() {
     return convertBufferedImageToMat(get());
   }
 
   protected static org.sikuli.natives.Mat convertBufferedImageToMat(BufferedImage img) {
     if (img != null) {
-      byte[] data = ImageFinder.convertBufferedImageToByteArray(img);
+      byte[] data = convertBufferedImageToByteArray(img);
       return Vision.createMat(img.getHeight(), img.getWidth(), data);
     } else {
       return null;
     }
+  }
+  
+  protected static byte[] convertBufferedImageToByteArray(BufferedImage img) {
+    if (img != null) {
+      BufferedImage cvImg = createBufferedImage(img.getWidth(), img.getHeight());
+      Graphics2D g = cvImg.createGraphics();
+      g.drawImage(img, 0, 0, null);
+      g.dispose();
+      return ((DataBufferByte) cvImg.getRaster().getDataBuffer()).getData();
+    } else {
+      return null;
+    }
+  }
+
+  protected static BufferedImage createBufferedImage(int w, int h) {
+    ColorSpace cs = ColorSpace.getInstance(ColorSpace.CS_sRGB);
+    int[] nBits = {8, 8, 8, 8};
+    ColorModel cm = new ComponentColorModel(cs, nBits, true, false, Transparency.TRANSLUCENT, DataBuffer.TYPE_BYTE);
+    SampleModel sm = cm.createCompatibleSampleModel(w, h);
+    DataBufferByte db = new DataBufferByte(w * h * 4);
+    WritableRaster r = WritableRaster.createWritableRaster(sm, db, new Point(0, 0));
+    BufferedImage bm = new BufferedImage(cm, r, false, null);
+    return bm;
   }
 }

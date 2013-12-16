@@ -139,7 +139,7 @@ public class ImageFind implements Iterator<Match>{
       return false;
     }
     if (probe.empty()) {
-      probe = ImageFinder.createMat(pImage.get());      
+      probe = Image.createMat(pImage.get());      
     }
     checkProbe();
     if (!owner.isImage()) {
@@ -294,7 +294,6 @@ public class ImageFind implements Iterator<Match>{
   private Core.MinMaxLocResult doFindDown(int level, double factor) {
     Debug.enter(me + ": doFindDown (%d - 1/%.2f)", level, factor * resizeLevels[level]);
     Debug timer = Debug.startTimer("doFindDown");
-    Mat res = new Mat();
     Mat b = new Mat();
     Mat p = new Mat();
     Core.MinMaxLocResult dres = null;

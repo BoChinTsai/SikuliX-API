@@ -11,9 +11,14 @@ import java.awt.image.DataBuffer;
 import java.awt.image.DataBufferByte;
 import java.awt.image.SampleModel;
 import java.awt.image.WritableRaster;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 import org.opencv.core.Core;
 import org.opencv.core.CvType;
 import org.opencv.core.Mat;
+import org.opencv.core.MatOfPoint;
+import org.opencv.core.Size;
 import org.opencv.imgproc.Imgproc;
 import org.sikuli.basics.Debug;
 import org.sikuli.basics.Settings;
@@ -102,7 +107,7 @@ public class ImageFinder extends Finder {
     reset();
     if (base.isValid()) {
       bImage = base;
-      this.base = createMat(base.get());
+      this.base = Image.createMat(base.get());
       isImage = true;
       log(3, "search in: \n%s", base.get());
     }
@@ -115,7 +120,7 @@ public class ImageFinder extends Finder {
 
   protected void setBase(BufferedImage bImg) {
     log(3, "search in: \n%s", bImg);
-    base = createMat(bImg);
+    base = Image.createMat(bImg);
   }
 
   public boolean setScreen(Screen scr) {
@@ -307,6 +312,8 @@ public class ImageFinder extends Finder {
    }
 
   public boolean hasChanges(Mat current) {
+    int PIXEL_DIFF_THRESHOLD = 5;
+    int IMAGE_DIFF_THRESHOLD = 5;
     Mat bg = new Mat();
     Mat cg = new Mat();
     Mat diff = new Mat();
@@ -315,11 +322,37 @@ public class ImageFinder extends Finder {
     Imgproc.cvtColor(base, bg, Imgproc.COLOR_BGR2GRAY);
     Imgproc.cvtColor(current, cg, Imgproc.COLOR_BGR2GRAY);
     Core.absdiff(bg, cg, diff);
-    Imgproc.threshold(diff, tdiff, 5.0, 0.0, Imgproc.THRESH_TOZERO);
-    if (Core.countNonZero(tdiff) <= 5) {
+    Imgproc.threshold(diff, tdiff, PIXEL_DIFF_THRESHOLD, 0.0, Imgproc.THRESH_TOZERO);
+    if (Core.countNonZero(tdiff) <= IMAGE_DIFF_THRESHOLD) {
       return false;
     }
+
+    Imgproc.threshold(diff, diff, PIXEL_DIFF_THRESHOLD, 255, Imgproc.THRESH_BINARY);
+    Imgproc.dilate(diff, diff, new Mat());
+    Mat se = Imgproc.getStructuringElement(Imgproc.MORPH_ELLIPSE, new Size(5,5));
+    Imgproc.morphologyEx(diff, diff, Imgproc.MORPH_CLOSE, se);
+    
+    List<MatOfPoint> points = new ArrayList<MatOfPoint>();
+    Mat contours = new Mat();
+    Imgproc.findContours(diff, points, contours, Imgproc.RETR_LIST, Imgproc.CHAIN_APPROX_SIMPLE);
+    int n = 0;
+    for (Mat pm: points) {
+      log(lvl, "(%d) %s", n++, pm);
+      printMatI(pm);
+    }
+    log(lvl, "contours: %s", contours);
+    printMatI(contours);
     return true;
+  }
+  
+  private static void printMatI(Mat mat) {
+    int[] data = new int[mat.channels()];
+    for (int r = 0; r < mat.rows(); r++) {
+      for (int c = 0; c < mat.cols(); c++) {
+        mat.get(r, c, data);
+        log(lvl, "(%d, %d) %s", r, c, Arrays.toString(data));
+      }
+    }    
   }
 
   public void setMinChanges(int min) {
@@ -344,62 +377,5 @@ public class ImageFinder extends Finder {
 
   @Override
   public void remove() {
-  }
-
-  public static Mat createMat(BufferedImage img) {
-    if (img != null) {
-      Debug timer = Debug.startTimer("Mat create\t (%d x %d) from \n%s",
-              img.getWidth(), img.getHeight(), img);
-      Mat mat_ref = new Mat(img.getHeight(), img.getWidth(), CvType.CV_8UC4);
-      timer.lap("init");
-      byte[] data;
-      BufferedImage cvImg;
-      // createBufferedImage(int w, int h)
-      ColorSpace cs = ColorSpace.getInstance(ColorSpace.CS_sRGB);
-      int[] nBits = {8, 8, 8, 8};
-      ColorModel cm = new ComponentColorModel(cs, nBits, true, false, Transparency.TRANSLUCENT, DataBuffer.TYPE_BYTE);
-      SampleModel sm = cm.createCompatibleSampleModel(img.getWidth(), img.getHeight());
-      DataBufferByte db = new DataBufferByte(img.getWidth() * img.getHeight() * 4);
-      WritableRaster r = WritableRaster.createWritableRaster(sm, db, new Point(0, 0));
-      cvImg = new BufferedImage(cm, r, false, null);
-      timer.lap("empty");
-      // convertBufferedImageToByteArray(cvImg)
-      Graphics2D g = cvImg.createGraphics();
-      g.drawImage(img, 0, 0, null);
-      g.dispose();
-      timer.lap("created");
-      data = ((DataBufferByte) cvImg.getRaster().getDataBuffer()).getData();
-      mat_ref.put(0, 0, data);
-      Mat mat = new Mat();
-      timer.lap("filled");
-      Imgproc.cvtColor(mat_ref, mat, Imgproc.COLOR_RGBA2BGR, 3);
-      timer.end();
-      return mat;
-    } else {
-      return null;
-    }
-  }
-
-  protected static byte[] convertBufferedImageToByteArray(BufferedImage img) {
-    if (img != null) {
-      BufferedImage cvImg = createBufferedImage(img.getWidth(), img.getHeight());
-      Graphics2D g = cvImg.createGraphics();
-      g.drawImage(img, 0, 0, null);
-      g.dispose();
-      return ((DataBufferByte) cvImg.getRaster().getDataBuffer()).getData();
-    } else {
-      return null;
-    }
-  }
-
-  protected static BufferedImage createBufferedImage(int w, int h) {
-    ColorSpace cs = ColorSpace.getInstance(ColorSpace.CS_sRGB);
-    int[] nBits = {8, 8, 8, 8};
-    ColorModel cm = new ComponentColorModel(cs, nBits, true, false, Transparency.TRANSLUCENT, DataBuffer.TYPE_BYTE);
-    SampleModel sm = cm.createCompatibleSampleModel(w, h);
-    DataBufferByte db = new DataBufferByte(w * h * 4);
-    WritableRaster r = WritableRaster.createWritableRaster(sm, db, new Point(0, 0));
-    BufferedImage bm = new BufferedImage(cm, r, false, null);
-    return bm;
   }
 }
