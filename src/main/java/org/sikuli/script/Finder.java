@@ -164,7 +164,7 @@ public class Finder implements Iterator<Match> {
   public String find(Pattern aPtn) {
     if (aPtn.isValid()) {
       _pattern = aPtn;
-      _findInput.setTarget(aPtn.getImage().getMat());
+      _findInput.setTarget(aPtn.getImage().getMatNative());
       _findInput.setSimilarity(aPtn.getSimilar());
       _results = Vision.find(_findInput);
       _cur_result_i = 0;
@@ -176,7 +176,7 @@ public class Finder implements Iterator<Match> {
   
   public String find(Image img) {
     if (img.isValid()) {
-      _findInput.setTarget(img.getMat());
+      _findInput.setTarget(img.getMatNative());
       _findInput.setSimilarity(Settings.MinSimilarity);
       _results = Vision.find(_findInput);
       _cur_result_i = 0;
@@ -236,7 +236,7 @@ public class Finder implements Iterator<Match> {
   public String findAll(Pattern aPtn)  {
     if (aPtn.isValid()) {
       _pattern = aPtn;
-      _findInput.setTarget(aPtn.getImage().getMat());
+      _findInput.setTarget(aPtn.getImage().getMatNative());
       _findInput.setSimilarity(aPtn.getSimilar());
       _findInput.setFindAll(true);
       Debug timing = new Debug();
@@ -252,7 +252,7 @@ public class Finder implements Iterator<Match> {
 
   public String findAll(Image img)  {
     if (img.isValid()) {
-      _findInput.setTarget(img.getMat());
+      _findInput.setTarget(img.getMatNative());
       _findInput.setSimilarity(Settings.MinSimilarity);
       _findInput.setFindAll(true);
       Debug timing = new Debug();

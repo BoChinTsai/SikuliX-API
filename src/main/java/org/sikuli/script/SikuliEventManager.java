@@ -293,12 +293,12 @@ public class SikuliEventManager {
   private void checkChanges(ScreenImage img) {
     if (Settings.UseImageFinder) { 
       if (_lastImageMat.empty()) {
-        _lastImageMat = ImageFinder.createMat(img.getImage());
+        _lastImageMat = Image.createMat(img.getImage());
         return;
       }
       ImageFinder f = new ImageFinder(_lastImageMat);
       f.setMinChanges(_minChanges);
-      org.opencv.core.Mat current = ImageFinder.createMat(img.getImage());
+      org.opencv.core.Mat current = Image.createMat(img.getImage());
       if (f.hasChanges(current)) {
         //TODO implement ChangeObserver: processing changes
         Debug.log(3, "ChangeObserver: processing changes");
