@@ -21,6 +21,13 @@ import org.sikuli.basics.Debug;
 import org.sikuli.basics.FileManager;
 import org.sikuli.basics.Settings;
 
+/**
+ * This class is currently used to locate image files in the filesystem <br />
+ * and in the internet (the files are cached locally) <br />
+ * 
+ * @deprecated will completely replaced by the classes Image and ImagePath
+ */
+@Deprecated
 public class ImageLocator {
 
     static ArrayList<String> pathList = new ArrayList<String>();

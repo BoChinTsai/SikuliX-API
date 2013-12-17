@@ -6,6 +6,23 @@
  */
 package org.sikuli.script;
 
+/**
+ *
+ * Use this class to implement call back methods for the Region observers <br />
+ * onAppear, onVanish and onChange <br />
+ * by overriding the contained empty methods appeared, vanished and changed
+ * 
+ * example:<br />
+ * aRegion.onAppear(anImage, <br />
+ *   new ObserverCallBack() { <br />
+ *     @Override <br />
+ *     appeared(SikuliEvent e) { <br />
+ *       // do something
+ *     }
+ *   }
+ * );
+ * when the image appears, your above call back appeared() will be called
+ */
 public class ObserverCallBack implements SikuliEventObserver {
 
   @Override

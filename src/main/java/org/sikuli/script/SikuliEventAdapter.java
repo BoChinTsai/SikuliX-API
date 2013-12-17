@@ -6,6 +6,11 @@
  */
 package org.sikuli.script;
 
+/**
+ *
+ * @deprecated use ObserverCallBack instead
+ */
+@Deprecated
 public class SikuliEventAdapter implements SikuliEventObserver {
 
   @Override
