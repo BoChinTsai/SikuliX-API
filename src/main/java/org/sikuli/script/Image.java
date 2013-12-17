@@ -56,7 +56,7 @@ import org.sikuli.natives.Vision;
 public class Image {
   
   static {
-    FileManager.loadLibrary("opencv_java247");
+//    FileManager.loadLibrary("opencv_java247");
   }
 
   private static String me = "Image";
