@@ -8,18 +8,16 @@ import org.sikuli.basics.Debug;
 import org.sikuli.basics.Settings;
 
 /**
- * Main pupose is to coordinate the mouse usage among threads
- * At any one time, the mouse has one owner (usually a Region object)
- * who exclusively uses the mouse, all others wait for the mouse to be free again
- * if more than on possible owner is waiting, the next owner is uncertain
- * It is detected, when the mouse is moved outside the script, which can be 
- * used for appropriate actions (e.g. pause a script)
+ * Main pupose is to coordinate the mouse usage among threads <br />
+ * At any one time, the mouse has one owner (usually a Region object) <br />
+ * who exclusively uses the mouse, all others wait for the mouse to be free again <br />
+ * if more than one possible owner is waiting, the next owner is uncertain <br />
+ * It is detected, when the mouse is moved external from the workflow, which can be
+ * used for appropriate actions (e.g. pause a script) <br />
  * the mouse can be blocked for a longer time, so only this owner can use
- * the mouse (like some transactional processing)
- * Currently deadlocks and infinite waits are not detected, but should not happen ;-)
+ * the mouse (like some transactional processing) <br />
+ * Currently deadlocks and infinite waits are not detected, but should not happen ;-) <br />
  * Contained are methods to use the mouse (click, move, button down/up) as is
- * 
- * @author RaiMan
  */
 public class Mouse {
 
@@ -73,20 +71,22 @@ public class Mouse {
   }
 
   /**
-   * what to do if mouse is moved outside Sikuli's mouse protection +br
-   * - Mouse.MouseMovedIgnore (0) ignore it (default) +br
-   * - Mouse.MouseMovedShow (1) show and ignore it +br
-   * - Mouse.MouseMovedPause (2) show it and pause until user says continue +br
-   * - Mouse.MouseMovedAction (3) perform a user defined action (not implemented yet, currently 0) +br 
+   * what to do if mouse is moved outside Sikuli's mouse protection <br />
+   * - Mouse.MouseMovedIgnore (0) ignore it (default) <br />
+   * - Mouse.MouseMovedShow (1) show and ignore it <br />
+   * - Mouse.MouseMovedPause (2) show it and pause until user says continue <br />
+   * - Mouse.MouseMovedAction (3) perform a user defined action <br />
+   * 2 and 3 not implemented yet, 1 is used <br /> 
    * 
    * @param mouseMovedResponse
    */
   public static void setMouseMovedResponse(int mouseMovedResponse) {
-    Mouse.mouseMovedResponse = mouseMovedResponse;
+//TODO implement 2 and 3 
+    Mouse.mouseMovedResponse = Math.max(1, Math.max(0,mouseMovedResponse));
   }
 
   /**
-   * to block the mouse globally +br
+   * to block the mouse globally <br />
    * only the contained mouse methods without owner will be granted
    * 
    * @return success
@@ -96,7 +96,7 @@ public class Mouse {
   }
 
   /**
-   * to block the mouse globally for the given owner +br
+   * to block the mouse globally for the given owner <br />
    * only the contained mouse methods having the same owner will be granted
    * 
    * @return success
@@ -255,13 +255,13 @@ public class Mouse {
    * to click (left, right, middle - single or double) at the given location using the given button
    * only useable for local screens
    * 
-   * timing parameters: +br
-   * - one value +br
-   * &lt; 0 wait before mouse down +br
-   * &gt; 0 wait after mouse up +br
+   * timing parameters: <br />
+   * - one value <br />
+   * &lt; 0 wait before mouse down <br />
+   * &gt; 0 wait after mouse up <br />
    * - 2 or 3 values
-   * 1st wait before mouse down +br
-   * 2nd wait after mouse up +br
+   * 1st wait before mouse down <br />
+   * 2nd wait after mouse up <br />
    * 3rd inner wait (milli secs, cut to 1000): pause between mouse down and up (Settings.ClickDelay) 
    * 
    * wait before and after: &gt; 59 taken as milli secs - ;lt& are seconds
@@ -445,7 +445,7 @@ public class Mouse {
   }
 
   /**
-   * move mouse using mouse wheel in the given direction the given steps +br
+   * move mouse using mouse wheel in the given direction the given steps <br />
    * the result is system dependent
    * 
    * @param direction
