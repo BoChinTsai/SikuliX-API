@@ -11,9 +11,9 @@
 
 	<parent>
 		<groupId>org.sikuli</groupId>
-		<artifactId>SikuliX-API-POM</artifactId>
+		<artifactId>SikuliX-POM</artifactId>
 		<version>1.1.0</version>
-		<relativePath>src/main/assembly</relativePath>
+		<relativePath>../SikuliX</relativePath>
 	</parent>
 
   <modelVersion>4.0.0</modelVersion>
@@ -22,6 +22,16 @@
   <artifactId>SikuliX-API</artifactId>
   <version>1.1.0</version>
 
-  <name>SikuliX-API</name>
-
+  <dependencies>
+    <dependency>
+      <groupId>org.sikuli</groupId>
+      <artifactId>SikuliX-Basics</artifactId>
+      <version>1.1.0</version>
+    </dependency>
+    <dependency>
+      <groupId>org.sikuli</groupId>
+      <artifactId>SikuliX-OpenCV</artifactId>
+      <version>2.4.7</version>
+    </dependency>
+	</dependencies>
 </project>

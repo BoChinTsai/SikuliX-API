@@ -23,3 +23,7 @@ nb-configuration.xml
 ._.*
 
 *.png
+/target-java/
+/target-script/
+/target-java-complete/
+/target-script-complete/

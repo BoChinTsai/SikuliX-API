@@ -11,26 +11,52 @@
 
 	<parent>
 		<groupId>org.sikuli</groupId>
-		<artifactId>SikuliX-API-POM</artifactId>
+		<artifactId>SikuliX-POM</artifactId>
 		<version>1.1.0</version>
-		<relativePath>src/main/assembly</relativePath>
+		<relativePath>../SikuliX</relativePath>
 	</parent>
 
 	<modelVersion>4.0.0</modelVersion>
+
 	<groupId>org.sikuli</groupId>
-	<artifactId>SikuliX-Java</artifactId>
-	<version>1.1.0</version>
+	<artifactId>SikuliX-Script</artifactId>
+	<version>1.1.0-Beta1</version>
+
+	<dependencies>
+    <dependency>
+      <groupId>org.sikuli</groupId>
+      <artifactId>SikuliX-OpenCV</artifactId>
+      <version>2.4.7</version>
+    </dependency>
+    <dependency>
+			<groupId>org.sikuli</groupId>
+			<artifactId>SikuliX-Jython</artifactId>
+			<version>1.1.0</version>
+		</dependency>
+		<dependency>
+			<groupId>org.python</groupId>
+			<artifactId>jython-standalone</artifactId>
+			<version>2.7-b1</version>
+		</dependency>
+	</dependencies>
 
 	<build>
+    <defaultGoal>clean package</defaultGoal>
+    <directory>target-script</directory>
 		<plugins>
 			<plugin>
 				<artifactId>maven-assembly-plugin</artifactId>
 				<version>2.4</version>
 				<configuration>
+					<archive>
+						<manifest>
+							<mainClass>org.sikuli.basics.SikuliScript</mainClass>
+						</manifest>
+					</archive>
 					<descriptorRefs>
 						<descriptorRef>jar-with-dependencies</descriptorRef>
 					</descriptorRefs>
-					<finalName>sikuli-java</finalName>
+					<finalName>${project.version}-2</finalName>
 				</configuration>
 				<executions>
 					<execution>
